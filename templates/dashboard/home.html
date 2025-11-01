@@ -1,43 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard | UST Ticket System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+{% extends 'base.html' %}
+{% block content %}
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-success">
-  <div class="container">
-    <a class="navbar-brand" href="#">UST Ticket System</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav ms-auto">
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-white" href="#">MyTomasino</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
         <li class="nav-item">
-          <span class="navbar-text text-white me-3">Welcome, {{ user.username }}</span>
+          <a class="nav-link text-white" href="#">Tickets</a>
         </li>
         <li class="nav-item">
-          <a class="btn btn-outline-light" href="{% url 'user:login' %}?logout=1">Logout</a>
+          <a class="nav-link text-white" href="#">History</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="#">Notifications</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="#">Help</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white fw-semibold" href="{% url 'user:logout' %}">Logout</a>
         </li>
       </ul>
     </div>
   </div>
 </nav>
 
-<div class="container mt-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-success text-white">
-            <h3>Dashboard</h3>
-        </div>
-        <div class="card-body">
-            <p>Hello <strong>{{ user.username }}</strong>! Welcome to your dashboard.</p>
-            <p>You can add tickets, view notifications, and manage your account here.</p>
-
-            <a href="{% url 'user:logout' %}" class="btn btn-outline-light">Logout</a>
-
-        </div>
-    </div>
+<!-- Main Content Area -->
+<div class="container mt-5 text-center">
+  <h2 class="text-muted">Welcome to the Dashboard</h2>
+  <p class="lead">This area will soon display your tickets, notifications, and more.</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

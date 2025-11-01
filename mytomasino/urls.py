@@ -25,4 +25,5 @@ urlpatterns = [
     path('user/', include('user.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('', lambda request: redirect('user:login')),
+    path('admin-panel/', include('admin_panel.urls')),
 ]

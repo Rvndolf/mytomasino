@@ -12,7 +12,7 @@ class EmailVerificationForm(forms.Form):
 
 class RegisterForm(forms.Form):
     email = forms.EmailField(
-        label="UST Legazpi Email",
+        label="Email",
         widget=forms.EmailInput(attrs={'placeholder': 'yourname@ust-legazpi.edu.ph', 'class':'form-control'})
     )
     password = forms.CharField(
@@ -43,7 +43,7 @@ class RegisterForm(forms.Form):
 
 class LoginForm(forms.Form):
     email = forms.EmailField(
-        label="UST Legazpi Email",
+        label="Email",
         widget=forms.EmailInput(attrs={'placeholder': 'yourname@ust-legazpi.edu.ph', 'class':'form-control'})
     )
     password = forms.CharField(
