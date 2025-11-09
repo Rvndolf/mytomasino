@@ -1,14 +1,200 @@
-{% extends 'dashboard_base.html' %}
-
-{% block title %}Dashboard Home{% endblock %}
-
+{% extends "dashboard_base.html" %}
+{% load static %}
 {% block content %}
-  <div class="text-center">
-    <h2 class="text-success fw-semibold">Welcome, {{ user.first_name }}!</h2>
-    <p class="text-muted mt-2">This is your dashboard home page.</p>
-    
-    <div class="mt-5">
-      <h5>Your account overview will appear here soon.</h5>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-4 mb-4">
+      <div class="card border-0 shadow-sm p-4 text-center">
+        <img
+          src="{% if request.user.profile.profile_picture %}{{ request.user.profile.profile_picture.url }}{% else %}{% static 'img/default_profile.jpg' %}{% endif %}"
+          alt="Profile Picture"
+          class="rounded-circle mb-3 border"
+          style="width: 120px; height: 120px; object-fit: cover;"
+        />
+        <h4 class="fw-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
+        <p class="text-muted mb-0">{{ request.user.email }}</p>
+
+        <hr class="my-3" />
+        <p class="text-secondary small mb-0">
+          Member since {{ request.user.date_joined|date:"F Y" }}
+        </p>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm p-4">
+        <h4 class="fw-bold mb-3">Settings</h4>
+
+        <ul class="nav nav-tabs mb-3" id="settingsTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-settings" type="button" role="tab">
+              Profile
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab">
+              Preferences
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-settings" type="button" role="tab">
+              Security
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="settingsTabContent">
+          <!-- Profile Settings Tab -->
+          <div class="tab-pane fade show active" id="profile-settings" role="tabpanel">
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+
+              <!-- Read-only School Managed Fields -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Full Name</label>
+                <input type="text" class="form-control" value="{{ request.user.get_full_name|default:request.user.username }}" readonly>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Email Address</label>
+                <input type="email" class="form-control" value="{{ request.user.email }}" readonly>
+              </div>
+
+              <hr class="my-3" />
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">ID Number</label>
+                <input type="text" class="form-control" name="id_number" 
+                       maxlength="9" pattern="\d{1,9}"
+                       title="ID Number must contain up to 9 digits only"
+                       placeholder="Enter your ID number"
+                       value="{{ request.user.profile.id_number|default_if_none:'' }}">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Department</label>
+                <select class="form-select" name="department" required>
+                  <option value="">-- Select Department --</option>
+                  <option value="JHS" {% if request.user.profile.department == 'JHS' %}selected{% endif %}>Junior High School</option>
+                  <option value="SHS" {% if request.user.profile.department == 'SHS' %}selected{% endif %}>Senior High School</option>
+                  <option value="CASE" {% if request.user.profile.department == 'CASE' %}selected{% endif %}>College of Arts, Sciences, and Education (CASE)</option>
+                  <option value="CHS" {% if request.user.profile.department == 'CHS' %}selected{% endif %}>College of Health Sciences (CHS)</option>
+                  <option value="CEAFA" {% if request.user.profile.department == 'CEAFA' %}selected{% endif %}>College of Engineering, Fine Arts, and Architecture (CEAFA)</option>
+                  <option value="CBMA" {% if request.user.profile.department == 'CBMA' %}selected{% endif %}>College of Business Management and Accountancy (CBMA)</option>
+                </select>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Contact Number</label>
+                <input type="text" class="form-control" name="contact_number"
+                       pattern="^\+63\d{10}$"
+                       maxlength="13"
+                       title="Format must start with +63 followed by 10 digits (e.g., +639123456789)"
+                       placeholder="+63"
+                       value="{{ request.user.profile.contact_number|default_if_none:'' }}">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Address</label>
+                <textarea class="form-control" name="address" rows="2" placeholder="Enter your address">{{ request.user.profile.address|default_if_none:'' }}</textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Profile Picture</label>
+                <input type="file" class="form-control" name="profile_picture">
+              </div>
+
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+          </div>
+
+          <div class="tab-pane fade" id="preferences" role="tabpanel">
+            <form method="post">
+              {% csrf_token %}
+
+              <h6 class="fw-bold mb-2">Notification Settings</h6>
+              <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" id="emailNotifSwitch" name="email_notifications"
+                       {% if request.user.profile.email_notifications %}checked{% endif %}>
+                <label class="form-check-label" for="emailNotifSwitch">Receive Email Notifications</label>
+              </div>
+
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="smsNotifSwitch" name="sms_notifications"
+                       {% if request.user.profile.sms_notifications %}checked{% endif %}>
+                <label class="form-check-label" for="smsNotifSwitch">Receive SMS Notifications</label>
+              </div>
+
+              <hr class="my-3">
+
+              <h6 class="fw-bold mb-2">Localization Settings</h6>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Language</label>
+                <select class="form-select" name="language_preference">
+                  <option value="en" {% if request.user.profile.language_preference == "en" %}selected{% endif %}>English</option>
+                  <option value="fil" {% if request.user.profile.language_preference == "fil" %}selected{% endif %}>Filipino</option>
+                  <option value="es" {% if request.user.profile.language_preference == "es" %}selected{% endif %}>Spanish</option>
+                  <option value="zh" {% if request.user.profile.language_preference == "zh" %}selected{% endif %}>Chinese</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Region</label>
+                <select class="form-select" name="region">
+                  <option value="asia-ph" {% if request.user.profile.region == "asia-ph" %}selected{% endif %}>Philippines</option>
+                  <option value="asia-sg" {% if request.user.profile.region == "asia-sg" %}selected{% endif %}>Singapore</option>
+                  <option value="us" {% if request.user.profile.region == "us" %}selected{% endif %}>United States</option>
+                  <option value="eu" {% if request.user.profile.region == "eu" %}selected{% endif %}>Europe</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Date Format</label>
+                <select class="form-select" name="date_format">
+                  <option value="MM/DD/YYYY" {% if request.user.profile.date_format == "MM/DD/YYYY" %}selected{% endif %}>MM/DD/YYYY</option>
+                  <option value="DD/MM/YYYY" {% if request.user.profile.date_format == "DD/MM/YYYY" %}selected{% endif %}>DD/MM/YYYY</option>
+                  <option value="YYYY-MM-DD" {% if request.user.profile.date_format == "YYYY-MM-DD" %}selected{% endif %}>YYYY-MM-DD</option>
+                </select>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Number Format</label>
+                <select class="form-select" name="number_format">
+                  <option value="1,000.00" {% if request.user.profile.number_format == "1,000.00" %}selected{% endif %}>1,000.00 (Comma for thousands)</option>
+                  <option value="1.000,00" {% if request.user.profile.number_format == "1.000,00" %}selected{% endif %}>1.000,00 (Dot for thousands)</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn-success">Save Preferences</button>
+            </form>
+          </div>
+
+          <div class="tab-pane fade" id="security-settings" role="tabpanel">
+            <form method="post">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Current Password</label>
+                <input type="password" class="form-control" name="current_password" placeholder="Enter current password" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">New Password</label>
+                <input type="password" class="form-control" name="new_password1" placeholder="Enter new password" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Confirm New Password</label>
+                <input type="password" class="form-control" name="new_password2" placeholder="Confirm new password" required>
+              </div>
+
+              <button type="submit" class="btn btn-warning">Update Password</button>
+            </form>
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
+</div>
 {% endblock %}
