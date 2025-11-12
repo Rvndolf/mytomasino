@@ -1,6 +1,4 @@
-{% extends "dashboard_base.html" %}
 {% load static %}
-{% block content %}
 <div class="container mt-4">
   <div class="row">
 
@@ -161,35 +159,4 @@
                 </select>
               </div>
 
-              <button type="submit" class="btn btn-success">Save Preferences</button>
-            </form>
-          </div>
-
-          <div class="tab-pane fade" id="security-settings" role="tabpanel">
-            <form method="post">
-              {% csrf_token %}
-              <input type="hidden" name="form_type" value="security">
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Current Password</label>
-                <input type="password" class="form-control" name="current_password" placeholder="Enter current password" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-semibold">New Password</label>
-                <input type="password" class="form-control" name="new_password1" placeholder="Enter new password" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Confirm New Password</label>
-                <input type="password" class="form-control" name="new_password2" placeholder="Confirm new password" required>
-              </div>
-              <button type="submit" class="btn btn-warning">Update Password</button>
-            </form>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-{% endblock %}
+              <button type="submit" class="btn btn-suc

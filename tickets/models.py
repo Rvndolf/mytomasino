@@ -2,8 +2,19 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Ticket(models.Model):
-    CATEGORY_CHOICES = [('academics','Academics'),('facilities','Facilities'),('support','Support'), ('faculty','Faculty')]
-    STATUS_CHOICES = [('open','Open'),('in_progress','In Progress'),('completed','Completed')]
+    CATEGORY_CHOICES = [
+        ('academic', 'Academic and Enrollment Concerns'),
+        ('technical', 'Technical / Account Support'),
+        ('facilities', 'Facilities and Maintenance'),
+        ('lostfound', 'Lost and Found'),
+        ('welfare', 'Student Welfare and Counselling'),
+    ]
+
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+    ]
 
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -14,8 +25,12 @@ class Ticket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def ticket_id(self):
+        return f"TCKT-{self.pk:04d}"
+    
     def __str__(self):
         return self.title
+
 
 class TicketHistory(models.Model):
     ticket = models.ForeignKey(
@@ -32,9 +47,5 @@ class TicketHistory(models.Model):
         return f"{self.ticket_title or 'Deleted ticket'} - {self.action}"
 
 
-class Notification(models.Model):
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
-    message = models.CharField(max_length=200)
-    read = models.BooleanField(default=False)
-    timestamp = models.DateTimeField(auto_now_add=True)
+
 

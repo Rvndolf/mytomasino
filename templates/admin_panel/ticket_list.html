@@ -1,0 +1,103 @@
+{% extends "admin_panel_base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+  <h3 class="mb-4">Tickets</h3>
+
+  <div class="d-flex gap-4">
+
+    <!-- CATEGORY FILTER BUTTONS (LEFT COLUMN) -->
+    <div class="d-flex flex-column gap-2">
+      <span class="fw-bold mb-1">Filter by Category:</span>
+
+      {% if request.user.is_superuser %}
+        {% for key, label in categories %}
+          {% if key in active_categories %}
+            <a href="{% url 'admin_panel:ticket_list' %}?status={{ status_filter|default_if_none:'' }}{% for cat in active_categories %}{% if cat != key %}&categories={{ cat }}{% endif %}{% endfor %}" 
+               class="btn btn-primary rounded-pill">
+              {{ label }}
+            </a>
+          {% else %}
+            <a href="{% url 'admin_panel:ticket_list' %}?status={{ status_filter|default_if_none:'' }}{% for cat in active_categories %}&categories={{ cat }}{% endfor %}&categories={{ key }}" 
+               class="btn btn-outline-primary rounded-pill">
+              {{ label }}
+            </a>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {% comment %}Staff sees only their office{% endcomment %}
+        {% with staff_office=request.user.staffprofile.office.name %}
+          <button class="btn btn-primary rounded-pill" disabled>{{ staff_office }}</button>
+        {% endwith %}
+      {% endif %}
+    </div>
+
+    <!-- MAIN CONTENT COLUMN -->
+    <div class="flex-grow-1">
+
+      <!-- STATUS FILTER BUTTONS -->
+      <div class="d-flex gap-2 mb-3">
+        {% comment %}Use the status_choices from the view{% endcomment %}
+        {% for status_key, status_label, status_class in status_choices %}
+          <a href="{% url 'admin_panel:ticket_list' %}?status={{ status_key }}{% for cat in active_categories %}&categories={{ cat }}{% endfor %}" 
+             class="btn {% if status_filter == status_key %}btn-{{ status_class }}{% else %}btn-outline-{{ status_class }}{% endif %} rounded-pill">
+            {{ status_label }}
+          </a>
+        {% endfor %}
+      </div>
+
+      <!-- TICKETS TABLE -->
+      <div id="ticket-table" class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">Ticket ID</th>
+              <th scope="col">Title</th>
+              <th scope="col">Category</th>
+              <th scope="col">Status</th>
+              <th scope="col">Created By</th>
+              <th scope="col">Created At</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticket in tickets %}
+            <tr>
+              <td>{{ ticket.ticket_id }}</td>
+              <td>{{ ticket.title }}</td>
+              <td>{{ ticket.get_category_display|default:"N/A" }}</td>
+              <td>
+                {% if ticket.status == 'open' %}
+                  <span class="badge bg-primary rounded-pill">Open</span>
+                {% elif ticket.status == 'in_progress' %}
+                  <span class="badge bg-warning rounded-pill">In Progress</span>
+                {% elif ticket.status == 'completed' %}
+                  <span class="badge bg-success rounded-pill">Completed</span>
+                {% endif %}
+              </td>
+              <td>{{ ticket.created_by.get_full_name|default:ticket.created_by.username|default:"Unknown" }}</td>
+              <td>{{ ticket.created_at|date:"M d, Y H:i" }}</td>
+              <td class="d-flex gap-2">
+                <a href="{% url 'admin_panel:update_ticket' ticket.pk %}" class="btn btn-sm btn-outline-warning">
+                  ✏️ Update Status
+                </a>
+                <a href="{% url 'admin_panel:delete_ticket' ticket.pk %}" class="btn btn-sm btn-outline-danger">
+                  🗑 Delete
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center">No tickets found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

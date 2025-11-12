@@ -1,0 +1,40 @@
+<div class="container mt-4">
+  <div class="card shadow-sm p-4 border-0">
+    <h3 class="mb-4">Update Ticket: {{ ticket.title }}</h3>
+
+    <form hx-post="{% url 'tickets:update_ticket' ticket.pk %}"
+          hx-target="#dashboard-content"
+          hx-swap="innerHTML"
+          hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Title</label>
+        {{ form.title }}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Category</label>
+        {{ form.category }}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Description</label>
+        {{ form.description }}
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}"
+           hx-target="#dashboard-content"
+           hx-swap="innerHTML"
+           class="btn btn-secondary">
+          Cancel
+        </a>
+
+        <button type="submit" class="btn btn-warning">
+          Update Ticket
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

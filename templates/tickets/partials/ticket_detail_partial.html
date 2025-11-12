@@ -1,0 +1,38 @@
+<div class="container mt-4">
+
+  <div class="card shadow-sm border-0 p-4 mb-4">
+    <h2 class="fw-bold mb-2">{{ ticket.title }}</h2>
+    <p class="text-muted mb-3">Created on {{ ticket.created_at|date:"M d, Y h:i A" }}</p>
+
+    <p class="mb-1"><strong>Category:</strong> {{ ticket.get_category_display }}</p>
+    <p class="mb-0"><strong>Description:</strong></p>
+    <p class="text-muted">{{ ticket.description }}</p>
+  </div>
+
+  <div class="d-flex justify-content-between mt-4">
+    <a hx-get="{% url 'tickets:ticket_overview' %}"
+       hx-target="#dashboard-content"
+       hx-swap="innerHTML"
+       hx-push-url="{% url 'tickets:ticket_overview' %}"
+       class="btn btn-outline-secondary">
+      ← Back to My Tickets
+    </a>
+    <div class="d-flex gap-2">
+      <a hx-get="{% url 'tickets:update_ticket' ticket.pk %}"
+         hx-target="#dashboard-content"
+         hx-swap="innerHTML"
+         hx-push-url="{% url 'tickets:update_ticket' ticket.pk %}"
+         class="btn btn-outline-warning">
+        ✏️ Update Ticket
+      </a>
+      <a hx-get="{% url 'tickets:delete_ticket' ticket.pk %}"
+         hx-target="#dashboard-content"
+         hx-swap="innerHTML"
+         hx-push-url="{% url 'tickets:delete_ticket' ticket.pk %}"
+         class="btn btn-outline-danger">
+        🗑 Delete Ticket
+      </a>
+    </div>
+  </div>
+
+</div>

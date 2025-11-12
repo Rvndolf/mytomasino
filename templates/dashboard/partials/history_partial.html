@@ -1,0 +1,39 @@
+<div class="container mt-4">
+  <div class="card shadow-sm border-0 p-4">
+    <h2 class="fw-bold mb-4">Recent Ticket Activity</h2>
+
+    {% if history_entries %}
+      <ul class="list-group list-group-flush">
+        {% for entry in history_entries %}
+          <li class="list-group-item d-flex justify-content-between align-items-start
+                     {% if entry.ticket is None %}text-muted{% endif %}">
+            <div>
+              <strong>
+                {% if entry.ticket %}
+                  {{ entry.ticket.title }}
+                {% else %}
+                  {{ entry.ticket_title }}
+                {% endif %}
+              </strong>
+              
+              {% if "created" in entry.action %}
+                <span class="badge bg-success ms-2">Created</span>
+              {% elif "updated" in entry.action %}
+                <span class="badge bg-warning text-dark ms-2">Updated</span>
+              {% elif "completed" in entry.action %}
+                <span class="badge bg-primary ms-2">Completed</span>
+              {% elif "deleted" in entry.action %}
+                <span class="badge bg-danger ms-2">Deleted</span>
+              {% endif %}
+
+              <p class="mb-0 text-muted">{{ entry.action }}</p>
+            </div>
+            <small class="text-muted">{{ entry.timestamp|date:"M d, Y h:i A" }}</small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted mb-0">No recent activity found.</p>
+    {% endif %}
+  </div>
+</div>

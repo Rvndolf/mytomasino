@@ -1,0 +1,123 @@
+<div class="container mt-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3>Your Tickets</h3>
+      <a hx-get="{% url 'tickets:create_ticket' %}" 
+         hx-target="#dashboard-content" 
+         hx-swap="innerHTML" 
+         hx-push-url="{% url 'tickets:create_ticket' %}" 
+         class="btn btn-primary">
+        Create Ticket
+      </a>
+  </div>
+  
+  <!-- Accordion Filter -->
+  <div class="accordion shadow-sm rounded" id="ticketAccordion">
+
+    <!-- 🟢 Open Tickets -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingOpen">
+        <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse"
+          data-bs-target="#collapseOpen" aria-expanded="true">
+          🟢 Open Tickets
+        </button>
+      </h2>
+      <div id="collapseOpen" class="accordion-collapse collapse show" data-bs-parent="#ticketAccordion">
+        <div class="accordion-body">
+          {% if open_tickets %}
+            <ul class="list-group list-group-flush">
+              {% for ticket in open_tickets %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ ticket.title }}</strong><br>
+                    <small class="text-muted">{{ ticket.category|capfirst }} • {{ ticket.created_at|date:"M d, Y" }}</small>
+                  </div>
+                  <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
+                     hx-target="#dashboard-content" 
+                     hx-swap="innerHTML" 
+                     hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}" 
+                     class="btn btn-sm btn-outline-success">
+                     Open
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted mb-0">No open tickets.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- 🟡 In Progress Tickets -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingProgress">
+        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse"
+          data-bs-target="#collapseProgress">
+          🟡 In Progress Tickets
+        </button>
+      </h2>
+      <div id="collapseProgress" class="accordion-collapse collapse" data-bs-parent="#ticketAccordion">
+        <div class="accordion-body">
+          {% if in_progress_tickets %}
+            <ul class="list-group list-group-flush">
+              {% for ticket in in_progress_tickets %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ ticket.title }}</strong><br>
+                    <small class="text-muted">{{ ticket.category|capfirst }} • {{ ticket.created_at|date:"M d, Y" }}</small>
+                  </div>
+                  <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
+                     hx-target="#dashboard-content" 
+                     hx-swap="innerHTML" 
+                     hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}" 
+                     class="btn btn-sm btn-outline-warning">
+                     View
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted mb-0">No tickets in progress.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- 🔵 Completed Tickets -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingCompleted">
+        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse"
+          data-bs-target="#collapseCompleted">
+          🔵 Completed Tickets
+        </button>
+      </h2>
+      <div id="collapseCompleted" class="accordion-collapse collapse" data-bs-parent="#ticketAccordion">
+        <div class="accordion-body">
+          {% if completed_tickets %}
+            <ul class="list-group list-group-flush">
+              {% for ticket in completed_tickets %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ ticket.title }}</strong><br>
+                    <small class="text-muted">{{ ticket.category|capfirst }} • {{ ticket.created_at|date:"M d, Y" }}</small>
+                  </div>
+                  <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
+                     hx-target="#dashboard-content" 
+                     hx-swap="innerHTML" 
+                     hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}" 
+                     class="btn btn-sm btn-outline-primary">
+                     View
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted mb-0">No completed tickets.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -15,6 +15,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 from .forms import RegisterForm, LoginForm, EmailVerificationForm
 from .models import EmailVerification
+from admin_panel import views as views
 
 
 def send_verification_email(email, code):
@@ -107,31 +108,38 @@ def verify_email_view(request):
     return render(request, 'user/verify_email.html', {'form': form, 'email': email})
 
 def login_view(request):
+    
     if request.user.is_authenticated:
+        if request.user.is_superuser or request.user.is_staff:
+            return redirect('admin_panel:admin_home')
         return redirect('dashboard:home')
-     
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
 
-            user = authenticate(request, username=email, password=password)
-            if user is not None:
+    form = LoginForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        email = form.cleaned_data['email']
+        password = form.cleaned_data['password']
+
+        try:
+            user_obj = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user_obj = None
+
+        
+        if user_obj and (email.endswith('@ust-legazpi.edu.ph') or user_obj.is_superuser or user_obj.is_staff):
+            
+            user = authenticate(request, username=user_obj.username, password=password)
+            if user:
                 login(request, user)
                 messages.success(request, "Logged in successfully!")
+
+                if user.is_superuser or user.is_staff:
+                    return redirect('admin_panel:admin_home')
                 return redirect('dashboard:home')
             else:
-                try:
-                    existing_user = User.objects.get(username=email)
-                    if not existing_user.is_active:
-                        messages.error(request, "Your account is not activated. Please verify your email.")
-                    else:
-                        messages.error(request, "Invalid email or password.")
-                except User.DoesNotExist:
-                    messages.error(request, "Invalid email or password.")
-    else:
-        form = LoginForm()
+                messages.error(request, "Invalid email or password.")
+        else:
+            messages.error(request, "Email must be a @ust-legazpi.edu.ph account.")
 
     return render(request, 'user/login.html', {'form': form})
 
@@ -149,7 +157,7 @@ def password_reset_request(request):
             subject = "Reset your MyTomasino password"
             context = {
                 'user': user,
-                'domain': '127.0.0.1:8000',  # change to your actual domain in production
+                'domain': '127.0.0.1:8000',  
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': default_token_generator.make_token(user),
                 'protocol': 'http',
