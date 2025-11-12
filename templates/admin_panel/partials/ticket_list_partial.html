@@ -1,0 +1,38 @@
+{% for ticket in tickets %}
+<tr id="ticket-{{ ticket.pk }}">
+  <td>{{ ticket.ticket_id }}</td>
+  <td>{{ ticket.title }}</td>
+  <td>{{ ticket.get_category_display|default:"N/A" }}</td>
+  <td>
+    {% if ticket.status == 'open' %}
+      <span class="badge bg-primary rounded-pill">Open</span>
+    {% elif ticket.status == 'in_progress' %}
+      <span class="badge bg-warning rounded-pill">In Progress</span>
+    {% elif ticket.status == 'completed' %}
+      <span class="badge bg-success rounded-pill">Completed</span>
+    {% endif %}
+  </td>
+  <td>{{ ticket.created_by.get_full_name|default:ticket.created_by.username|default:"Unknown" }}</td>
+  <td>{{ ticket.created_at|date:"M d, Y H:i" }}</td>
+  <td class="d-flex gap-2">
+    <a 
+      hx-get="{% url 'admin_panel:update_ticket' ticket.pk %}" 
+      hx-target="#ticket-{{ ticket.pk }}" 
+      hx-swap="outerHTML"
+      class="btn btn-sm btn-outline-warning">
+      ✏️ Update Status
+    </a>
+    <a 
+      hx-get="{% url 'admin_panel:delete_ticket' ticket.pk %}" 
+      hx-target="#ticket-{{ ticket.pk }}" 
+      hx-swap="outerHTML"
+      class="btn btn-sm btn-outline-danger">
+      🗑 Delete
+    </a>
+  </td>
+</tr>
+{% empty %}
+<tr>
+  <td colspan="7" class="text-center">No tickets found.</td>
+</tr>
+{% endfor %}

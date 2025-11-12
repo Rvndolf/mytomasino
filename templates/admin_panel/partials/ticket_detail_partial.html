@@ -1,0 +1,30 @@
+<div id="ticket-detail-{{ ticket.pk }}">
+  <h4>Ticket {{ ticket.ticket_id }} - {{ ticket.title }}</h4>
+  <p><strong>Category:</strong> {{ ticket.get_category_display|default:ticket.category }}</p>
+  <p><strong>Status:</strong> {{ ticket.get_status_display|default:ticket.status|title }}</p>
+  <p><strong>Created By:</strong> {{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</p>
+  <p><strong>Assigned To:</strong> 
+    {% if ticket.assigned_to %}
+      {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+    {% else %}
+      -
+    {% endif %}
+  </p>
+  <p><strong>Description:</strong></p>
+  <p>{{ ticket.description }}</p>
+
+  <a href="{% url 'admin_panel:update_ticket' ticket.pk %}" 
+     class="btn btn-warning"
+     hx-get="{% url 'admin_panel:update_ticket' ticket.pk %}"
+     hx-target="#ticket-detail-{{ ticket.pk }}"
+     hx-swap="outerHTML">
+    Update Status
+  </a>
+  <a href="{% url 'admin_panel:ticket_list' %}" 
+     class="btn btn-secondary"
+     hx-get="{% url 'admin_panel:ticket_list' %}"
+     hx-target="#ticket-table"
+     hx-swap="innerHTML">
+    Back to Tickets
+  </a>
+</div>

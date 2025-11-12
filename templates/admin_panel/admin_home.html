@@ -1,6 +1,5 @@
 {% extends "admin_panel_base.html" %}
 
 {% block content %}
-<h1>Admin Dashboard</h1>
-<p>Welcome, {{ request.user.first_name }}! Use the navigation to manage users and tickets.</p>
+{% include "admin_panel/partials/admin_home_partial.html" %}
 {% endblock %}
