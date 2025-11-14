@@ -1,40 +1,48 @@
-<div class="container mt-4">
-  <div class="card shadow-sm p-4 border-0">
-    <h3 class="mb-4">Create New Ticket</h3>
+<div class="card shadow-sm p-4 border-0">
+  <h3 class="mb-4">Create New Ticket</h3>
 
-    <form hx-post="{% url 'tickets:create_ticket' %}"
-          hx-target="#dashboard-content"
-          hx-swap="innerHTML"
-          hx-push-url="{% url 'tickets:ticket_overview' %}">
-      {% csrf_token %}
+  <form id="ticket-form"
+        hx-post="{% url 'tickets:create_ticket' %}"
+        hx-target="#dashboard-content"
+        hx-swap="innerHTML"
+        enctype="multipart/form-data">
+    {% csrf_token %}
 
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Title</label>
-        {{ form.title }}
-      </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Category</label>
+      <select name="category" id="category-select" class="form-select"
+        hx-get="{% url 'tickets:create_ticket' %}"
+        hx-target="#dynamic-form"
+        hx-swap="innerHTML"
+        hx-trigger="change"
+        hx-include="this">
+        <option value="technical" {% if category == "technical" %}selected{% endif %}>Technical / Account Support</option>
+        <option value="academic" {% if category == "academic" %}selected{% endif %}>Academic or Enrollment</option>
+        <option value="lostfound" {% if category == "lostfound" %}selected{% endif %}>Lost and Found</option>
+        <option value="welfare" {% if category == "welfare" %}selected{% endif %}>Student Welfare and Counselling</option>
+        <option value="facilities" {% if category == "facilities" %}selected{% endif %}>Facilities and Maintenance</option>
+      </select>
+    </div>
 
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Category</label>
-        {{ form.category }}
-      </div>
+    <div id="dynamic-form">
+      {% if form %}
+        {{ form.as_p }}
+      {% else %}
+        <p class="text-muted">Please select a category to see the form fields.</p>
+      {% endif %}
+    </div>
 
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Description</label>
-        {{ form.description }}
-      </div>
+    <div class="d-flex justify-content-between mt-3">
+      <a hx-get="{% url 'tickets:ticket_overview' %}"
+         hx-target="#dashboard-content"
+         hx-swap="innerHTML"
+         class="btn btn-secondary">
+        Cancel
+      </a>
 
-      <div class="d-flex justify-content-between">
-        <a hx-get="{% url 'tickets:ticket_overview' %}"
-           hx-target="#dashboard-content"
-           hx-swap="innerHTML"
-           class="btn btn-secondary">
-          Cancel
-        </a>
-
-        <button type="submit" class="btn btn-primary">
-          Create Ticket
-        </button>
-      </div>
-    </form>
-  </div>
+      <button type="submit" class="btn btn-primary">
+        Create Ticket
+      </button>
+    </div>
+  </form>
 </div>

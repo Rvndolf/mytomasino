@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from django.db import models
+from django.contrib.auth.models import User
+
 class Ticket(models.Model):
     CATEGORY_CHOICES = [
         ('academic', 'Academic and Enrollment Concerns'),
@@ -16,6 +19,12 @@ class Ticket(models.Model):
         ('completed', 'Completed'),
     ]
 
+    URGENCY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    ]
+
     title = models.CharField(max_length=200)
     description = models.TextField()
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
@@ -24,6 +33,10 @@ class Ticket(models.Model):
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tickets_assigned')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+  
+    urgency = models.CharField(max_length=10, choices=URGENCY_CHOICES, null=True, blank=True)
+    attachment = models.FileField(upload_to='ticket_attachments/', null=True, blank=True)
 
     def ticket_id(self):
         return f"TCKT-{self.pk:04d}"
