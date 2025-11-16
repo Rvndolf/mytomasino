@@ -1,14 +1,22 @@
-{% extends "dashboard_base.html" %}
-{% load static %}
-{% block content %}
+<!-- Display Messages -->
+{% if messages %}
+  <div class="container mt-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
 <div class="container mt-4">
   <div class="row">
-
     <!-- Left Column: Profile Info -->
     <div class="col-md-4 mb-4">
       <div class="card border-0 shadow-sm p-4 text-center">
         <img
-          src="{% if request.user.profile.profile_picture %}{{ request.user.profile.profile_picture.url }}{% else %}{% static 'img/default_profile.jpg' %}{% endif %}"
+          src="{% if request.user.profile.profile_picture %}{{ request.user.profile.profile_picture.url }}{% else %}{% load static %}{% static 'img/default_profile.jpg' %}{% endif %}"
           alt="Profile Picture"
           class="rounded-circle mb-3 border"
           style="width: 120px; height: 120px; object-fit: cover;"
@@ -28,17 +36,17 @@
 
         <ul class="nav nav-tabs mb-3" id="settingsTabs" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-settings" type="button" role="tab">
+            <button class="nav-link {% if active_tab == 'profile' %}active{% endif %}" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-settings" type="button" role="tab">
               Profile
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences-settings" type="button" role="tab">
+            <button class="nav-link {% if active_tab == 'preferences' %}active{% endif %}" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences-settings" type="button" role="tab">
               Preferences
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-settings" type="button" role="tab">
+            <button class="nav-link {% if active_tab == 'security' %}active{% endif %}" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-settings" type="button" role="tab">
               Security
             </button>
           </li>
@@ -46,8 +54,11 @@
 
         <div class="tab-content" id="settingsTabContent">
 
-          <div class="tab-pane fade show active" id="profile-settings" role="tabpanel">
-            <form method="post" enctype="multipart/form-data">
+          <div class="tab-pane fade {% if active_tab == 'profile' %}show active{% endif %}" id="profile-settings" role="tabpanel">
+            <form method="post" enctype="multipart/form-data"
+                  hx-post="{% url 'dashboard:settings' %}"
+                  hx-target="#dashboard-content"
+                  hx-swap="innerHTML">
               {% csrf_token %}
               <input type="hidden" name="form_type" value="profile">
 
@@ -65,7 +76,7 @@
 
               <div class="mb-3">
                 <label class="form-label fw-semibold">ID Number</label>
-                <input type="text" class="form-control" name="id_number" maxlength="9" pattern="\d{1,9}" required
+                <input type="text" class="form-control" name="id_number" maxlength="9" pattern="\d{1,9}"
                        title="ID Number must contain up to 9 digits only"
                        placeholder="Enter your ID number"
                        value="{{ request.user.profile.id_number|default_if_none:'' }}">
@@ -73,7 +84,7 @@
 
               <div class="mb-3">
                 <label class="form-label fw-semibold">Department</label>
-                <select class="form-select" name="department" required>
+                <select class="form-select" name="department">
                   <option value="">-- Select Department --</option>
                   <option value="JHS" {% if request.user.profile.department == 'JHS' %}selected{% endif %}>Junior High School</option>
                   <option value="SHS" {% if request.user.profile.department == 'SHS' %}selected{% endif %}>Senior High School</option>
@@ -86,7 +97,7 @@
 
               <div class="mb-3">
                 <label class="form-label fw-semibold">Contact Number</label>
-                <input type="text" class="form-control" name="contact_number" pattern="^\+63\d{10}$" maxlength="13" required
+                <input type="text" class="form-control" name="contact_number" pattern="^\+63\d{10}$" maxlength="13"
                        title="Format must start with +63 followed by 10 digits (e.g., +639123456789)"
                        placeholder="+63"
                        value="{{ request.user.profile.contact_number|default_if_none:'' }}">
@@ -94,20 +105,26 @@
 
               <div class="mb-3">
                 <label class="form-label fw-semibold">Address</label>
-                <textarea class="form-control" name="address" rows="2" placeholder="Enter your address" required>{{ request.user.profile.address|default_if_none:'' }}</textarea>
+                <textarea class="form-control" name="address" rows="2" placeholder="Enter your address">{{ request.user.profile.address|default_if_none:'' }}</textarea>
               </div>
 
               <div class="mb-3">
                 <label class="form-label fw-semibold">Profile Picture</label>
-                <input type="file" class="form-control" name="profile_picture">
+                <input type="file" class="form-control" name="profile_picture" accept="image/*">
+                {% if request.user.profile.profile_picture %}
+                  <small class="text-muted">Current: {{ request.user.profile.profile_picture.name }}</small>
+                {% endif %}
               </div>
 
               <button type="submit" class="btn btn-primary">Save Changes</button>
             </form>
           </div>
 
-          <div class="tab-pane fade" id="preferences-settings" role="tabpanel">
-            <form method="post">
+          <div class="tab-pane fade {% if active_tab == 'preferences' %}show active{% endif %}" id="preferences-settings" role="tabpanel">
+            <form method="post"
+                  hx-post="{% url 'dashboard:settings' %}"
+                  hx-target="#dashboard-content"
+                  hx-swap="innerHTML">
               {% csrf_token %}
               <input type="hidden" name="form_type" value="preferences">
 
@@ -165,8 +182,11 @@
             </form>
           </div>
 
-          <div class="tab-pane fade" id="security-settings" role="tabpanel">
-            <form method="post">
+          <div class="tab-pane fade {% if active_tab == 'security' %}show active{% endif %}" id="security-settings" role="tabpanel">
+            <form method="post"
+                  hx-post="{% url 'dashboard:settings' %}"
+                  hx-target="#dashboard-content"
+                  hx-swap="innerHTML">
               {% csrf_token %}
               <input type="hidden" name="form_type" value="security">
 
@@ -177,6 +197,7 @@
               <div class="mb-3">
                 <label class="form-label fw-semibold">New Password</label>
                 <input type="password" class="form-control" name="new_password1" placeholder="Enter new password" required>
+                <small class="text-muted">Password must be at least 8 characters and contain: uppercase, lowercase, number, and special character.</small>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-semibold">Confirm New Password</label>
@@ -192,4 +213,3 @@
 
   </div>
 </div>
-{% endblock %}

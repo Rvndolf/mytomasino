@@ -1,155 +1,211 @@
 {% load ticket_tags %}
+{% load static %}
 
 <div class="container lowered">
 
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 sticky-header">
       <h3 class="fw-bold">Your Tickets</h3>
       <a hx-get="{% url 'tickets:create_ticket' %}" 
          hx-target="#dashboard-content" 
          hx-swap="innerHTML" 
          hx-push-url="{% url 'tickets:create_ticket' %}" 
-         class="btn btn-primary">
-        <i class="fas fa-plus"></i> Create Ticket
+         class="btn btn-success create-ticket-btn">
+        <i class="fas fa-check"></i> Create Ticket
       </a>
   </div>
   
-  <!-- Accordion Filter -->
-  <div class="accordion shadow-sm rounded" id="ticketAccordion">
-
-    <!-- 🟢 Open Tickets -->
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingOpen">
-        <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse"
-          data-bs-target="#collapseOpen" aria-expanded="true">
-          🟢 Open Tickets ({{ open_tickets.count }})
-        </button>
-      </h2>
-      <div id="collapseOpen" class="accordion-collapse collapse show" data-bs-parent="#ticketAccordion">
-        <div class="accordion-body">
-          {% if open_tickets %}
-            <ul class="list-group list-group-flush">
-              {% for ticket in open_tickets %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div class="flex-grow-1">
-                    <strong>{{ ticket.title }}</strong>
-                    {% if ticket|admin_notes_count > 0 %}
-                      <span class="badge bg-danger ms-2 animate__animated animate__pulse animate__infinite">
-                        <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} new response{{ ticket|admin_notes_count|pluralize }}
-                      </span>
-                    {% endif %}
-                    <br>
-                    <small class="text-muted">
-                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
-                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
-                    </small>
-                  </div>
-                  <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
-                     hx-target="#dashboard-content" 
-                     hx-swap="innerHTML" 
-                     hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}" 
-                     class="btn btn-sm btn-success ms-3">
-                     <i class="fas fa-eye"></i> Open
-                  </a>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-muted mb-0">No open tickets.</p>
-          {% endif %}
+  <!-- Filter Dashboard Cards -->
+  <div class="row g-3 mb-4 justify-content-center">
+    <div class="col-md-4">
+      <div class="card filter-card active" data-filter="open">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h5 class="fw-bold mb-1">Open</h5>
+              <p class="filter-subtitle mb-0">Active Ticket{{ open_tickets.count|pluralize }}</p>
+            </div>
+            <div class="filter-count">{{ open_tickets.count }}</div>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- 🟡 In Progress Tickets -->
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingProgress">
-        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse"
-          data-bs-target="#collapseProgress">
-          🟡 In Progress Tickets ({{ in_progress_tickets.count }})
-        </button>
-      </h2>
-      <div id="collapseProgress" class="accordion-collapse collapse" data-bs-parent="#ticketAccordion">
-        <div class="accordion-body">
-          {% if in_progress_tickets %}
-            <ul class="list-group list-group-flush">
-              {% for ticket in in_progress_tickets %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div class="flex-grow-1">
-                    <strong>{{ ticket.title }}</strong>
-                    {% if ticket|admin_notes_count > 0 %}
-                      <span class="badge bg-danger ms-2 animate__animated animate__pulse animate__infinite">
-                        <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} new response{{ ticket|admin_notes_count|pluralize }}
-                      </span>
-                    {% endif %}
-                    <br>
-                    <small class="text-muted">
-                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
-                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
-                    </small>
-                  </div>
-                  <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
-                     hx-target="#dashboard-content" 
-                     hx-swap="innerHTML" 
-                     hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}" 
-                     class="btn btn-sm btn-warning ms-3">
-                     <i class="fas fa-eye"></i> View
-                  </a>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-muted mb-0">No tickets in progress.</p>
-          {% endif %}
+    
+    <div class="col-md-4">
+      <div class="card filter-card" data-filter="progress">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h5 class="fw-bold mb-1">In Progress</h5>
+              <p class="filter-subtitle mb-0">Being Handled</p>
+            </div>
+            <div class="filter-count">{{ in_progress_tickets.count }}</div>
+          </div>
         </div>
       </div>
     </div>
+    
+    <div class="col-md-4">
+      <div class="card filter-card" data-filter="completed">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h5 class="fw-bold mb-1">Completed</h5>
+              <p class="filter-subtitle mb-0">Resolved Ticket{{ completed_tickets.count|pluralize }}</p>
+            </div>
+            <div class="filter-count">{{ completed_tickets.count }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <!-- 🔵 Completed Tickets -->
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingCompleted">
-        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse"
-          data-bs-target="#collapseCompleted">
-          🔵 Completed Tickets ({{ completed_tickets.count }})
-        </button>
-      </h2>
-      <div id="collapseCompleted" class="accordion-collapse collapse" data-bs-parent="#ticketAccordion">
-        <div class="accordion-body">
-          {% if completed_tickets %}
-            <ul class="list-group list-group-flush">
-              {% for ticket in completed_tickets %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
+  <!-- Tickets Container -->
+  <div class="tickets-container shadow-sm rounded p-4">
+    
+    <!-- Open Tickets -->
+    <div class="ticket-section" id="open-section">
+      {% if open_tickets %}
+        <div class="row g-3">
+          {% for ticket in open_tickets %}
+            <div class="col-12">
+              <div class="card shadow-sm hover-lift" 
+                   hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
+                   hx-target="#dashboard-content" 
+                   hx-swap="innerHTML" 
+                   hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}">
+                <div class="card-body d-flex justify-content-between align-items-center">
                   <div class="flex-grow-1">
-                    <strong>{{ ticket.title }}</strong>
+                    <h5 class="card-title mb-2">{{ ticket.title }}</h5>
                     {% if ticket|admin_notes_count > 0 %}
-                      <span class="badge bg-info ms-2">
+                      <span class="badge bg-danger me-2 animate__animated animate__pulse animate__infinite">
+                        <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} new response{{ ticket|admin_notes_count|pluralize }}
+                      </span>
+                    {% endif %}
+                    <div class="text-muted small mt-2">
+                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
+                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                    </div>
+                  </div>
+                  <div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted text-center py-5 mb-0">No open tickets.</p>
+      {% endif %}
+    </div>
+
+    <!-- In Progress Tickets -->
+    <div class="ticket-section" id="progress-section" style="display: none;">
+      {% if in_progress_tickets %}
+        <div class="row g-3">
+          {% for ticket in in_progress_tickets %}
+            <div class="col-12">
+              <div class="card shadow-sm hover-lift" 
+                   hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
+                   hx-target="#dashboard-content" 
+                   hx-swap="innerHTML" 
+                   hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                  <div class="flex-grow-1">
+                    <h5 class="card-title mb-2">{{ ticket.title }}</h5>
+                    {% if ticket|admin_notes_count > 0 %}
+                      <span class="badge bg-danger me-2 animate__animated animate__pulse animate__infinite">
+                        <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} new response{{ ticket|admin_notes_count|pluralize }}
+                      </span>
+                    {% endif %}
+                    <div class="text-muted small mt-2">
+                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
+                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                    </div>
+                  </div>
+                  <div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted text-center py-5 mb-0">No tickets in progress.</p>
+      {% endif %}
+    </div>
+
+    <!-- Completed Tickets -->
+    <div class="ticket-section" id="completed-section" style="display: none;">
+      {% if completed_tickets %}
+        <div class="row g-3">
+          {% for ticket in completed_tickets %}
+            <div class="col-12">
+              <div class="card shadow-sm hover-lift" 
+                   hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
+                   hx-target="#dashboard-content" 
+                   hx-swap="innerHTML" 
+                   hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                  <div class="flex-grow-1">
+                    <h5 class="card-title mb-2">{{ ticket.title }}</h5>
+                    {% if ticket|admin_notes_count > 0 %}
+                      <span class="badge bg-info me-2">
                         <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} response{{ ticket|admin_notes_count|pluralize }}
                       </span>
                     {% endif %}
-                    <br>
-                    <small class="text-muted">
+                    <div class="text-muted small mt-2">
                       <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
                       <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
                       {% if ticket.assigned_to %}
                         • <i class="fas fa-user-check text-success"></i> Resolved by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
                       {% endif %}
-                    </small>
+                    </div>
                   </div>
-                  <a hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
-                     hx-target="#dashboard-content" 
-                     hx-swap="innerHTML" 
-                     hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}" 
-                     class="btn btn-sm btn-primary ms-3">
-                     <i class="fas fa-eye"></i> View
-                  </a>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-muted mb-0">No completed tickets.</p>
-          {% endif %}
+                  <div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
         </div>
-      </div>
+      {% else %}
+        <p class="text-muted text-center py-5 mb-0">No completed tickets.</p>
+      {% endif %}
     </div>
+
   </div>
 </div>
+
+<script>
+  (function() {
+    setTimeout(function() {
+      const filterCards = document.querySelectorAll('.filter-card');
+      const sections = document.querySelectorAll('.ticket-section');
+      
+      filterCards.forEach(card => {
+        card.addEventListener('click', function() {
+          const filter = this.dataset.filter;
+          
+          // Remove active class from all cards
+          filterCards.forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked card
+          this.classList.add('active');
+          
+          // Hide all sections
+          sections.forEach(s => s.style.display = 'none');
+          
+          // Show selected section
+          const targetSection = document.getElementById(filter + '-section');
+          if (targetSection) {
+            targetSection.style.display = 'block';
+          }
+        });
+      });
+    }, 100);
+  })();
+</script>

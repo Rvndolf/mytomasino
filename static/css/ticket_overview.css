@@ -1,0 +1,105 @@
+/* Ticket Card Hover Effect */
+
+.hover-lift {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Sticky Header */
+
+/* Create Ticket Button */
+.create-ticket-btn {
+  background-color: #198754 !important;
+  border-color: #198754 !important;
+  position: sticky;
+  box-shadow: 0 2px 8px rgba(25, 135, 84, 0.2);
+  transition: all 0.3s ease;
+}
+
+.create-ticket-btn:hover {
+  background-color: #157347 !important;
+  border-color: #157347 !important;
+  box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+  transform: translateY(-2px);
+}
+
+.create-ticket-btn i {
+  margin-right: 0.5rem;
+}
+
+/* Tickets Container */
+.tickets-container {
+  background-color: white;
+  min-height: 300px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Filter Card Styles - Modern Dashboard Rectangle */
+.filter-card{
+  background: white;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 12px !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  height: 110px;
+}
+
+.filter-card .card-body {
+  padding: 1rem 1.25rem !important;
+  height: 100%;
+}
+
+.filter-card .filter-emoji {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.filter-card h5 {
+  font-size: 1rem;
+  color: #333;
+}
+
+.filter-card .filter-subtitle {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.filter-card .filter-count {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Hover effect */
+.filter-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  border-color: #198754 !important;
+}
+
+/* Active state - Green gradient */
+.filter-card.active {
+  background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
+  border-color: #198754 !important;
+  box-shadow: 0 6px 20px rgba(25, 135, 84, 0.3) !important;
+  transform: translateY(-3px);
+}
+
+.filter-card.active h5,
+.filter-card.active .filter-subtitle,
+.filter-card.active .filter-count {
+  color: white !important;
+}
+
+.filter-card.active .filter-emoji {
+  filter: brightness(1.2);
+}
+
+

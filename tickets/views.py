@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Ticket, TicketHistory, Notification
+from django.urls import reverse
 from django.utils import timezone 
 from .forms import (
     TicketForm,
@@ -207,7 +208,10 @@ def delete_ticket(request, pk):
                 'in_progress_tickets': tickets.filter(status='in_progress'),
                 'completed_tickets': tickets.filter(status='completed'),
             }
-            return render(request, 'tickets/partials/ticket_overview_partial.html', context)
+            response = render(request, 'tickets/partials/ticket_overview_partial.html', context)
+            # Update the URL in the browser to ticket overview
+            response['HX-Push-Url'] = reverse('tickets:ticket_overview')
+            return response
 
         return redirect('tickets:ticket_overview')
 

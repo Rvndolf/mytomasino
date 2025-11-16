@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
   <link href="{% static 'css/notification.css' %}" rel="stylesheet">
-
+  <link rel="stylesheet" href="{% static 'css/ticket_overview.css' %}">
   <!-- HTMX -->
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
@@ -22,7 +22,12 @@
   </button>
 
   <!-- Notification Bell Icon (Top Right) -->
-  <button class="notification-bell" id="notificationToggle" type="button">
+  <button class="notification-bell" 
+          id="notificationToggle" 
+          type="button"
+          hx-get="{% url 'dashboard:notification_count' %}"
+          hx-trigger="every 10s"
+          hx-swap="none">
     <i class="bi bi-bell"></i>
     {% if unread_count > 0 %}
       <span class="notification-badge">{{ unread_count }}</span>
@@ -231,10 +236,25 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
+          // Remove unread class
+          element.classList.remove('unread');
+          
+          // Update badge count
+          const badge = document.querySelector('.notification-badge');
+          if (badge) {
+            const currentCount = parseInt(badge.textContent);
+            if (currentCount > 1) {
+              badge.textContent = currentCount - 1;
+            } else {
+              badge.remove();
+            }
+          }
+          
+          // Navigate to ticket if exists
           if (ticketId) {
-            window.location.href = `/tickets/${ticketId}/`;
-          } else {
-            window.location.reload();
+            htmx.ajax('GET', `/tickets/${ticketId}/`, '#dashboard-content');
+            notificationSidebar.classList.remove('active');
+            notificationOverlay.classList.remove('active');
           }
         }
       })
@@ -254,7 +274,24 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          window.location.reload();
+          // Remove unread class from all notifications
+          document.querySelectorAll('.notification-item.unread').forEach(item => {
+            item.classList.remove('unread');
+          });
+          
+          // Remove badge
+          const badge = document.querySelector('.notification-badge');
+          if (badge) {
+            badge.remove();
+          }
+          
+          // Update footer button
+          const notificationFooter = document.querySelector('.notification-footer');
+          notificationFooter.innerHTML = `
+            <button class="btn btn-sm btn-light w-100" disabled>
+              All caught up!
+            </button>
+          `;
         }
       })
       .catch(error => console.error('Error:', error));
