@@ -1,12 +1,14 @@
-<div class="text-center">
-  {% if request.user.is_authenticated %}
+<!-- dashboard/home.html (partial for HTMX) -->
+<div class="d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 2rem);">
+  <div class="text-center">
+    {% if request.user.is_authenticated %}
     <h2>Welcome, {{ request.user.first_name }}</h2>
-  {% else %}
+    {% else %}
     <h2>Welcome, Guest</h2>
-  {% endif %}
-  <p class="text-muted mt-2">This is your dashboard home page.</p>
-
-  <div class="mt-5">
-    <h5>Your account overview will appear here soon.</h5>
+    {% endif %}
+    <p class="text-muted mt-2">This is your dashboard home page.</p>
+    <div class="mt-5">
+      <h5>Your account overview will appear here soon.</h5>
+    </div>
   </div>
 </div>

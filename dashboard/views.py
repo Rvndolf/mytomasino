@@ -2,10 +2,13 @@
 from urllib import request
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from tickets.models import TicketHistory
+from tickets.models import TicketHistory, Notification
 from django.db.models import Q
 from user.models import UserProfile
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
 
 @login_required(login_url='user:login')
 def dashboard_home(request):
@@ -76,9 +79,36 @@ def dashboard_settings(request):
 
 @login_required(login_url='user:login')
 def tickets_view(request):
-    context = {'user': request.user}
+    context = {'user': request.user,}
 
     if request.headers.get("HX-Request"):
         return render(request, "tickets/partials/ticket_overview_partial.html", context)
 
     return render(request, "tickets/ticket_overview.html", context)
+
+@login_required
+@require_POST
+def mark_notification_read(request, notification_id):
+    """Mark a single notification as read"""
+    try:
+        notification = Notification.objects.get(
+            id=notification_id,
+            user=request.user
+        )
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'success': True})
+    except Notification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Notification not found'}, status=404)
+
+@login_required
+@require_POST
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).update(is_read=True)
+    
+    return JsonResponse({'success': True})
+

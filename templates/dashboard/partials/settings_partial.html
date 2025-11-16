@@ -1,14 +1,14 @@
 {% load static %}
-<div class="container mt-4">
+<div class="container-fluid p-4">
   <div class="row">
 
     <!-- Left Column: Profile Info -->
-    <div class="col-md-4 mb-4">
+    <div class="col-12 col-lg-4 mb-4">
       <div class="card border-0 shadow-sm p-4 text-center">
         <img
           src="{% if request.user.profile.profile_picture %}{{ request.user.profile.profile_picture.url }}{% else %}{% static 'img/default_profile.jpg' %}{% endif %}"
           alt="Profile Picture"
-          class="rounded-circle mb-3 border"
+          class="rounded-circle mb-3 border mx-auto"
           style="width: 120px; height: 120px; object-fit: cover;"
         />
         <h4 class="fw-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
@@ -20,7 +20,8 @@
       </div>
     </div>
 
-    <div class="col-md-8">
+    <!-- Right Column: Settings Form -->
+    <div class="col-12 col-lg-8">
       <div class="card border-0 shadow-sm p-4">
         <h4 class="fw-bold mb-3">Settings</h4>
 
@@ -44,6 +45,7 @@
 
         <div class="tab-content" id="settingsTabContent">
 
+          <!-- Profile Settings Tab -->
           <div class="tab-pane fade show active" id="profile-settings" role="tabpanel">
             <form method="post" enctype="multipart/form-data">
               {% csrf_token %}
@@ -97,13 +99,14 @@
 
               <div class="mb-3">
                 <label class="form-label fw-semibold">Profile Picture</label>
-                <input type="file" class="form-control" name="profile_picture">
+                <input type="file" class="form-control" name="profile_picture" accept="image/*">
               </div>
 
               <button type="submit" class="btn btn-primary">Save Changes</button>
             </form>
           </div>
 
+          <!-- Preferences Settings Tab -->
           <div class="tab-pane fade" id="preferences-settings" role="tabpanel">
             <form method="post">
               {% csrf_token %}
@@ -159,4 +162,71 @@
                 </select>
               </div>
 
-              <button type="submit" class="btn btn-suc
+              <button type="submit" class="btn btn-success">Save Preferences</button>
+            </form>
+          </div>
+
+          <!-- Security Settings Tab -->
+          <div class="tab-pane fade" id="security-settings" role="tabpanel">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="form_type" value="security">
+
+              <h6 class="fw-bold mb-3">Change Password</h6>
+              
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Current Password</label>
+                <input type="password" class="form-control" name="current_password" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">New Password</label>
+                <input type="password" class="form-control" name="new_password" required>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Confirm New Password</label>
+                <input type="password" class="form-control" name="confirm_password" required>
+              </div>
+
+              <button type="submit" class="btn btn-warning">Update Password</button>
+            </form>
+
+            <hr class="my-4">
+
+            <h6 class="fw-bold mb-3 text-danger">Danger Zone</h6>
+            <p class="text-muted small">Once you delete your account, there is no going back. Please be certain.</p>
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+              Delete Account
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" style="display: inline;">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="delete_account">
+          <button type="submit" class="btn btn-danger">Yes, Delete My Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

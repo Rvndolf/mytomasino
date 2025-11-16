@@ -8,18 +8,29 @@
 
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+  <link href="{% static 'css/notification.css' %}" rel="stylesheet">
 
   <!-- HTMX -->
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-
-  <!-- Font Awesome -->
-  <script src="https://kit.fontawesome.com/a2e0e6ad8b.js" crossorigin="anonymous"></script>
 </head>
 <body>
+  <!-- Mobile Menu Toggle Button -->
+  <button class="mobile-menu-toggle" id="sidebarToggle">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <!-- Notification Bell Icon (Top Right) -->
+  <button class="notification-bell" id="notificationToggle" type="button">
+    <i class="bi bi-bell"></i>
+    {% if unread_count > 0 %}
+      <span class="notification-badge">{{ unread_count }}</span>
+    {% endif %}
+  </button>
 
   <!-- Sidebar -->
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
     <div class="profile-section">
       {% if request.user.profile.profile_picture %}
         <img src="{{ request.user.profile.profile_picture.url }}" alt="Profile" class="profile-img">
@@ -34,15 +45,12 @@
       <a hx-get="{% url 'dashboard:home' %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="nav-item">
         <i class="bi bi-house"></i><span>Home</span>
       </a>
-
       <a hx-get="{% url 'tickets:ticket_overview' %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="nav-item">
         <i class="bi bi-ticket"></i><span>Tickets</span>
       </a>
-
       <a hx-get="{% url 'dashboard:history' %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="nav-item">
         <i class="bi bi-clock-history"></i><span>History</span>
       </a>
-
       <a hx-get="{% url 'dashboard:settings' %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="nav-item">
         <i class="bi bi-gear"></i><span>Settings</span>
       </a>
@@ -50,36 +58,231 @@
 
     <form method="POST" action="{% url 'user:logout' %}">
       {% csrf_token %}
-      <button type="submit" class="logout-btn">Logout</button>
+      <button type="submit" class="logout-btn">
+        <i class="bi bi-box-arrow-right"></i>Logout
+      </button>
     </form>
   </div>
 
+  <!-- Overlay for mobile (Left Sidebar) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Notification Sidebar (Right) -->
+  <div class="notification-sidebar" id="notificationSidebar">
+    <div class="notification-header">
+      <h5><i class="bi bi-bell-fill"></i>Notifications</h5>
+      <button class="close-notification" id="closeNotification">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="notification-content" id="notificationContent">
+      {% if notifications %}
+        {% for notification in notifications %}
+          <div class="notification-item {% if not notification.is_read %}unread{% endif %}" 
+               data-notification-id="{{ notification.id }}"
+               data-ticket-id="{% if notification.ticket %}{{ notification.ticket.id }}{% endif %}"
+               onclick="markAsRead(this)"
+               style="cursor: pointer;">
+            <div class="notification-icon">
+              {% if notification.notification_type == 'ticket_created' %}
+                <i class="bi bi-plus-circle"></i>
+              {% elif notification.notification_type == 'ticket_assigned' %}
+                <i class="bi bi-ticket"></i>
+              {% elif notification.notification_type == 'ticket_updated' %}
+                <i class="bi bi-arrow-repeat"></i>
+              {% elif notification.notification_type == 'ticket_completed' %}
+                <i class="bi bi-check-circle"></i>
+              {% elif notification.notification_type == 'ticket_response' %}
+                <i class="bi bi-chat-dots"></i>
+              {% else %}
+                <i class="bi bi-bell"></i>
+              {% endif %}
+            </div>
+            <div class="notification-body">
+              <h6>{{ notification.title }}</h6>
+              <p>{{ notification.message|truncatewords:15 }}</p>
+              <span class="notification-time">{{ notification.time_ago }}</span>
+            </div>
+          </div>
+        {% endfor %}
+
+        {% if unread_count > 5 %}
+          <div class="notification-item text-center" style="background: #f8f9fa; cursor: default; border: none;">
+            <small class="text-muted">
+              <i class="bi bi-three-dots"></i>{{ unread_count|add:"-5" }} more notification{{ unread_count|add:"-5"|pluralize }}
+            </small>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="notification-empty">
+          <i class="bi bi-bell-slash"></i>
+          <p>No new notifications</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="notification-footer">
+      {% if unread_count > 0 %}
+        <button class="btn btn-sm btn-light w-100" id="markAllRead">
+          Mark all as read
+        </button>
+      {% else %}
+        <button class="btn btn-sm btn-light w-100" disabled>
+          All caught up!
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Overlay for notification sidebar -->
+  <div class="notification-overlay" id="notificationOverlay"></div>
+
+  <!-- Main Content Area -->
   <div id="dashboard-content" class="content">
     {% block content %}
     {% endblock %}
   </div>
 
+  <!-- Loading Overlay -->
   <div id="loading" class="loading-overlay d-none">
-    <div class="spinner-border text-primary" role="status"></div>
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
   </div>
 
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-  
-  document.body.addEventListener('htmx:beforeRequest', () => {
-    document.getElementById('loading').classList.remove('d-none');
-  });
-  document.body.addEventListener('htmx:afterSwap', () => {
-    document.getElementById('loading').classList.add('d-none');
-  });
-  document.body.addEventListener('htmx:afterRequest', () => {
-    document.getElementById('loading').classList.add('d-none');
-  });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    htmx.ajax('GET', "{% url 'dashboard:home' %}", '#dashboard-content');
-  });
-</script>
+  <script>
+    // HTMX Loading Indicators
+    document.body.addEventListener('htmx:beforeRequest', () => {
+      document.getElementById('loading').classList.remove('d-none');
+    });
+    document.body.addEventListener('htmx:afterSwap', () => {
+      document.getElementById('loading').classList.add('d-none');
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('active');
+        document.getElementById('sidebarOverlay').classList.remove('active');
+      }
+    });
+    document.body.addEventListener('htmx:afterRequest', () => {
+      document.getElementById('loading').classList.add('d-none');
+    });
+
+    // Load home page on initial load
+    document.addEventListener('DOMContentLoaded', () => {
+      htmx.ajax('GET', "{% url 'dashboard:home' %}", '#dashboard-content');
+      document.querySelector('.sidebar-nav .nav-item').classList.add('active');
+    });
+
+    // Mobile sidebar toggle (Left)
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+      notificationSidebar.classList.remove('active');
+      notificationOverlay.classList.remove('active');
+    });
+
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    });
+
+    // Notification sidebar toggle (Right)
+    const notificationToggle = document.getElementById('notificationToggle');
+    const notificationSidebar = document.getElementById('notificationSidebar');
+    const notificationOverlay = document.getElementById('notificationOverlay');
+    const closeNotification = document.getElementById('closeNotification');
+
+    notificationToggle.addEventListener('click', () => {
+      notificationSidebar.classList.toggle('active');
+      notificationOverlay.classList.toggle('active');
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    });
+
+    closeNotification.addEventListener('click', () => {
+      notificationSidebar.classList.remove('active');
+      notificationOverlay.classList.remove('active');
+    });
+
+    notificationOverlay.addEventListener('click', () => {
+      notificationSidebar.classList.remove('active');
+      notificationOverlay.classList.remove('active');
+    });
+
+    // Mark single notification as read and navigate
+    function markAsRead(element) {
+      const notificationId = element.getAttribute('data-notification-id');
+      const ticketId = element.getAttribute('data-ticket-id');
+
+      fetch(`/dashboard/notifications/${notificationId}/mark-read/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          if (ticketId) {
+            window.location.href = `/tickets/${ticketId}/`;
+          } else {
+            window.location.reload();
+          }
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    // Mark all as read
+    document.getElementById('markAllRead')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      fetch('/dashboard/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.reload();
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+
+    // Sidebar nav active state
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        if (window.innerWidth <= 768) {
+          setTimeout(() => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+          }, 300);
+        }
+      });
+    });
+
+    // Prevent form double submission
+    document.addEventListener('submit', (e) => {
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn && !submitBtn.disabled) {
+        submitBtn.disabled = true;
+        setTimeout(() => { submitBtn.disabled = false; }, 2000);
+      }
+    });
+  </script>
 
   <style>
     .loading-overlay {
@@ -89,7 +292,13 @@
       transform: translate(-50%, -50%);
       z-index: 9999;
     }
+    .spinner-border {
+      width: 3rem;
+      height: 3rem;
+    }
   </style>
 
+  {% block extra_js %}
+  {% endblock %}
 </body>
 </html>

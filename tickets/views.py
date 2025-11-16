@@ -24,7 +24,7 @@ FORM_MAP = {
 @login_required
 def ticket_list(request):
     tickets = Ticket.objects.filter(created_by=request.user).order_by('-created_at')
-
+    
     context = {
         'open_tickets': tickets.filter(status='open'),
         'in_progress_tickets': tickets.filter(status='in_progress'),
