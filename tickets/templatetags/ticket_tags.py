@@ -18,3 +18,6 @@ def extract_note(action):
             return parts[1]
     return action
 
+@register.filter
+def dict_get(d, key):
+    return d.get(key, [])

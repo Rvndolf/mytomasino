@@ -1,11 +1,12 @@
 {% extends "admin_panel_base.html" %}
 {% load static %}
+{% load ticket_tags %}
 {% block content %}
 
 <div class="container-fluid mt-4">
   <h3 class="mb-4">Tickets</h3>
-
   <div class="row">
+
     <!-- LEFT SIDEBAR: CATEGORY FILTER -->
     <div class="col-md-2">
       <div class="d-flex flex-column gap-2">
@@ -15,19 +16,23 @@
           {% for key, label in categories %}
             {% if key in active_categories %}
               <a href="{% url 'admin_panel:ticket_list' %}?status={{ status_filter|default_if_none:'' }}{% for cat in active_categories %}{% if cat != key %}&categories={{ cat }}{% endif %}{% endfor %}" 
-                 class="btn btn-primary rounded-pill">
-                {{ label }}
-              </a>
+                 class="btn btn-primary rounded-pill btn-sm">{{ label }}</a>
             {% else %}
               <a href="{% url 'admin_panel:ticket_list' %}?status={{ status_filter|default_if_none:'' }}{% for cat in active_categories %}&categories={{ cat }}{% endfor %}&categories={{ key }}" 
-                 class="btn btn-outline-primary rounded-pill">
-                {{ label }}
-              </a>
+                 class="btn btn-outline-primary rounded-pill btn-sm">{{ label }}</a>
             {% endif %}
           {% endfor %}
         {% else %}
           {% with staff_office=request.user.staffprofile.office.name %}
-            <button class="btn btn-primary rounded-pill" disabled>{{ staff_office }}</button>
+            {% with allowed_categories=OFFICE_TICKET_CATEGORIES|dict_get:staff_office %}
+              {% for key in allowed_categories %}
+                {% for cat_key, cat_label in categories %}
+                  {% if cat_key == key %}
+                    <button class="btn btn-primary rounded-pill btn-sm" disabled>{{ cat_label }}</button>
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+            {% endwith %}
           {% endwith %}
         {% endif %}
       </div>
@@ -48,7 +53,7 @@
       <!-- TICKETS TABLE -->
       <div class="card shadow-sm border-0">
         <div class="card-body p-0">
-          <div class="table-responsive" id="ticket-table">
+          <div class="table-responsive">
             <table class="table table-hover mb-0">
               <thead class="table-light">
                 <tr>
@@ -60,7 +65,10 @@
                   <th>Date</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="ticket-table-body"
+                     hx-get="{% url 'admin_panel:ticket_list' %}"
+                     hx-trigger="refreshTicketList from:body"
+                     hx-swap="innerHTML">
                 {% include 'admin_panel/partials/ticket_list_partial.html' %}
               </tbody>
             </table>
@@ -68,10 +76,11 @@
         </div>
       </div>
     </div>
-
+    
     <!-- RIGHT COLUMN: TICKET DETAIL -->
     <div class="col-md-5">
-      <div id="ticket-detail-container">
+      <div id="ticket-detail-container"
+           hx-on="resetTicketDetail: this.innerHTML='<div class=\'card shadow-sm border-0\'><div class=\'card-body text-center py-5\'><i class=\'fas fa-ticket-alt fa-3x text-muted mb-3\'></i><h5 class=\'text-muted\'>Select a ticket to view details</h5></div></div>'">
         <div class="card shadow-sm border-0">
           <div class="card-body text-center py-5">
             <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
@@ -80,6 +89,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </div>
 

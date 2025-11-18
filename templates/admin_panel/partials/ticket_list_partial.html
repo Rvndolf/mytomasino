@@ -1,9 +1,10 @@
 {% for ticket in tickets %}
-<tr id="ticket-row-{{ ticket.pk }}" 
-    hx-get="{% url 'admin_panel:ticket_detail' ticket.pk %}" 
-    hx-target="#ticket-detail-container" 
+<tr id="ticket-row-{{ ticket.pk }}"
+    hx-get="{% url 'admin_panel:ticket_detail' ticket.pk %}"
+    hx-target="#ticket-detail-container"
     hx-swap="innerHTML"
-    style="cursor: pointer;">
+    style="cursor: pointer;"
+    class="align-middle">
   <td>{{ ticket.ticket_id }}</td>
   <td>{{ ticket.title }}</td>
   <td>{{ ticket.get_category_display|default:"N/A" }}</td>
@@ -16,7 +17,7 @@
       <span class="badge bg-success rounded-pill">Completed</span>
     {% endif %}
   </td>
-  <td>{{ ticket.created_by.get_full_name|default:ticket.created_by.username|default:"Unknown" }}</td>
+  <td>{{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</td>
   <td>{{ ticket.created_at|date:"M d, Y H:i" }}</td>
 </tr>
 {% empty %}

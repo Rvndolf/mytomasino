@@ -2,7 +2,10 @@
   <h4>Delete Ticket - {{ ticket.ticket_id }}: {{ ticket.title }}</h4>
   <p>Are you sure you want to permanently delete this ticket?</p>
   <form method="post"
-        hx-post="{% url 'admin_panel:delete_ticket' ticket.pk %}">
+        hx-post="{% url 'admin_panel:delete_ticket' ticket.pk %}"
+        hx-trigger="submit"
+        hx-swap="none"
+        hx-on:afterRequest="document.querySelector('#ticket-table').__htmx.trigger('refreshTicketList')">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Yes, Delete</button>
     <button type="button" 

@@ -7,9 +7,9 @@
       <i class="fas fa-times"></i>
     </button>
   </div>
-  
+
   <div class="card-body">
-    <!-- Ticket Information -->
+    <!-- Ticket Info -->
     <div class="row mb-4">
       <div class="col-md-6">
         <p><strong>Created by:</strong> {{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</p>
@@ -37,18 +37,16 @@
       </div>
     </div>
 
+    <!-- Description -->
     <div class="mb-4">
       <h5>Description:</h5>
       <div class="bg-light p-3 rounded" style="white-space: pre-line;">{{ ticket.description }}</div>
     </div>
 
-    <!-- Update Status Form -->
+    <!-- Update Status -->
     <div class="mb-4">
       <h5>Update Status</h5>
-      <form hx-post="{% url 'admin_panel:update_ticket' ticket.pk %}"
-            hx-target="#ticket-detail-container"
-            hx-swap="innerHTML"
-            class="row g-3">
+      <form hx-post="{% url 'admin_panel:update_ticket' ticket.pk %}" hx-target="#ticket-detail-container" hx-swap="innerHTML" class="row g-3">
         {% csrf_token %}
         <div class="col-auto">
           <select name="status" class="form-select">
@@ -65,15 +63,13 @@
       </form>
     </div>
 
-    <!-- Add Note Form -->
+    <!-- Add Note -->
     <div class="mb-4">
       <h5>Add Note / Response</h5>
-      <form hx-post="{% url 'admin_panel:add_ticket_note' ticket.pk %}"
-            hx-target="#ticket-detail-container"
-            hx-swap="innerHTML">
+      <form hx-post="{% url 'admin_panel:add_ticket_note' ticket.pk %}" hx-target="#ticket-detail-container" hx-swap="innerHTML">
         {% csrf_token %}
         <div class="mb-3">
-          <textarea name="note" class="form-control" rows="3" placeholder="Enter your response or note..." required></textarea>
+          <textarea name="note" class="form-control" rows="3" placeholder="Enter your response..." required></textarea>
         </div>
         <button type="submit" class="btn btn-success">
           <i class="fas fa-comment"></i> Add Note
@@ -81,16 +77,14 @@
       </form>
     </div>
 
-    <!-- Ticket History -->
+    <!-- History -->
     <div class="mb-4">
       <h5>Ticket History</h5>
       <div class="list-group" style="max-height: 300px; overflow-y: auto;">
         {% for item in history %}
-          <div class="list-group-item">
-            <div class="d-flex justify-content-between">
-              <div style="white-space: pre-line;">{{ item.action }}</div>
-              <small class="text-muted text-nowrap ms-3">{{ item.timestamp|date:"M d, Y H:i" }}</small>
-            </div>
+          <div class="list-group-item d-flex justify-content-between">
+            <div style="white-space: pre-line;">{{ item.action }}</div>
+            <small class="text-muted ms-3">{{ item.timestamp|date:"M d, Y H:i" }}</small>
           </div>
         {% empty %}
           <p class="text-muted">No history available.</p>
@@ -98,12 +92,14 @@
       </div>
     </div>
 
-<!-- Actions -->
-  <div class="d-flex justify-content-end gap-2">
-    <button class="btn btn-danger"
-            hx-get="{% url 'admin_panel:delete_ticket' ticket.pk %}"
-            hx-target="#ticket-detail-container"
-            hx-swap="innerHTML">
-      <i class="fas fa-trash"></i> Delete Ticket
-    </button>
+    <!-- Delete -->
+    <div class="d-flex justify-content-end gap-2">
+      <button class="btn btn-danger"
+              hx-get="{% url 'admin_panel:delete_ticket' ticket.pk %}"
+              hx-target="#ticket-detail-container"
+              hx-swap="innerHTML">
+        <i class="fas fa-trash"></i> Delete Ticket
+      </button>
+    </div>
   </div>
+</div>
