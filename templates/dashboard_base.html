@@ -47,16 +47,16 @@
     </div>
 
     <div class="sidebar-nav">
-      <a hx-get="{% url 'dashboard:home' %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="nav-item">
+      <a hx-get="{% url 'dashboard:home' %}" hx-target="#dashboard-content" hx-swap="innerHTML"  hx-push-url="{% url 'dashboard:home' %}" class="nav-item">
         <i class="bi bi-house"></i><span>Home</span>
       </a>
-      <a hx-get="{% url 'tickets:ticket_overview' %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="nav-item">
+      <a hx-get="{% url 'tickets:ticket_overview' %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'tickets:ticket_overview' %}" class="nav-item">
         <i class="bi bi-ticket"></i><span>Tickets</span>
       </a>
-      <a hx-get="{% url 'dashboard:history' %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="nav-item">
+      <a hx-get="{% url 'dashboard:history' %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'dashboard:history' %}" class="nav-item">
         <i class="bi bi-clock-history"></i><span>History</span>
       </a>
-      <a hx-get="{% url 'dashboard:settings' %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="nav-item">
+      <a hx-get="{% url 'dashboard:settings' %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'dashboard:settings' %}" class="nav-item">
         <i class="bi bi-gear"></i><span>Settings</span>
       </a>
     </div>
@@ -160,166 +160,271 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // HTMX Loading Indicators
-    document.body.addEventListener('htmx:beforeRequest', () => {
-      document.getElementById('loading').classList.remove('d-none');
+ // Shows a loading spinner when HTMX makes a request
+// Hides it when the request completes
+document.body.addEventListener('htmx:beforeRequest', () => {
+  document.getElementById('loading').classList.remove('d-none');
+});
+
+document.body.addEventListener('htmx:afterSwap', () => {
+  document.getElementById('loading').classList.add('d-none');
+  // Auto-close mobile sidebar after HTMX navigation
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('active');
+    document.getElementById('sidebarOverlay').classList.remove('active');
+  }
+});
+
+document.body.addEventListener('htmx:afterRequest', () => {
+  document.getElementById('loading').classList.add('d-none');
+});
+
+// Determines what content to show based on current URL
+// Handles both full page loads (refresh) and HTMX navigation
+document.addEventListener('DOMContentLoaded', () => {
+  const currentPath = window.location.pathname;
+  const dashboardContent = document.getElementById('dashboard-content');
+  const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+  
+  // Clear all active states first to prevent multiple active items
+  navItems.forEach(item => item.classList.remove('active'));
+  
+  // Check if dashboard-content already has content (from server-side render on refresh)
+  if (dashboardContent && dashboardContent.innerHTML.trim() !== '') {
+    // Content already loaded from server, just highlight the correct nav item
+    // Sort nav items by URL length (longest first) to match most specific URL first
+    const sortedNavItems = Array.from(navItems).sort((a, b) => {
+      const urlA = a.getAttribute('hx-get');
+      const urlB = b.getAttribute('hx-get');
+      return urlB.length - urlA.length;
     });
-    document.body.addEventListener('htmx:afterSwap', () => {
-      document.getElementById('loading').classList.add('d-none');
-      if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.remove('active');
-        document.getElementById('sidebarOverlay').classList.remove('active');
+    
+    let matched = false;
+    sortedNavItems.forEach(navItem => {
+      if (!matched) {
+        const targetUrl = navItem.getAttribute('hx-get');
+        if (currentPath === targetUrl || currentPath.startsWith(targetUrl)) {
+          navItem.classList.add('active');
+          matched = true;
+        }
       }
     });
-    document.body.addEventListener('htmx:afterRequest', () => {
-      document.getElementById('loading').classList.add('d-none');
-    });
-
-    // Load home page on initial load
-    document.addEventListener('DOMContentLoaded', () => {
-      htmx.ajax('GET', "{% url 'dashboard:home' %}", '#dashboard-content');
-      document.querySelector('.sidebar-nav .nav-item').classList.add('active');
-    });
-
-    // Mobile sidebar toggle (Left)
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    sidebarToggle.addEventListener('click', () => {
-      sidebar.classList.toggle('active');
-      overlay.classList.toggle('active');
-      notificationSidebar.classList.remove('active');
-      notificationOverlay.classList.remove('active');
-    });
-
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('active');
-      overlay.classList.remove('active');
-    });
-
-    // Notification sidebar toggle (Right)
-    const notificationToggle = document.getElementById('notificationToggle');
-    const notificationSidebar = document.getElementById('notificationSidebar');
-    const notificationOverlay = document.getElementById('notificationOverlay');
-    const closeNotification = document.getElementById('closeNotification');
-
-    notificationToggle.addEventListener('click', () => {
-      notificationSidebar.classList.toggle('active');
-      notificationOverlay.classList.toggle('active');
-      sidebar.classList.remove('active');
-      overlay.classList.remove('active');
-    });
-
-    closeNotification.addEventListener('click', () => {
-      notificationSidebar.classList.remove('active');
-      notificationOverlay.classList.remove('active');
-    });
-
-    notificationOverlay.addEventListener('click', () => {
-      notificationSidebar.classList.remove('active');
-      notificationOverlay.classList.remove('active');
-    });
-
-    // Mark single notification as read and navigate
-    function markAsRead(element) {
-      const notificationId = element.getAttribute('data-notification-id');
-      const ticketId = element.getAttribute('data-ticket-id');
-
-      fetch(`/dashboard/notifications/${notificationId}/mark-read/`, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': '{{ csrf_token }}',
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Remove unread class
-          element.classList.remove('unread');
-          
-          // Update badge count
-          const badge = document.querySelector('.notification-badge');
-          if (badge) {
-            const currentCount = parseInt(badge.textContent);
-            if (currentCount > 1) {
-              badge.textContent = currentCount - 1;
-            } else {
-              badge.remove();
-            }
-          }
-          
-          // Navigate to ticket if exists
-          if (ticketId) {
-            htmx.ajax('GET', `/tickets/${ticketId}/`, '#dashboard-content');
-            notificationSidebar.classList.remove('active');
-            notificationOverlay.classList.remove('active');
-          }
-        }
-      })
-      .catch(error => console.error('Error:', error));
+    return; // Don't load via HTMX since content is already there
+  }
+  
+  // Dashboard content is empty (initial dashboard load), load via HTMX
+  let matchFound = false;
+  
+  // Sort nav items by URL length (longest first) to match most specific URL first
+  const sortedNavItems = Array.from(navItems).sort((a, b) => {
+    const urlA = a.getAttribute('hx-get');
+    const urlB = b.getAttribute('hx-get');
+    return urlB.length - urlA.length;
+  });
+  
+  sortedNavItems.forEach(navItem => {
+    if (!matchFound) {
+      const targetUrl = navItem.getAttribute('hx-get');
+      if (currentPath === targetUrl || currentPath.startsWith(targetUrl)) {
+        navItem.classList.add('active');
+        htmx.ajax('GET', targetUrl, '#dashboard-content');
+        matchFound = true;
+      }
     }
+  });
 
-    // Mark all as read
-    document.getElementById('markAllRead')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      fetch('/dashboard/notifications/mark-all-read/', {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': '{{ csrf_token }}',
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Remove unread class from all notifications
-          document.querySelectorAll('.notification-item.unread').forEach(item => {
-            item.classList.remove('unread');
-          });
-          
-          // Remove badge
-          const badge = document.querySelector('.notification-badge');
-          if (badge) {
-            badge.remove();
-          }
-          
-          // Update footer button
-          const notificationFooter = document.querySelector('.notification-footer');
-          notificationFooter.innerHTML = `
-            <button class="btn btn-sm btn-light w-100" disabled>
-              All caught up!
-            </button>
-          `;
-        }
-      })
-      .catch(error => console.error('Error:', error));
-    });
+  // If no matching nav item found (e.g., on /dashboard/ root), load home by default
+  if (!matchFound) {
+    const homeUrl = "{% url 'dashboard:home' %}";
+    htmx.ajax('GET', homeUrl, '#dashboard-content');
+    document.querySelector('.sidebar-nav .nav-item').classList.add('active');
+  }
+});
 
-    // Sidebar nav active state
-    document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
-      item.addEventListener('click', function() {
-        document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
-        if (window.innerWidth <= 768) {
-          setTimeout(() => {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-          }, 300);
-        }
-      });
-    });
+// Opens/closes the left navigation sidebar on mobile
+// Also closes notification sidebar when opening nav sidebar
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+const notificationSidebar = document.getElementById('notificationSidebar');
+const notificationOverlay = document.getElementById('notificationOverlay');
 
-    // Prevent form double submission
-    document.addEventListener('submit', (e) => {
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      if (submitBtn && !submitBtn.disabled) {
-        submitBtn.disabled = true;
-        setTimeout(() => { submitBtn.disabled = false; }, 2000);
+sidebarToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('active');
+  overlay.classList.toggle('active');
+  // Close notification sidebar if it's open
+  notificationSidebar.classList.remove('active');
+  notificationOverlay.classList.remove('active');
+});
+
+// Click overlay to close sidebar
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('active');
+  overlay.classList.remove('active');
+});
+
+// Opens/closes the right notification sidebar
+// Also closes nav sidebar when opening notification sidebar
+const notificationToggle = document.getElementById('notificationToggle');
+const closeNotification = document.getElementById('closeNotification');
+
+notificationToggle.addEventListener('click', () => {
+  notificationSidebar.classList.toggle('active');
+  notificationOverlay.classList.toggle('active');
+  // Close nav sidebar if it's open
+  sidebar.classList.remove('active');
+  overlay.classList.remove('active');
+});
+
+closeNotification.addEventListener('click', () => {
+  notificationSidebar.classList.remove('active');
+  notificationOverlay.classList.remove('active');
+});
+
+// Click overlay to close notification sidebar
+notificationOverlay.addEventListener('click', () => {
+  notificationSidebar.classList.remove('active');
+  notificationOverlay.classList.remove('active');
+});
+
+// When user clicks a notification:
+// 1. Marks it as read in the database
+// 2. Updates the badge count
+// 3. Navigates to the related ticket if it exists
+function markAsRead(element) {
+  const notificationId = element.getAttribute('data-notification-id');
+  const ticketId = element.getAttribute('data-ticket-id');
+
+  fetch(`/dashboard/notifications/${notificationId}/mark-read/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}',
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Remove unread styling from this notification
+      element.classList.remove('unread');
+      
+      // Update the notification badge count
+      const badge = document.querySelector('.notification-badge');
+      if (badge) {
+        const currentCount = parseInt(badge.textContent);
+        if (currentCount > 1) {
+          badge.textContent = currentCount - 1;
+        } else {
+          badge.remove(); // Remove badge if this was the last notification
+        }
       }
-    });
-  </script>
+      
+      // Navigate to the ticket if it exists
+      if (ticketId) {
+        htmx.ajax('GET', `/tickets/${ticketId}/`, '#dashboard-content');
+        notificationSidebar.classList.remove('active');
+        notificationOverlay.classList.remove('active');
+      }
+    }
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+// Marks all unread notifications as read at once
+// Updates UI to show all caught up
+document.getElementById('markAllRead')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  
+  fetch('/dashboard/notifications/mark-all-read/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}',
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Remove unread styling from all notifications
+      document.querySelectorAll('.notification-item.unread').forEach(item => {
+        item.classList.remove('unread');
+      });
+      
+      // Remove notification badge
+      const badge = document.querySelector('.notification-badge');
+      if (badge) {
+        badge.remove();
+      }
+      
+      // Update the footer button to show "All caught up"
+      const notificationFooter = document.querySelector('.notification-footer');
+      notificationFooter.innerHTML = `
+        <button class="btn btn-sm btn-light w-100" disabled>
+          All caught up!
+        </button>
+      `;
+    }
+  })
+  .catch(error => console.error('Error:', error));
+});
+
+// Highlights the clicked navigation item
+// Removes highlight from all other nav items
+// Auto-closes sidebar on mobile after clicking
+document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+  item.addEventListener('click', function() {
+    // Remove active class from all nav items
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
+    // Add active class to clicked item
+    this.classList.add('active');
+    
+    // Auto-close sidebar on mobile
+    if (window.innerWidth <= 768) {
+      setTimeout(() => {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      }, 300);
+    }
+  });
+});
+
+// Disables submit button for 2 seconds after clicking
+// Prevents users from accidentally submitting forms multiple times
+document.addEventListener('submit', (e) => {
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  if (submitBtn && !submitBtn.disabled) {
+    submitBtn.disabled = true;
+    setTimeout(() => { submitBtn.disabled = false; }, 2000);
+  }
+});
+
+// SESSION TIMEOUT WARNING
+let inactivityTimeout;
+const TIMEOUT_DURATION = 1800000; // 30 minutes in milliseconds (matches SESSION_COOKIE_AGE)
+const WARNING_TIME = 120000; // Show warning 2 minutes before timeout
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimeout);
+  
+  // Show warning 2 minutes before logout
+  inactivityTimeout = setTimeout(() => {
+    if (confirm('Your session will expire in 2 minutes due to inactivity. Click OK to stay logged in.')) {
+      // User clicked OK, make a request to reset session
+      fetch('{% url "dashboard:home" %}', { method: 'HEAD' });
+      resetInactivityTimer();
+    }
+  }, TIMEOUT_DURATION - WARNING_TIME);
+}
+
+// Reset timer on user activity
+document.addEventListener('mousemove', resetInactivityTimer);
+document.addEventListener('keypress', resetInactivityTimer);
+document.addEventListener('click', resetInactivityTimer);
+document.addEventListener('scroll', resetInactivityTimer);
+
+// Initialize timer
+resetInactivityTimer();
+</script>
 
   <style>
     .loading-overlay {

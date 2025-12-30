@@ -20,7 +20,8 @@ def dashboard_home(request):
         # Render only the partial content for HTMX
         return render(request, "dashboard/partials/home_partial.html", context)
 
-    return render(request, "dashboard/home.html", context)
+    # For full page load (refresh), render the base template
+    return render(request, "dashboard_base.html", context)
 
 
 @login_required
@@ -36,7 +37,9 @@ def dashboard_history(request):
     if request.headers.get("HX-Request"):
         return render(request, "dashboard/partials/history_partial.html", context)
 
-    return render(request, "dashboard/history.html", context)
+    # For full page load (refresh), render the base template
+    return render(request, "dashboard_base.html", context)
+
 
 @login_required
 def dashboard_settings(request):
@@ -117,7 +120,7 @@ def dashboard_settings(request):
                 except ValidationError as e:
                     messages.error(request, " ".join(e.messages))
 
-        # For HTMX requests, return the settings page content
+        # For HTMX requests, return just the settings content
         if request.headers.get("HX-Request"):
             context = {
                 "profile": profile,
@@ -125,7 +128,7 @@ def dashboard_settings(request):
             }
             return render(request, "dashboard/settings.html", context)
         
-        # For regular requests, redirect
+        # For regular requests (like form submissions), redirect to avoid resubmission
         return redirect("dashboard:settings")
 
     # GET request
@@ -134,16 +137,24 @@ def dashboard_settings(request):
         "user": user
     }
 
-    return render(request, "dashboard/settings.html", context)
+    # Check if HTMX request
+    if request.headers.get("HX-Request"):
+        return render(request, "dashboard/settings.html", context)
+    
+    # For full page load (refresh), render the base template
+    return render(request, "dashboard_base.html", context)
+
 
 @login_required(login_url='user:login')
 def tickets_view(request):
-    context = {'user': request.user,}
+    context = {'user': request.user}
 
     if request.headers.get("HX-Request"):
         return render(request, "tickets/partials/ticket_overview_partial.html", context)
 
-    return render(request, "tickets/ticket_overview.html", context)
+    # For full page load (refresh), render the base template
+    return render(request, "dashboard_base.html", context)
+
 
 @login_required
 @require_POST
@@ -160,6 +171,7 @@ def mark_notification_read(request, notification_id):
     except Notification.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Notification not found'}, status=404)
 
+
 @login_required
 @require_POST
 def mark_all_notifications_read(request):
@@ -170,6 +182,7 @@ def mark_all_notifications_read(request):
     ).update(is_read=True)
     
     return JsonResponse({'success': True})
+
 
 @login_required
 def notification_count(request):

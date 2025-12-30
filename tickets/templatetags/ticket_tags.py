@@ -19,7 +19,7 @@ def admin_notes_count(ticket):
     if ticket.last_admin_update > last_view:
         return ticket.tickethistory_set.filter(
             action__icontains='Note added by',
-            created_at__gt=last_view
+            timestamp__gt=last_view
         ).count()
     
     return 0

@@ -4,6 +4,7 @@ from .models import Ticket, TicketHistory, Notification
 from django.urls import reverse
 from django.utils import timezone 
 from .forms import (
+    GeneralInquiryForm,
     TicketForm,
     TechnicalSupportForm,
     AcademicSupportForm,
@@ -20,6 +21,7 @@ FORM_MAP = {
     "lostfound": LostAndFoundForm,
     "welfare": WelfareForm,
     "facilities": FacilitiesForm,
+    "generalinquiry": GeneralInquiryForm,
 }
 
 @login_required
@@ -35,7 +37,7 @@ def ticket_list(request):
     if request.headers.get('HX-Request'):  
         return render(request, 'tickets/partials/ticket_overview_partial.html', context)
 
-    return render(request, 'tickets/ticket_overview.html', context)
+    return render(request, 'dashboard_base.html', context)
 
 @login_required
 def ticket_detail(request, pk):
@@ -71,7 +73,7 @@ def ticket_detail(request, pk):
 @login_required
 def create_ticket(request):
 
-    DEFAULT_CATEGORY = "technical"
+    DEFAULT_CATEGORY = "generalinquiry"
 
     if request.method == "POST":
         category = request.POST.get("category", DEFAULT_CATEGORY)
@@ -108,10 +110,12 @@ def create_ticket(request):
                 }
                 return render(request, "tickets/partials/ticket_overview_partial.html", context)
             
+            # For non-HTMX requests (form submissions), redirect to ticket overview
             return redirect("tickets:ticket_overview")
     else:
         form = form_class()
 
+    # Handle HTMX category change
     if request.headers.get("HX-Request") and request.method == "GET" and "category" in request.GET:
         return render(
             request,
@@ -119,6 +123,7 @@ def create_ticket(request):
             {"form": form, "category": category}
         )
     
+    # Handle HTMX navigation to create page
     if request.headers.get("HX-Request"):
         return render(
             request,
@@ -126,11 +131,13 @@ def create_ticket(request):
             {"form": form, "category": category}
         )
     
+    # For full page loads (refresh), render the full create page
     return render(
         request,
         "tickets/create_ticket.html",
         {"form": form, "category": category}
     )
+
 
 @login_required
 def update_ticket(request, pk):
@@ -169,15 +176,19 @@ def update_ticket(request, pk):
                 }
                 return render(request, 'tickets/partials/ticket_detail_partial.html', context)
 
+            # For non-HTMX requests, redirect to ticket detail
             return redirect('tickets:ticket_detail', pk=ticket.pk)
 
     else:
-        # On GET, instantiate the form **with instance=ticket** to pre-fill current data
+        # On GET, instantiate the form with instance=ticket to pre-fill current data
         form = form_class(instance=ticket)
 
-    # Render HTMX partial for the update form
-    template = 'tickets/partials/update_ticket_partial.html' if request.headers.get('HX-Request') else 'tickets/update_ticket.html'
-    return render(request, template, {'form': form, 'ticket': ticket})
+    # For HTMX requests, render the partial
+    if request.headers.get('HX-Request'):
+        return render(request, 'tickets/partials/update_ticket_partial.html', {'form': form, 'ticket': ticket})
+    
+    # For full page loads (refresh), render the full update page
+    return render(request, 'tickets/update_ticket.html', {'form': form, 'ticket': ticket})
 
 @login_required
 def delete_ticket(request, pk):

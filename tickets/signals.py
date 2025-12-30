@@ -76,9 +76,9 @@ def admin_note_added(sender, instance, created, **kwargs):
         instance.ticket.save(update_fields=['last_admin_update'])
         
         # Create notification for ticket owner
-        if instance.ticket.user:
+        if instance.ticket.created_by:
             Notification.objects.create(
-                user=instance.ticket.user,
+                user=instance.ticket.created_by,
                 ticket=instance.ticket,
                 notification_type='ticket_response',
                 title=f'New response on ticket: {instance.ticket.title}',

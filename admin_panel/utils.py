@@ -16,5 +16,5 @@ OFFICE_TICKET_CATEGORIES = {
     "Principal Office" : ["lostfound"],            
     "Office of Student Services": ["lostfound"],            
     "Guidance Office": ["welfare"],     
-    "Office of Media, Alumni, and Public Affairs": ["general"],         
+    "Office of Media, Alumni, and Public Affairs": ["generalinquiry"],         
 }

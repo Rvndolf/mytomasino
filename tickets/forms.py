@@ -302,3 +302,32 @@ class FacilitiesForm(forms.ModelForm):
         if commit:
             ticket.save()
         return ticket
+    
+class GeneralInquiryForm(forms.ModelForm):
+    inquiry = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 6, 'placeholder': 'Type your question or inquiry here...'}),
+        label="Your Inquiry"
+    )
+
+    class Meta:
+        model = Ticket
+        fields = ['title']
+        widgets = {
+            'title': forms.TextInput(attrs={'placeholder': 'Brief subject or title'}),
+        }
+    
+    def save(self, commit=True):
+        ticket = super().save(commit=False)
+        inquiry = self.cleaned_data.get('inquiry')
+        
+        # Store the inquiry as the description
+        ticket.description = inquiry
+        
+        # Store metadata to identify this as a general inquiry
+        ticket.metadata = {
+            'form_type': 'general_inquiry'
+        }
+        
+        if commit:
+            ticket.save()
+        return ticket

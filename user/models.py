@@ -9,24 +9,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import RegexValidator, MaxLengthValidator, MinLengthValidator
 
-class EmailVerification(models.Model):
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)  # store hashed password
-    code = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    @staticmethod
-    def generate_code(length=6):
-        return ''.join(random.choices(string.digits, k=length))
-
-    def set_password(self, raw_password):
-        self.password = make_password(raw_password)
-
-    def is_expired(self):
-        return timezone.now() > self.created_at + timedelta(minutes=15)
-
-    def __str__(self):
-        return f"{self.email}"
 
 class Office(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -34,7 +16,6 @@ class Office(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class StaffProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

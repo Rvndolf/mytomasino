@@ -10,6 +10,7 @@ class Ticket(models.Model):
         ('facilities', 'Facilities and Maintenance'),
         ('lostfound', 'Lost and Found'),
         ('welfare', 'Student Welfare and Counselling'),
+        ('generalinquiry', 'General Inquiry'),
     ]
 
     STATUS_CHOICES = [

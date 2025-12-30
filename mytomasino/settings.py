@@ -52,6 +52,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "mytomasino.middleware.SessionTimeoutMiddleware",
 ]
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
@@ -68,9 +69,14 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/user/login/'
 ROOT_URLCONF = "mytomasino.urls"
 
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 900
+SESSION_COOKIE_AGE = 120  # 30 minutes in seconds (1800 = 30 * 60)
+SESSION_SAVE_EVERY_REQUEST = True  # Reset timer on every request
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Session expires when browser closes
 
+# Optional: More security settings
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
 
 TEMPLATES = [
     {
@@ -149,3 +155,4 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+

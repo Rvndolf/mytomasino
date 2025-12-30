@@ -134,6 +134,31 @@ function getCookie(name) {
     
     });
 
+  let inactivityTimeout;
+    const TIMEOUT_DURATION = 1800000; // 30 minutes in milliseconds (matches SESSION_COOKIE_AGE)
+    const WARNING_TIME = 120000; // Show warning 2 minutes before timeout
+
+    function resetInactivityTimer() {
+      clearTimeout(inactivityTimeout);
+      
+      // Show warning 2 minutes before logout
+      inactivityTimeout = setTimeout(() => {
+        if (confirm('Your session will expire in 2 minutes due to inactivity. Click OK to stay logged in.')) {
+          // User clicked OK, make a request to reset session
+          fetch('{% url "dashboard:home" %}', { method: 'HEAD' });
+          resetInactivityTimer();
+        }
+      }, TIMEOUT_DURATION - WARNING_TIME);
+    }
+
+    // Reset timer on user activity
+    document.addEventListener('mousemove', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+    document.addEventListener('click', resetInactivityTimer);
+    document.addEventListener('scroll', resetInactivityTimer);
+
+    // Initialize timer
+    resetInactivityTimer();
 </script>
 
 <style>

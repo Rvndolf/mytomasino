@@ -1,4 +1,164 @@
 {% extends "dashboard_base.html" %}
 {% block content %}
+<div class="container mt-4">
 
+  <!-- Ticket Info -->
+  <div class="card shadow-sm border-0 p-4 mb-4">
+    <h2 class="fw-bold mb-2">{{ ticket.title }}</h2>
+    <p class="text-muted mb-3">Created on {{ ticket.created_at|date:"M d, Y h:i A" }}</p>
+
+    <p class="mb-1"><strong>Category:</strong> {{ ticket.get_category_display }}</p>
+
+    <!-- Display metadata fields based on category -->
+    {% if ticket.metadata %}
+      
+      {% if ticket.category == 'technical' %}
+        {% if ticket.metadata.issue_type_display %}
+          <p class="mb-1"><strong>Issue Type:</strong> {{ ticket.metadata.issue_type_display }}</p>
+        {% endif %}
+        
+      {% elif ticket.category == 'academic' %}
+        {% if ticket.metadata.program_year %}
+          <p class="mb-1"><strong>Program / Year:</strong> {{ ticket.metadata.program_year }}</p>
+        {% endif %}
+        {% if ticket.metadata.inquiry_type_display %}
+          <p class="mb-1"><strong>Inquiry Type:</strong> {{ ticket.metadata.inquiry_type_display }}</p>
+        {% endif %}
+        
+      {% elif ticket.category == 'lostfound' %}
+        {% if ticket.metadata.department_display %}
+          <p class="mb-1"><strong>Department:</strong> {{ ticket.metadata.department_display }}</p>
+        {% endif %}
+        {% if ticket.metadata.location %}
+          <p class="mb-1"><strong>Location:</strong> {{ ticket.metadata.location }}</p>
+        {% endif %}
+        {% if ticket.metadata.date_time %}
+          <p class="mb-1"><strong>Date/Time:</strong> {{ ticket.metadata.date_time }}</p>
+        {% endif %}
+        
+      {% elif ticket.category == 'welfare' %}
+        {% if ticket.metadata.contact_method_display %}
+          <p class="mb-1"><strong>Contact Method:</strong> {{ ticket.metadata.contact_method_display }}</p>
+        {% endif %}
+        {% if ticket.metadata.request_type_display %}
+          <p class="mb-1"><strong>Request Type:</strong> {{ ticket.metadata.request_type_display }}</p>
+        {% endif %}
+        {% if ticket.metadata.preferred_date %}
+          <p class="mb-1"><strong>Preferred Date:</strong> {{ ticket.metadata.preferred_date }}</p>
+        {% endif %}
+        
+      {% elif ticket.category == 'facilities' %}
+        {% if ticket.metadata.location %}
+          <p class="mb-1"><strong>Location:</strong> {{ ticket.metadata.location }}</p>
+        {% endif %}
+        {% if ticket.metadata.issue_type_display %}
+          <p class="mb-1"><strong>Issue Type:</strong> {{ ticket.metadata.issue_type_display }}</p>
+        {% endif %}
+        {% if ticket.metadata.urgency_display %}
+          <p class="mb-1">
+            <strong>Urgency:</strong> 
+            <span class="badge 
+              {% if ticket.metadata.urgency == 'high' %}bg-danger
+              {% elif ticket.metadata.urgency == 'medium' %}bg-warning text-dark
+              {% else %}bg-secondary{% endif %}">
+              {{ ticket.metadata.urgency_display|upper }}
+            </span>
+          </p>
+        {% endif %}
+      {% endif %}
+      
+    {% endif %}
+
+    <p class="mb-1"><strong>Status:</strong>
+      {% if ticket.status == 'open' %}<span class="badge bg-success">Open</span>
+      {% elif ticket.status == 'in_progress' %}<span class="badge bg-warning text-dark">In Progress</span>
+      {% elif ticket.status == 'completed' %}<span class="badge bg-primary">Completed</span>{% endif %}
+    </p>
+
+    {% if ticket.assigned_to %}
+      <p class="mb-1"><strong>Assigned to:</strong> {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}</p>
+    {% endif %}
+
+    <!-- NOW the description is clean and separate -->
+    {% if ticket.description %}
+      <hr class="my-3">
+      <p class="mb-2"><strong>Description:</strong></p>
+      <div class="bg-light p-3 rounded" style="white-space: pre-line;">{{ ticket.description }}</div>
+    {% endif %}
+
+    <!-- Handle attachments (photos) -->
+    {% if ticket.attachment %}
+      <hr class="my-3">
+      <div class="mt-2">
+        <p class="mb-2"><strong>Attachment:</strong></p>
+        {% if ticket.attachment.url|lower|slice:"-4:" == ".jpg" or ticket.attachment.url|lower|slice:"-4:" == ".png" or ticket.attachment.url|lower|slice:"-5:" == ".jpeg" or ticket.attachment.url|lower|slice:"-5:" == ".webp" or ticket.attachment.url|lower|slice:"-4:" == ".gif" %}
+          <!-- Display image -->
+          <img src="{{ ticket.attachment.url }}" class="img-fluid rounded shadow-sm" alt="Ticket Attachment" style="max-width: 600px;">
+        {% else %}
+          <!-- Display download link for non-image files -->
+          <a href="{{ ticket.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-download"></i> Download Attachment
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Admin Notes/Responses -->
+  {% if admin_notes %}
+    <div class="card shadow-sm border-0 p-4 mb-4">
+      <h5 class="mb-3"><i class="fas fa-comments text-primary"></i> Staff Responses</h5>
+      <div class="alert alert-info mb-3">
+        <i class="fas fa-info-circle"></i> Staff has responded to your ticket.
+      </div>
+      <div class="list-group list-group-flush">
+        {% for note in admin_notes %}
+          <div class="list-group-item border-start border-primary border-4 mb-2">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="badge bg-primary">Staff Response</span>
+              <small class="text-muted">{{ note.timestamp|date:"M d, Y h:i A" }}</small>
+            </div>
+            <div style="white-space: pre-line;">{{ note.action }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Ticket History -->
+  <div class="card shadow-sm border-0 p-4 mb-4">
+    <h5 class="mb-3"><i class="fas fa-history"></i> Ticket History</h5>
+    <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+      {% for item in history %}
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between">
+            <div style="white-space: pre-line;">{{ item.action }}</div>
+            <small class="text-muted text-nowrap ms-3">{{ item.timestamp|date:"M d, Y h:i A" }}</small>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-muted mb-0">No history available.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="d-flex justify-content-between mt-4">
+    <a hx-get="{% url 'tickets:ticket_overview' %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'tickets:ticket_overview' %}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Back to My Tickets
+    </a>
+
+    <div class="d-flex gap-2">
+      {% if ticket.status != 'completed' %}
+        <a hx-get="{% url 'tickets:update_ticket' ticket.pk %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'tickets:update_ticket' ticket.pk %}" class="btn btn-warning">
+          <i class="fas fa-edit"></i> Update Ticket
+        </a>
+      {% endif %}
+      <a hx-get="{% url 'tickets:delete_ticket' ticket.pk %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="btn btn-danger">
+        <i class="fas fa-trash"></i> Delete Ticket
+      </a>
+    </div>
+  </div>
+
+</div>
 {% endblock %}

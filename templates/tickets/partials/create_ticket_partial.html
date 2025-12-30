@@ -16,6 +16,7 @@
         hx-swap="innerHTML"
         hx-trigger="change"
         hx-include="this">
+        <option value="generalinquiry" {% if category == "generalinquiry" %}selected{% endif %}>General Inquiry</option>
         <option value="technical" {% if category == "technical" %}selected{% endif %}>Technical / Account Support</option>
         <option value="academic" {% if category == "academic" %}selected{% endif %}>Academic or Enrollment</option>
         <option value="lostfound" {% if category == "lostfound" %}selected{% endif %}>Lost and Found</option>

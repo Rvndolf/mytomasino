@@ -23,7 +23,7 @@ def admin_home(request):
         'notifications': notifications,
     }
 
-    template = 'admin_panel/admin_home_partial.html' if request.headers.get('HX-Request') else 'admin_panel/admin_home.html'
+    template = 'admin_panel/partials/admin_home_partial.html' if request.headers.get('HX-Request') else 'admin_panel/admin_home.html'
     return render(request, template, context)
 
 @login_required
@@ -168,7 +168,7 @@ def add_ticket_note(request, ticket_id):
             TicketHistory.objects.create(
                 ticket=ticket,
                 ticket_title=ticket.title,
-                action=f"Note added by {request.user.get_full_name()}: {note}"
+                action=f"Note added by {request.user.username.upper()} (Staff): {note}"
             )
 
             Notification.objects.create(
