@@ -321,6 +321,13 @@ html {
     display: flex;
   }
 
+  #notificationToggle { 
+  position: fixed;   /* ensures it stays in the top-right */
+  top: 1rem;         /* keeps vertical spacing the same */
+  right: 1rem;     /* move it closer to the right edge */
+  z-index: 1100;     /* above other elements */
+  }
+
   /* Hide sidebar by default on mobile */
   .sidebar {
     transform: translateX(-100%);

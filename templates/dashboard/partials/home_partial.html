@@ -1,14 +1,209 @@
 <!-- dashboard/home.html (partial for HTMX) -->
-<div class="d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 2rem);">
-  <div class="text-center">
-    {% if request.user.is_authenticated %}
-    <h2>Welcome, {{ request.user.first_name }}</h2>
-    {% else %}
-    <h2>Welcome, Guest</h2>
-    {% endif %}
-    <p class="text-muted mt-2">This is your dashboard home page.</p>
-    <div class="mt-5">
-      <h5>Your account overview will appear here soon.</h5>
+<div class="container-fluid px-5 pt-5 pt-lg-4">
+  <!-- Header Section -->
+  <div class="row mt-4 mb-0">
+    <div class="col-12">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <!-- Vertical bar -->
+          <div style="width: 4px; height: 60px; background-color: #144214; margin-right: 15px;"></div>
+          <!-- Text content -->
+          <div>
+            <h2 class="mb-1 gradient-green-text">
+              Hello, {{ request.user.first_name }}!
+            </h2>
+            <small class="text-muted">Today is {% now "F j, Y" %}</small>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- Main Content Row -->
+  <div class="row align-items-center gx-2 content-container">
+    <!-- Left: See what's in store -->
+    <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center ps-lg-2 mobile-reduce-height">
+      <p class="text-muted mb-0">See what's in store for you today.</p>
+    </div>
+
+    <!-- Right: View My Tickets Card -->
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm border-0" style="background-color: #144214; border-radius: 12px;">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="text-white mb-0">View My Tickets</h4>
+            <button class="btn btn-link text-white p-0" style="font-size: 24px; text-decoration: none;">⋮</button>
+          </div>
+          
+          <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <small class="text-white-50">Ticket Completion</small>
+              <small class="text-white">{{ completion_percentage }}%</small>
+            </div>
+            <div class="progress" style="height: 8px; background-color: rgba(255,255,255,0.2);">
+              <div class="progress-bar" role="progressbar" style="width: {{ completion_percentage }}%; background-color: #fbbf24;" aria-valuenow="{{ completion_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity Section -->
+  <div class="row mt-4">
+    <div class="col-12 col-lg-6">
+      <!-- Recent Activity Header Container -->
+      <div class="activity-header-container">
+        <h5 class="mb-0 gradient-green-text">Recent Activity</h5>
+      </div>
+      
+      <!-- Recent Activity Items Container -->
+    <div class="activity-items-container">
+      {% if history_entries %}
+        {% for activity in history_entries %}
+          <!-- Individual Activity Item Container -->
+          <div class="activity-item-card">
+            <div class="d-flex align-items-start">
+
+              <!-- Activity content -->
+              <div class="flex-grow-1">
+                <p class="mb-1" style="font-size: 0.9rem; color: #2d3748;">
+                  <strong>{{ activity.ticket.title }}</strong>
+                </p>
+                <p class="mb-1 text-muted" style="font-size: 0.8rem;">
+                  {{ activity.action }}
+                </p>
+                <small class="text-muted" style="font-size: 0.75rem;">
+                  {{ activity.timestamp|timesince }} ago
+                </small>
+              </div>
+
+              <!-- Status badge (if available) -->
+              {% if activity.new_status %}
+                <span class="badge status-badge-{{ activity.new_status }}">
+                  {{ activity.new_status|title }}
+                </span>
+              {% endif %}
+
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="activity-item-card text-center">
+          <p class="text-muted mb-0">No recent activity</p>
+        </div>
+      {% endif %}
+    </div>
+
+
+<style>
+  /* Content container with shadow and rounded edges */
+  .content-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 1rem 1rem;
+    margin-top: 1rem;
+  }
+
+  /* Default: small height on mobile */
+  .mobile-reduce-height {
+    min-height: 120px;
+    margin-bottom: 1rem;
+  }
+  
+  /* Large screens: tall height */
+  @media (min-width: 992px) {
+    .mobile-reduce-height {
+      min-height: 200px;
+      margin-bottom: 0;
+    }
+  }
+
+  .card {
+    transition: all 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+    background-color: #1a5c1a !important;
+  }
+
+  /* Recent Activity Header Container */
+  .activity-header-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Recent Activity Items Container */
+  .activity-items-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+  }
+
+  /* Individual Activity Item Card */
+  .activity-item-card {
+    background-color: #f8f9fa;
+    border-radius: 7px;
+    padding: 0.7rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  .activity-item-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .activity-item-card:hover {
+    background-color: #e9ecef;
+    transform: translateX(4px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  .activity-icon {
+    padding-top: 4px;
+  }
+
+  /* Status badges */
+  .status-badge-open {
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-in_progress {
+    background-color: #f59e0b;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-completed {
+    background-color: #10b981;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .gradient-green-text {
+  background: linear-gradient(90deg, #144214, #3C6D36);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-weight: 600;
+}
+
+</style>

@@ -14,7 +14,25 @@ from django.contrib.auth.password_validation import validate_password
 
 @login_required(login_url='user:login')
 def dashboard_home(request):
-    context = {'user': request.user}
+    # Calculate ticket completion percentage
+    completed_tickets = request.user.tickets_created.filter(status='completed').count()
+    total_tickets = request.user.tickets_created.count()
+    
+    if total_tickets > 0:
+        completion_percentage = round((completed_tickets / total_tickets) * 100)
+    else:
+        completion_percentage = 0
+    
+    # Get last 3 ticket histories for the user's tickets
+    history_entries = TicketHistory.objects.filter(
+        ticket__created_by=request.user
+    ).order_by('-timestamp')[:3]
+    
+    context = {
+        'user': request.user,
+        'completion_percentage': completion_percentage,
+        'history_entries': history_entries,
+    }
 
     if request.headers.get("HX-Request"):
         # Render only the partial content for HTMX
@@ -22,7 +40,6 @@ def dashboard_home(request):
 
     # For full page load (refresh), render the base template
     return render(request, "dashboard_base.html", context)
-
 
 @login_required
 def dashboard_history(request):
