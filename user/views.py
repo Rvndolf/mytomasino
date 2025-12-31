@@ -13,60 +13,64 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 User = get_user_model()
-from .forms import LoginForm
 from admin_panel import views as views
+from django.views.decorators.cache import never_cache
 
-
+@never_cache
 def login_view(request):
-    
+
     if request.user.is_authenticated:
         if request.user.is_superuser or request.user.is_staff:
             return redirect('admin_panel:admin_home')
         return redirect('dashboard:home')
 
-    # Handle barcode scanner login
+    # Barcode login
     if request.method == 'POST' and request.POST.get('barcode_login'):
         student_id = request.POST.get('student_id', '').strip()
-        
+
         if student_id:
             try:
-                # Get user by student ID from UserProfile
                 user_profile = UserProfile.objects.select_related('user').get(id_number=student_id)
                 user = user_profile.user
-                
-                # Log them in without password
+
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 messages.success(request, f'Welcome, {user.get_full_name() or user.username}!')
-                
+
                 if user.is_superuser or user.is_staff:
                     return redirect('admin_panel:admin_home')
                 return redirect('dashboard:home')
-                
+
             except UserProfile.DoesNotExist:
                 messages.error(request, 'Invalid student ID.')
             except UserProfile.MultipleObjectsReturned:
-                messages.error(request, 'Multiple users found with this ID. Please contact support.')
+                messages.error(request, 'Multiple users found with this ID.')
+
         else:
             messages.error(request, 'Please scan a valid student ID.')
-        
-        return render(request, 'user/login.html', {'form': LoginForm()})
 
-    # Regular login form handling
-    form = LoginForm(request.POST or None)
+        return render(request, 'user/login.html')
 
-    if request.method == "POST" and form.is_valid():
-        email = form.cleaned_data['email']
-        password = form.cleaned_data['password']
+    # Email + password login
+    if request.method == "POST":
+        email = request.POST.get('email')
+        password = request.POST.get('password')
 
         try:
             user_obj = User.objects.get(email=email)
         except User.DoesNotExist:
             user_obj = None
 
-        
-        if user_obj and (email.endswith('@ust-legazpi.edu.ph') or user_obj.is_superuser or user_obj.is_staff):
-            
-            user = authenticate(request, username=user_obj.username, password=password)
+        if user_obj and (
+            email.endswith('@ust-legazpi.edu.ph') or
+            user_obj.is_superuser or
+            user_obj.is_staff
+        ):
+            user = authenticate(
+                request,
+                username=user_obj.username,
+                password=password
+            )
+
             if user:
                 login(request, user)
                 messages.success(request, "Logged in successfully!")
@@ -79,7 +83,7 @@ def login_view(request):
         else:
             messages.error(request, "Email must be a @ust-legazpi.edu.ph account.")
 
-    return render(request, 'user/login.html', {'form': form})
+    return render(request, 'user/login.html')
 
 def logout_view(request):
     logout(request)

@@ -11,6 +11,8 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
+from tickets.models import Ticket, TicketHistory
+from django.db.models import Count
 
 @login_required(login_url='user:login')
 def dashboard_home(request):
@@ -28,10 +30,29 @@ def dashboard_home(request):
         ticket__created_by=request.user
     ).order_by('-timestamp')[:3]
     
+    # Get open tickets count by category
+    category_counts = (
+        Ticket.objects.filter(status='open', created_by=request.user)
+        .values('category')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # Get display names for categories
+    category_dict = dict(Ticket.CATEGORY_CHOICES)
+    category_data = [
+        {
+            'category_display': category_dict.get(item['category'], item['category']),
+            'count': item['count']
+        }
+        for item in category_counts
+    ]
+    
     context = {
         'user': request.user,
         'completion_percentage': completion_percentage,
         'history_entries': history_entries,
+        'category_counts': category_data,
     }
 
     if request.headers.get("HX-Request"):

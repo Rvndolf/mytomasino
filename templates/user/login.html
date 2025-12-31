@@ -1,46 +1,104 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex justify-content-center align-items-center vh-100">
-  <div class="card shadow-lg border-0 form-card mx-auto">
-    <h2 class="text-center bg-success text-white p-3 rounded-top mb-0">Login</h2>
-    <div class="card-body">
-      
-      {% if messages %}
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
 
-      <form method="post" id="barcodeForm" style="position: absolute; left: -9999px;">
-        {% csrf_token %}
-        <input type="text" name="student_id" id="barcodeInput" autofocus>
-        <input type="hidden" name="barcode_login" value="1">
-      </form>
+<!-- Bootstrap Icons -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+  rel="stylesheet">
 
-      <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-success w-100 fw-bold">Login</button>
-        <div class="text-center mt-3">
-        <a href="{% url 'user:password_reset' %}" class="text-success fw-semibold text-decoration-none">Forgot password?</a>
-        </div>
-      </form>
-        </p>
-      </div>
+<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+  <div class="card border-0 shadow-lg rounded-4 px-4 py-4"
+       style="width: 100%; max-width: 420px; background-color: #ffffff;">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <h2 class="fw-bold text-success mb-1">Welcome!</h2>
+      <p class="text-muted mb-0">Log in here.</p>
     </div>
+
+    <!-- Django Messages -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Hidden Barcode Login -->
+    <form method="post" id="barcodeForm" style="position: absolute; left: -9999px;">
+      {% csrf_token %}
+      <input type="text" name="student_id" id="barcodeInput" autofocus>
+      <input type="hidden" name="barcode_login" value="1">
+    </form>
+
+    <!-- Login Form -->
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <!-- Email -->
+      <div class="mb-3 input-wrapper">
+        <input
+          type="email"
+          class="form-control rounded-3 text-center login-input"
+          id="email"
+          name="email"
+          placeholder="yourname@ust-legazpi.edu.ph"
+          required
+        >
+      </div>
+
+      <!-- Password -->
+      <div class="mb-3 position-relative input-wrapper">
+        <input
+          type="password"
+          class="form-control rounded-3 text-center login-input pe-5"
+          id="password"
+          name="password"
+          placeholder="Enter password"
+          required
+        >
+
+        <!-- Reveal Button -->
+        <button
+          type="button"
+          class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 text-muted password-toggle"
+          aria-label="Toggle password visibility"
+        >
+          <!-- DEFAULT: hidden password -->
+          <i class="bi bi-eye-slash"></i>
+        </button>
+      </div>
+
+      <button type="submit"
+              class="btn btn-success w-100 fw-semibold py-2 rounded-3">
+        Log in
+      </button>
+
+      <div class="text-center mt-3">
+        <a href="{% url 'user:password_reset' %}"
+           class="text-success fw-medium text-decoration-none">
+          Forgot your password?
+        </a>
+      </div>
+    </form>
+
+    <!-- Footer -->
+    <div class="text-center mt-4">
+      <small class="text-muted">© MyTomasino</small>
+    </div>
+
   </div>
 </div>
 
+<!-- Scripts -->
 <script>
-  // Keep focus on barcode input when user isn't actively typing in the form
+  /* Barcode focus logic */
   let typingTimer;
   const barcodeInput = document.getElementById('barcodeInput');
   const barcodeForm = document.getElementById('barcodeForm');
-  
-  // Auto-submit when barcode scanner finishes (barcode scanners typically add Enter)
+
   barcodeInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -48,23 +106,88 @@
     }
   });
 
-  // Keep focus on barcode input unless user clicks on the visible form
   document.addEventListener('click', function(e) {
     if (!e.target.closest('form:not(#barcodeForm)')) {
       barcodeInput.focus();
     }
   });
 
-  // Refocus on barcode input after a short delay of no typing
-  document.addEventListener('keyup', function(e) {
+  document.addEventListener('keyup', function() {
     clearTimeout(typingTimer);
-    typingTimer = setTimeout(function() {
-      if (document.activeElement.tagName !== 'INPUT' && 
-          document.activeElement.tagName !== 'BUTTON') {
-        barcodeInput.focus();
-      }
+    typingTimer = setTimeout(() => {
+      barcodeInput.focus();
     }, 2000);
   });
+
+  /* Password toggle with reversed icons */
+  const toggleBtn = document.querySelector('.password-toggle');
+  const passwordInput = document.getElementById('password');
+  const icon = toggleBtn.querySelector('i');
+
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = passwordInput.type === 'password';
+
+    passwordInput.type = isHidden ? 'text' : 'password';
+
+    // Animate icon
+    icon.classList.add('icon-animate');
+
+    setTimeout(() => {
+      // REVERSED LOGIC
+      icon.classList.toggle('bi-eye-slash', !isHidden);
+      icon.classList.toggle('bi-eye', isHidden);
+      icon.classList.remove('icon-animate');
+    }, 150);
+  });
 </script>
+
+<style>
+/* Inputs */
+.login-input {
+  height: 48px;
+  font-size: 0.95rem;
+  border: none;
+}
+
+.login-input::placeholder {
+  text-align: center;
+  color: hsl(140, 17%, 37%);
+  opacity: 1;
+}
+
+/* Input container shadow */
+.input-wrapper {
+  border-radius: 0.75rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.input-wrapper:focus-within {
+  box-shadow: 0 8px 22px rgba(25, 135, 84, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Eye button */
+.password-toggle {
+  border: none;
+  background: transparent;
+}
+
+.password-toggle i {
+  font-size: 1.1rem;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover i {
+  color: #198754;
+}
+
+/* Icon click animation */
+.icon-animate {
+  transform: scale(0.8) rotate(-10deg);
+  opacity: 0.6;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+</style>
 
 {% endblock %}

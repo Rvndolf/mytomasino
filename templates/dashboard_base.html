@@ -160,7 +160,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
- // Shows a loading spinner when HTMX makes a request
+// Shows a loading spinner when HTMX makes a request
 // Hides it when the request completes
 document.body.addEventListener('htmx:beforeRequest', () => {
   document.getElementById('loading').classList.remove('d-none');
@@ -249,7 +249,8 @@ const overlay = document.getElementById('sidebarOverlay');
 const notificationSidebar = document.getElementById('notificationSidebar');
 const notificationOverlay = document.getElementById('notificationOverlay');
 
-sidebarToggle.addEventListener('click', () => {
+sidebarToggle.addEventListener('click', (e) => {
+  e.stopPropagation();
   sidebar.classList.toggle('active');
   overlay.classList.toggle('active');
   // Close notification sidebar if it's open

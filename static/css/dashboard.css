@@ -49,10 +49,6 @@ html {
   transition: transform 0.3s ease;
 }
 
-.profile-img:hover {
-  transform: scale(1.05);
-}
-
 .profile-name {
   font-weight: 600;
   margin-top: 0.8rem;
@@ -171,25 +167,19 @@ html {
   position: fixed;
   top: 1rem;
   left: 1rem;
-  z-index: 1001;
-  background: linear-gradient(135deg, #198754, #157347);
-  color: white;
+  z-index: 1100;  
+  background: transparent;
+  color: #198754;
   border: none;
   width: 50px;
   height: 50px;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   display: none;
-  box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4);
+  box-shadow: none;
   transition: all 0.3s ease;
   align-items: center;
   justify-content: center;
-}
-
-.mobile-menu-toggle:hover {
-  background: linear-gradient(135deg, #157347, #0f5132);
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(25, 135, 84, 0.5);
 }
 
 .mobile-menu-toggle:active {
@@ -322,10 +312,10 @@ html {
   }
 
   #notificationToggle { 
-  position: fixed;   /* ensures it stays in the top-right */
-  top: 1rem;         /* keeps vertical spacing the same */
-  right: 1rem;     /* move it closer to the right edge */
-  z-index: 1100;     /* above other elements */
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1100;
   }
 
   /* Hide sidebar by default on mobile */
