@@ -15,6 +15,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 from admin_panel import views as views
 from django.views.decorators.cache import never_cache
+from.models import UserProfile
 
 @never_cache
 def login_view(request):

@@ -232,5 +232,6 @@ def delete_ticket(request, pk):
 
         return redirect('tickets:ticket_overview')
 
-    # GET → render delete confirmation partial
-    return render(request, 'tickets/partials/delete_ticket_partial.html', {'ticket': ticket})
+    # GET → render full page if normal request, partial if HTMX
+    template = 'tickets/partials/delete_ticket_partial.html' if request.headers.get('HX-Request') else 'tickets/delete_ticket.html'
+    return render(request, template, {'ticket': ticket})

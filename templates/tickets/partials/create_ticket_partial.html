@@ -1,49 +1,216 @@
-<div class="card shadow-sm p-4 border-0">
-  <h3 class="mb-4">Create New Ticket</h3>
+<div class="container-fluid d-flex justify-content-center align-items-start ticket-form-container">
+  <div class="card shadow-sm p-4 border-0 ticket-form-card">
+    <h3 class="mb-4" style="color: #144214;">Create New Ticket</h3>
 
-  <form id="ticket-form"
-        hx-post="{% url 'tickets:create_ticket' %}"
-        hx-target="#dashboard-content"
-        hx-swap="innerHTML"
-        enctype="multipart/form-data">
-    {% csrf_token %}
+    <form id="ticket-form"
+          hx-post="{% url 'tickets:create_ticket' %}"
+          hx-target="#dashboard-content"
+          hx-swap="innerHTML"
+          enctype="multipart/form-data">
+      {% csrf_token %}
 
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Category</label>
-      <select name="category" id="category-select" class="form-select"
-        hx-get="{% url 'tickets:create_ticket' %}"
-        hx-target="#dynamic-form"
-        hx-swap="innerHTML"
-        hx-trigger="change"
-        hx-include="this">
-        <option value="generalinquiry" {% if category == "generalinquiry" %}selected{% endif %}>General Inquiry</option>
-        <option value="technical" {% if category == "technical" %}selected{% endif %}>Technical / Account Support</option>
-        <option value="academic" {% if category == "academic" %}selected{% endif %}>Academic or Enrollment</option>
-        <option value="lostfound" {% if category == "lostfound" %}selected{% endif %}>Lost and Found</option>
-        <option value="welfare" {% if category == "welfare" %}selected{% endif %}>Student Welfare and Counselling</option>
-        <option value="facilities" {% if category == "facilities" %}selected{% endif %}>Facilities and Maintenance</option>
-      </select>
-    </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold" style="color: #144214;">Category</label>
+        <select name="category" id="category-select" class="form-select custom-select-gray"
+          hx-get="{% url 'tickets:create_ticket' %}"
+          hx-target="#dynamic-form"
+          hx-swap="innerHTML"
+          hx-trigger="change"
+          hx-include="this">
+          <option value="generalinquiry" {% if category == "generalinquiry" %}selected{% endif %}>General Inquiry</option>
+          <option value="technical" {% if category == "technical" %}selected{% endif %}>Technical / Account Support</option>
+          <option value="academic" {% if category == "academic" %}selected{% endif %}>Academic or Enrollment</option>
+          <option value="lostfound" {% if category == "lostfound" %}selected{% endif %}>Lost and Found</option>
+          <option value="welfare" {% if category == "welfare" %}selected{% endif %}>Student Welfare and Counselling</option>
+          <option value="facilities" {% if category == "facilities" %}selected{% endif %}>Facilities and Maintenance</option>
+        </select>
+      </div>
 
-    <div id="dynamic-form">
-      {% if form %}
-        {{ form.as_p }}
-      {% else %}
-        <p class="text-muted">Please select a category to see the form fields.</p>
-      {% endif %}
-    </div>
+      <div id="dynamic-form" class="django-form-styled">
+        {% if form %}
+          {{ form.as_p }}
+        {% else %}
+          <p class="text-muted">Please select a category to see the form fields.</p>
+        {% endif %}
+      </div>
 
-    <div class="d-flex justify-content-between mt-3">
-      <a hx-get="{% url 'tickets:ticket_overview' %}"
-         hx-target="#dashboard-content"
-         hx-swap="innerHTML"
-         class="btn btn-secondary">
-        Cancel
-      </a>
+      <div class="d-flex justify-content-between mt-3">
+        <a hx-get="{% url 'tickets:ticket_overview' %}"
+           hx-target="#dashboard-content"
+           hx-swap="innerHTML"
+           class="btn btn-secondary">
+          Cancel
+        </a>
 
-      <button type="submit" class="btn btn-primary">
-        Create Ticket
-      </button>
-    </div>
-  </form>
+        <button type="submit" class="btn btn-primary custom-btn-green">
+          Create Ticket
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
+
+<style>
+  /* Container styling */
+  .ticket-form-container {
+    min-height: 100vh;
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+
+  .ticket-form-card {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  /* Gray theme for most inputs */
+  .custom-select-gray,
+  .django-form-styled input[type="text"],
+  .django-form-styled input[type="email"],
+  .django-form-styled input[type="number"],
+  .django-form-styled input[type="tel"],
+  .django-form-styled input[type="date"],
+  .django-form-styled input[type="time"],
+  .django-form-styled input[type="datetime-local"],
+  .django-form-styled input[type="file"],
+  .django-form-styled select {
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    padding: 10px 12px;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Green theme ONLY for textarea (Description) */
+  .django-form-styled textarea {
+    border: 2px solid #144214;
+    border-radius: 6px;
+    padding: 10px 12px;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .custom-select-gray:focus,
+  .django-form-styled input[type="text"]:focus,
+  .django-form-styled input[type="email"]:focus,
+  .django-form-styled input[type="number"]:focus,
+  .django-form-styled input[type="tel"]:focus,
+  .django-form-styled input[type="date"]:focus,
+  .django-form-styled input[type="time"]:focus,
+  .django-form-styled input[type="datetime-local"]:focus,
+  .django-form-styled input[type="file"]:focus,
+  .django-form-styled select:focus {
+    border-color: #9ca3af;
+    box-shadow: 0 0 0 0.2rem rgba(156, 163, 175, 0.25);
+    outline: none;
+  }
+
+  /* Green focus for textarea */
+  .django-form-styled textarea:focus {
+    border-color: #144214;
+    box-shadow: 0 0 0 0.2rem rgba(20, 66, 20, 0.25);
+    outline: none;
+  }
+
+  .django-form-styled label {
+    color: #144214;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .custom-btn-green {
+    background-color: #144214;
+    border-color: #144214;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .custom-btn-green:hover {
+    background-color: #0f3010;
+    border-color: #0f3010;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(20, 66, 20, 0.3);
+  }
+
+  .custom-btn-green:active {
+    background-color: #0a2008;
+    border-color: #0a2008;
+  }
+
+  /* File input styling */
+  .django-form-styled input[type="file"] {
+    cursor: pointer;
+  }
+
+  .django-form-styled input[type="file"]::file-selector-button {
+    background-color: #6b7280;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .django-form-styled input[type="file"]::file-selector-button:hover {
+    background-color: #4b5563;
+  }
+
+  /* Django form paragraphs */
+  .django-form-styled p {
+    margin-bottom: 1rem;
+  }
+
+  /* Django form error messages */
+  .django-form-styled .errorlist {
+    color: #dc3545;
+    list-style: none;
+    padding: 0;
+    margin: 5px 0;
+    font-size: 0.875rem;
+  }
+
+  .django-form-styled .helptext {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 5px;
+    display: block;
+  }
+
+  /* Mobile spacing */
+  @media (max-width: 768px) {
+    .ticket-form-container {
+      padding: 40px 20px;
+    }
+  }
+
+  /* Desktop - wider card with margin */
+  @media (min-width: 769px) {
+    .ticket-form-container {
+      padding: 60px 40px;
+    }
+    
+    .ticket-form-card {
+      max-width: 900px;
+    }
+  }
+
+  /* Large desktop - even wider */
+  @media (min-width: 1200px) {
+    .ticket-form-container {
+      padding: 60px 80px;
+    }
+    
+    .ticket-form-card {
+      max-width: 1000px;
+    }
+  }
+</style>

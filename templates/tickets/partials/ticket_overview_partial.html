@@ -1,7 +1,104 @@
 {% load ticket_tags %}
 {% load static %}
 
-<div class="container lowered">
+<style>
+  .filter-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .filter-card.active {
+    background: radial-gradient(circle, #144214 0%, #0a2409 100%) !important;
+    color: white;
+  }
+  
+  .filter-card.active .card-body {
+    background: transparent !important;
+  }
+  
+  .filter-card.active .fw-bold,
+  .filter-card.active .filter-subtitle,
+  .filter-card.active .filter-count {
+    color: white !important;
+  }
+  
+  .create-ticket-btn {
+    background-color: #144214 !important;
+    border-color: #144214 !important;
+  }
+  
+  .create-ticket-btn:hover {
+    background-color: #0a2409 !important;
+    border-color: #0a2409 !important;
+  }
+  
+  .section-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+  }
+  
+  .section-label .status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #144214;
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(20, 66, 20, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 15px rgba(20, 66, 20, 0.8), 0 0 20px rgba(20, 66, 20, 0.6);
+    }
+  }
+  
+  .filter-card .card-body {
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Make ticket titles smaller */
+  .ticket-section .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  
+  /* Make ticket containers more compact */
+  .ticket-section .card-body {
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Add faint green border to tickets container */
+  .tickets-container {
+    background-color: #ffffff;
+    border-radius: 15px !important;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+ .ticket-card {
+  cursor: pointer;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  }
+
+  .ticket-card:hover {
+  opacity: 0.85;
+  }
+  
+  /* Desktop: Add more margin between filter cards and status indicator */
+  @media (min-width: 768px) {
+    .filter-cards-row {
+      margin-bottom: 1.5rem !important;
+    }
+  }
+</style>
+
+<div class="container lowered px-4">
 
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4 sticky-header">
@@ -11,12 +108,12 @@
          hx-swap="innerHTML" 
          hx-push-url="{% url 'tickets:create_ticket' %}" 
          class="btn btn-success create-ticket-btn">
-        <i class="fas fa-check"></i> Create Ticket
+        <i class="fas fa-plus" style="font-size: 0.75rem;"></i> Create Ticket
       </a>
   </div>
   
   <!-- Filter Dashboard Cards -->
-  <div class="row g-3 mb-4 justify-content-center">
+  <div class="row g-2 mb-2 justify-content-center filter-cards-row">
     <div class="col-md-4">
       <div class="card filter-card active" data-filter="open">
         <div class="card-body">
@@ -60,31 +157,42 @@
     </div>
   </div>
 
+  <!-- Section Label -->
+  <div class="section-label">
+    <span class="status-indicator"></span>
+    <span>Active Tickets</span>
+  </div>
+
   <!-- Tickets Container -->
   <div class="tickets-container shadow-sm rounded p-4">
     
     <!-- Open Tickets -->
     <div class="ticket-section" id="open-section">
       {% if open_tickets %}
-        <div class="row g-3">
+        <div class="row g-1">
           {% for ticket in open_tickets %}
             <div class="col-12">
-              <div class="card shadow-sm hover-lift" 
+              <div class="card shadow-sm ticket-card" 
                    hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
                    hx-target="#dashboard-content" 
                    hx-swap="innerHTML" 
                    hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}">
                 <div class="card-body d-flex justify-content-between align-items-center">
                   <div class="flex-grow-1">
-                    <h5 class="card-title mb-2">{{ ticket.title }}</h5>
+                    <h5 class="card-title mb-1">{{ ticket.title }}</h5>
                     {% if ticket|admin_notes_count > 0 %}
                       <span class="badge bg-danger me-2 animate__animated animate__pulse animate__infinite">
                         <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} new response{{ ticket|admin_notes_count|pluralize }}
                       </span>
                     {% endif %}
-                    <div class="text-muted small mt-2">
-                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
-                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                    <div class="text-muted small mt-1">
+                      <span class="me-3">
+                        <i class="fas fa-tag"></i> {{ ticket.get_category_display }}  
+                      </span>
+                      <span class="me-3"> • </span>
+                      <span class="me-3">
+                        <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                      </span>
                     </div>
                   </div>
                   <div>
@@ -103,25 +211,30 @@
     <!-- In Progress Tickets -->
     <div class="ticket-section" id="progress-section" style="display: none;">
       {% if in_progress_tickets %}
-        <div class="row g-3">
+        <div class="row g-1">
           {% for ticket in in_progress_tickets %}
             <div class="col-12">
-              <div class="card shadow-sm hover-lift" 
+              <div class="card shadow-sm ticket-card" 
                    hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
                    hx-target="#dashboard-content" 
                    hx-swap="innerHTML" 
                    hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}">
                 <div class="card-body d-flex justify-content-between align-items-center">
                   <div class="flex-grow-1">
-                    <h5 class="card-title mb-2">{{ ticket.title }}</h5>
+                    <h5 class="card-title mb-1">{{ ticket.title }}</h5>
                     {% if ticket|admin_notes_count > 0 %}
                       <span class="badge bg-danger me-2 animate__animated animate__pulse animate__infinite">
                         <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} new response{{ ticket|admin_notes_count|pluralize }}
                       </span>
                     {% endif %}
-                    <div class="text-muted small mt-2">
-                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
-                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                    <div class="text-muted small mt-1">
+                      <span class="me-3">
+                        <i class="fas fa-tag"></i> {{ ticket.get_category_display }}  
+                      </span>
+                      <span class="me-3"> • </span>
+                      <span class="me-3">
+                        <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                      </span>
                     </div>
                   </div>
                   <div>
@@ -140,25 +253,30 @@
     <!-- Completed Tickets -->
     <div class="ticket-section" id="completed-section" style="display: none;">
       {% if completed_tickets %}
-        <div class="row g-3">
+        <div class="row g-1">
           {% for ticket in completed_tickets %}
             <div class="col-12">
-              <div class="card shadow-sm hover-lift" 
+              <div class="card shadow-sm ticket-card" 
                    hx-get="{% url 'tickets:ticket_detail' ticket.pk %}" 
                    hx-target="#dashboard-content" 
                    hx-swap="innerHTML" 
                    hx-push-url="{% url 'tickets:ticket_detail' ticket.pk %}">
                 <div class="card-body d-flex justify-content-between align-items-center">
                   <div class="flex-grow-1">
-                    <h5 class="card-title mb-2">{{ ticket.title }}</h5>
+                    <h5 class="card-title mb-1">{{ ticket.title }}</h5>
                     {% if ticket|admin_notes_count > 0 %}
                       <span class="badge bg-info me-2">
                         <i class="fas fa-comment-dots"></i> {{ ticket|admin_notes_count }} response{{ ticket|admin_notes_count|pluralize }}
                       </span>
                     {% endif %}
-                    <div class="text-muted small mt-2">
-                      <i class="fas fa-tag"></i> {{ ticket.get_category_display }} • 
-                      <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                    <div class="text-muted small mt-1">
+                      <span class="me-3">
+                        <i class="fas fa-tag"></i> {{ ticket.get_category_display }}  
+                      </span>
+                      <span class="me-3"> • </span>
+                      <span class="me-3">
+                        <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                      </span>
                       {% if ticket.assigned_to %}
                         • <i class="fas fa-user-check text-success"></i> Resolved by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
                       {% endif %}
@@ -185,6 +303,7 @@
     setTimeout(function() {
       const filterCards = document.querySelectorAll('.filter-card');
       const sections = document.querySelectorAll('.ticket-section');
+      const sectionLabel = document.querySelector('.section-label span:last-child');
       
       filterCards.forEach(card => {
         card.addEventListener('click', function() {
@@ -203,6 +322,15 @@
           const targetSection = document.getElementById(filter + '-section');
           if (targetSection) {
             targetSection.style.display = 'block';
+          }
+          
+          // Update section label text
+          if (filter === 'open') {
+            sectionLabel.textContent = 'Active Tickets';
+          } else if (filter === 'progress') {
+            sectionLabel.textContent = 'In Progress Tickets';
+          } else if (filter === 'completed') {
+            sectionLabel.textContent = 'Completed Tickets';
           }
         });
       });

@@ -1,102 +1,160 @@
 {% extends "dashboard_base.html" %}
 {% block content %}
-<div class="container mt-4">
+<div class="container ticket-detail-container">
 
-  <!-- Ticket Info -->
-  <div class="card shadow-sm border-0 p-4 mb-4">
-    <h2 class="fw-bold mb-2">{{ ticket.title }}</h2>
-    <p class="text-muted mb-3">Created on {{ ticket.created_at|date:"M d, Y h:i A" }}</p>
-
-    <p class="mb-1"><strong>Category:</strong> {{ ticket.get_category_display }}</p>
-
-    <!-- Display metadata fields based on category -->
-    {% if ticket.metadata %}
+  <!-- Header Section with Back Arrow -->
+  <div class="ticket-header mb-3">
+    <div class="status-and-title">
+      <div class="status-badge-container mb-2">
+        {% if ticket.status == 'open' %}
+          <span class="status-dot status-open"></span>
+          <span class="status-text">Open</span>
+        {% elif ticket.status == 'in_progress' %}
+          <span class="status-dot status-progress"></span>
+          <span class="status-text">In Progress</span>
+        {% elif ticket.status == 'completed' %}
+          <span class="status-dot status-completed"></span>
+          <span class="status-text">Completed</span>
+        {% endif %}
+      </div>
       
-      {% if ticket.category == 'technical' %}
-        {% if ticket.metadata.issue_type_display %}
-          <p class="mb-1"><strong>Issue Type:</strong> {{ ticket.metadata.issue_type_display }}</p>
+      <div class="title-and-arrow">
+        <h2 class="fw-bold">{{ ticket.title }}</h2>
+        <a href="{% url 'tickets:ticket_overview' %}" class="btn-back-arrow">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+      </div>
+      
+      <p class="creation-date">Created on {{ ticket.created_at|date:"M d, Y h:i A" }}</p>
+    </div>
+  </div>
+
+  <!-- Info Card -->
+  <div class="card shadow-sm border-0 p-4 mb-3 ticket-detail-card">
+    <div class="info-section mb-3">
+      <div class="info-item">
+        <span class="info-label">Category:</span>
+        <span class="info-value">{{ ticket.get_category_display }}</span>
+      </div>
+
+      <!-- Display metadata fields based on category -->
+      {% if ticket.metadata %}
+        
+        {% if ticket.category == 'technical' %}
+          {% if ticket.metadata.issue_type_display %}
+            <div class="info-item">
+              <span class="info-label">Issue Type:</span>
+              <span class="info-value">{{ ticket.metadata.issue_type_display }}</span>
+            </div>
+          {% endif %}
+          
+        {% elif ticket.category == 'academic' %}
+          {% if ticket.metadata.program_year %}
+            <div class="info-item">
+              <span class="info-label">Program / Year:</span>
+              <span class="info-value">{{ ticket.metadata.program_year }}</span>
+            </div>
+          {% endif %}
+          {% if ticket.metadata.inquiry_type_display %}
+            <div class="info-item">
+              <span class="info-label">Inquiry Type:</span>
+              <span class="info-value">{{ ticket.metadata.inquiry_type_display }}</span>
+            </div>
+          {% endif %}
+          
+        {% elif ticket.category == 'lostfound' %}
+          {% if ticket.metadata.department_display %}
+            <div class="info-item">
+              <span class="info-label">Department:</span>
+              <span class="info-value">{{ ticket.metadata.department_display }}</span>
+            </div>
+          {% endif %}
+          {% if ticket.metadata.location %}
+            <div class="info-item">
+              <span class="info-label">Location:</span>
+              <span class="info-value">{{ ticket.metadata.location }}</span>
+            </div>
+          {% endif %}
+          {% if ticket.metadata.date_time %}
+            <div class="info-item">
+              <span class="info-label">Date/Time:</span>
+              <span class="info-value">{{ ticket.metadata.date_time }}</span>
+            </div>
+          {% endif %}
+          
+        {% elif ticket.category == 'welfare' %}
+          {% if ticket.metadata.contact_method_display %}
+            <div class="info-item">
+              <span class="info-label">Contact Method:</span>
+              <span class="info-value">{{ ticket.metadata.contact_method_display }}</span>
+            </div>
+          {% endif %}
+          {% if ticket.metadata.request_type_display %}
+            <div class="info-item">
+              <span class="info-label">Request Type:</span>
+              <span class="info-value">{{ ticket.metadata.request_type_display }}</span>
+            </div>
+          {% endif %}
+          {% if ticket.metadata.preferred_date %}
+            <div class="info-item">
+              <span class="info-label">Preferred Date:</span>
+              <span class="info-value">{{ ticket.metadata.preferred_date }}</span>
+            </div>
+          {% endif %}
+          
+        {% elif ticket.category == 'facilities' %}
+          {% if ticket.metadata.location %}
+            <div class="info-item">
+              <span class="info-label">Location:</span>
+              <span class="info-value">{{ ticket.metadata.location }}</span>
+            </div>
+          {% endif %}
+          {% if ticket.metadata.issue_type_display %}
+            <div class="info-item">
+              <span class="info-label">Issue Type:</span>
+              <span class="info-value">{{ ticket.metadata.issue_type_display }}</span>
+            </div>
+          {% endif %}
+          {% if ticket.metadata.urgency_display %}
+            <div class="info-item">
+              <span class="info-label">Urgency:</span>
+              <span class="badge 
+                {% if ticket.metadata.urgency == 'high' %}bg-danger
+                {% elif ticket.metadata.urgency == 'medium' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ ticket.metadata.urgency_display|upper }}
+              </span>
+            </div>
+          {% endif %}
         {% endif %}
         
-      {% elif ticket.category == 'academic' %}
-        {% if ticket.metadata.program_year %}
-          <p class="mb-1"><strong>Program / Year:</strong> {{ ticket.metadata.program_year }}</p>
-        {% endif %}
-        {% if ticket.metadata.inquiry_type_display %}
-          <p class="mb-1"><strong>Inquiry Type:</strong> {{ ticket.metadata.inquiry_type_display }}</p>
-        {% endif %}
-        
-      {% elif ticket.category == 'lostfound' %}
-        {% if ticket.metadata.department_display %}
-          <p class="mb-1"><strong>Department:</strong> {{ ticket.metadata.department_display }}</p>
-        {% endif %}
-        {% if ticket.metadata.location %}
-          <p class="mb-1"><strong>Location:</strong> {{ ticket.metadata.location }}</p>
-        {% endif %}
-        {% if ticket.metadata.date_time %}
-          <p class="mb-1"><strong>Date/Time:</strong> {{ ticket.metadata.date_time }}</p>
-        {% endif %}
-        
-      {% elif ticket.category == 'welfare' %}
-        {% if ticket.metadata.contact_method_display %}
-          <p class="mb-1"><strong>Contact Method:</strong> {{ ticket.metadata.contact_method_display }}</p>
-        {% endif %}
-        {% if ticket.metadata.request_type_display %}
-          <p class="mb-1"><strong>Request Type:</strong> {{ ticket.metadata.request_type_display }}</p>
-        {% endif %}
-        {% if ticket.metadata.preferred_date %}
-          <p class="mb-1"><strong>Preferred Date:</strong> {{ ticket.metadata.preferred_date }}</p>
-        {% endif %}
-        
-      {% elif ticket.category == 'facilities' %}
-        {% if ticket.metadata.location %}
-          <p class="mb-1"><strong>Location:</strong> {{ ticket.metadata.location }}</p>
-        {% endif %}
-        {% if ticket.metadata.issue_type_display %}
-          <p class="mb-1"><strong>Issue Type:</strong> {{ ticket.metadata.issue_type_display }}</p>
-        {% endif %}
-        {% if ticket.metadata.urgency_display %}
-          <p class="mb-1">
-            <strong>Urgency:</strong> 
-            <span class="badge 
-              {% if ticket.metadata.urgency == 'high' %}bg-danger
-              {% elif ticket.metadata.urgency == 'medium' %}bg-warning text-dark
-              {% else %}bg-secondary{% endif %}">
-              {{ ticket.metadata.urgency_display|upper }}
-            </span>
-          </p>
-        {% endif %}
       {% endif %}
-      
-    {% endif %}
 
-    <p class="mb-1"><strong>Status:</strong>
-      {% if ticket.status == 'open' %}<span class="badge bg-success">Open</span>
-      {% elif ticket.status == 'in_progress' %}<span class="badge bg-warning text-dark">In Progress</span>
-      {% elif ticket.status == 'completed' %}<span class="badge bg-primary">Completed</span>{% endif %}
-    </p>
+      {% if ticket.assigned_to %}
+        <div class="info-item">
+          <span class="info-label">Assigned to:</span>
+          <span class="info-value">{{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}</span>
+        </div>
+      {% endif %}
+    </div>
 
-    {% if ticket.assigned_to %}
-      <p class="mb-1"><strong>Assigned to:</strong> {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}</p>
-    {% endif %}
-
-    <!-- NOW the description is clean and separate -->
+    <!-- Description -->
     {% if ticket.description %}
-      <hr class="my-3">
-      <p class="mb-2"><strong>Description:</strong></p>
-      <div class="bg-light p-3 rounded" style="white-space: pre-line;">{{ ticket.description }}</div>
+      <div class="description-section">
+        <h5 class="description-title">Description</h5>
+        <div class="description-content">{{ ticket.description }}</div>
+      </div>
     {% endif %}
 
     <!-- Handle attachments (photos) -->
     {% if ticket.attachment %}
-      <hr class="my-3">
-      <div class="mt-2">
-        <p class="mb-2"><strong>Attachment:</strong></p>
+      <div class="attachment-section mt-3">
         {% if ticket.attachment.url|lower|slice:"-4:" == ".jpg" or ticket.attachment.url|lower|slice:"-4:" == ".png" or ticket.attachment.url|lower|slice:"-5:" == ".jpeg" or ticket.attachment.url|lower|slice:"-5:" == ".webp" or ticket.attachment.url|lower|slice:"-4:" == ".gif" %}
           <!-- Display image -->
-          <img src="{{ ticket.attachment.url }}" class="img-fluid rounded shadow-sm" alt="Ticket Attachment" style="max-width: 600px;">
+          <img src="{{ ticket.attachment.url }}" class="img-fluid rounded attachment-img" alt="Ticket Attachment">
         {% else %}
           <!-- Display download link for non-image files -->
-          <a href="{{ ticket.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+          <a href="{{ ticket.attachment.url }}" target="_blank" class="btn btn-outline-dark">
             <i class="fas fa-download"></i> Download Attachment
           </a>
         {% endif %}
@@ -104,61 +162,365 @@
     {% endif %}
   </div>
 
+  <!-- Action Buttons outside card -->
+  <div class="action-buttons mb-4">
+    {% if ticket.status != 'completed' %}
+      <a href="{% url 'tickets:update_ticket' ticket.pk %}" class="btn btn-action btn-update">
+        Update
+      </a>
+    {% endif %}
+    <a href="{% url 'tickets:delete_ticket' ticket.pk %}" class="btn btn-action btn-delete">
+      Delete
+    </a>
+  </div>
+
   <!-- Admin Notes/Responses -->
   {% if admin_notes %}
-    <div class="card shadow-sm border-0 p-4 mb-4">
-      <h5 class="mb-3"><i class="fas fa-comments text-primary"></i> Staff Responses</h5>
-      <div class="alert alert-info mb-3">
+    <div class="card shadow-sm border-0 p-4 mb-4 staff-response-card">
+      <h5 class="mb-3">
+        <i class="fas fa-comments"></i> Staff Responses
+      </h5>
+      <div class="alert alert-info-custom mb-3">
         <i class="fas fa-info-circle"></i> Staff has responded to your ticket.
       </div>
-      <div class="list-group list-group-flush">
+      <div class="responses-container">
         {% for note in admin_notes %}
-          <div class="list-group-item border-start border-primary border-4 mb-2">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <span class="badge bg-primary">Staff Response</span>
+          <div class="response-item">
+            <div class="response-header">
+              <span class="badge bg-secondary">Staff Response</span>
               <small class="text-muted">{{ note.timestamp|date:"M d, Y h:i A" }}</small>
             </div>
-            <div style="white-space: pre-line;">{{ note.action }}</div>
+            <div class="response-body">{{ note.action }}</div>
           </div>
         {% endfor %}
       </div>
     </div>
   {% endif %}
 
-  <!-- Ticket History -->
-  <div class="card shadow-sm border-0 p-4 mb-4">
-    <h5 class="mb-3"><i class="fas fa-history"></i> Ticket History</h5>
-    <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
-      {% for item in history %}
-        <div class="list-group-item">
-          <div class="d-flex justify-content-between">
-            <div style="white-space: pre-line;">{{ item.action }}</div>
-            <small class="text-muted text-nowrap ms-3">{{ item.timestamp|date:"M d, Y h:i A" }}</small>
-          </div>
-        </div>
-      {% empty %}
-        <p class="text-muted mb-0">No history available.</p>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Action Buttons -->
-  <div class="d-flex justify-content-between mt-4">
-    <a hx-get="{% url 'tickets:ticket_overview' %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'tickets:ticket_overview' %}" class="btn btn-secondary">
-      <i class="fas fa-arrow-left"></i> Back to My Tickets
-    </a>
-
-    <div class="d-flex gap-2">
-      {% if ticket.status != 'completed' %}
-        <a hx-get="{% url 'tickets:update_ticket' ticket.pk %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'tickets:update_ticket' ticket.pk %}" class="btn btn-warning">
-          <i class="fas fa-edit"></i> Update Ticket
-        </a>
-      {% endif %}
-      <a hx-get="{% url 'tickets:delete_ticket' ticket.pk %}" hx-target="#dashboard-content" hx-swap="innerHTML" class="btn btn-danger">
-        <i class="fas fa-trash"></i> Delete Ticket
-      </a>
-    </div>
-  </div>
-
 </div>
+
+<style>
+  /* Container */
+  .ticket-detail-container {
+    margin-top: 80px;
+    margin-bottom: 60px;
+    padding-left: 40px;
+    padding-right: 40px;
+    max-width: 900px;
+  }
+
+  /* Header Section */
+  .ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background-color: transparent;
+    margin-bottom: 1.5rem;
+  }
+
+  .status-and-title {
+    flex: 1;
+  }
+
+  /* Status Badge */
+  .status-badge-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+  }
+
+  /* Pulsing Green Light for Open - #144214 */
+  .status-open {
+    background-color: #144214;
+    animation: pulse-green 2s infinite;
+  }
+
+  @keyframes pulse-green {
+    0% {
+      box-shadow: 0 0 0 0 rgba(20, 66, 20, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(20, 66, 20, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(20, 66, 20, 0);
+    }
+  }
+
+  /* Pulsing Orange Light for In Progress */
+  .status-progress {
+    background-color: #ff8c00;
+    animation: pulse-orange 2s infinite;
+  }
+
+  @keyframes pulse-orange {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(255, 140, 0, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+    }
+  }
+
+  /* Pulsing Blue Light for Completed */
+  .status-completed {
+    background-color: #007bff;
+    animation: pulse-blue 2s infinite;
+  }
+
+  @keyframes pulse-blue {
+    0% {
+      box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(0, 123, 255, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+  }
+
+  .status-text {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.95rem;
+  }
+
+  /* Title and Arrow on Same Line */
+  .title-and-arrow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    gap: 1rem;
+  }
+
+  .title-and-arrow h2 {
+    margin: 0;
+    color: #212529;
+    flex: 1;
+  }
+
+  .creation-date {
+    font-size: 0.875rem;
+    color: #adb5bd;
+    margin: 0;
+  }
+
+  /* Back Arrow Button */
+  .btn-back-arrow {
+    background-color: transparent;
+    border: none;
+    color: #212529;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+
+  .btn-back-arrow i {
+  font-size: 1rem; /* adjust */
+  color: #212529;
+  transition: transform 0.2s ease;
+  }
+
+  .btn-back-arrow:hover i {
+    transform: scale(1.1);
+  }
+
+  /* Main Card */
+  .ticket-detail-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    background-color: #ffffff;
+  }
+
+  /* Info Section */
+  .info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .info-label {
+    font-weight: 600;
+    color: #6c757d;
+    min-width: 120px;
+  }
+
+  .info-value {
+    color: #212529;
+  }
+
+  /* Description Section */
+  .description-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+  }
+
+  .description-title {
+    font-size: 0.9rem;
+    color: #c0c0c0;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .description-content {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    white-space: pre-line;
+    color: #495057;
+    line-height: 1.6;
+  }
+
+  /* Attachment */
+  .attachment-section {
+    text-align: center;
+  }
+
+  .attachment-img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+
+  /* Action Buttons - Compact and Centered */
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .btn-action {
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid #000000;
+    background-color: #ffffff;
+    color: #000000;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    width: auto;
+    display: inline-block;
+    text-decoration: none;
+  }
+
+  .btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Update Button Hover - Green */
+  .btn-update:hover {
+    background-color: #144214;
+    border-color: #144214;
+    color: white;
+  }
+
+  /* Delete Button Hover - Red */
+  .btn-delete:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+  }
+
+  /* Staff Response Card */
+  .staff-response-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .alert-info-custom {
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    color: #004085;
+    border-radius: 8px;
+  }
+
+  .responses-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .response-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .response-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .response-body {
+    white-space: pre-line;
+    color: #495057;
+    line-height: 1.6;
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .ticket-detail-container {
+      margin-top: 100px;
+      padding-left: 30px;
+      padding-right: 30px;
+    }
+
+    .title-and-arrow {
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+
+    .btn-back-arrow {
+      font-size: 1.25rem;
+      padding: 0.25rem;
+    }
+
+    .info-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+
+    .info-label {
+      min-width: auto;
+    }
+
+    .action-buttons {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      width: auto;
+    }
+  }
+</style>
 {% endblock %}

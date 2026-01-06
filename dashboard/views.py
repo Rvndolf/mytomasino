@@ -30,9 +30,12 @@ def dashboard_home(request):
         ticket__created_by=request.user
     ).order_by('-timestamp')[:3]
     
-    # Get open tickets count by category
+    # Get tickets count by category (including open, in_progress, and completed)
     category_counts = (
-        Ticket.objects.filter(status='open', created_by=request.user)
+        Ticket.objects.filter(
+            status__in=['open', 'in_progress', 'completed'], 
+            created_by=request.user
+        )
         .values('category')
         .annotate(count=Count('id'))
         .order_by('-count')

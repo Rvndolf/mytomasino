@@ -25,15 +25,11 @@ class StaffProfile(models.Model):
         return f"{self.user.username} - {self.office.name}"
     
 class UserProfile(models.Model):
-    DEPARTMENT_CHOICES = [
-        ("JHS", "Junior High School"),
-        ("SHS", "Senior High School"),
-        ("CASE", "College of Arts, Sciences, and Education (CASE)"),
-        ("CHS", "College of Health Sciences (CHS)"),
-        ("CEAFA", "College of Engineering, Fine Arts, and Architecture (CEAFA)"),
-        ("CBMA", "College of Business Management and Accountancy (CBMA)"),
+    GRADE_LEVEL_CHOICES = [
+        ("11", "Grade 11"),
+        ("12", "Grade 12"),
     ]
-
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     profile_picture = models.ImageField(upload_to="profiles/", blank=True, null=True)
     id_number = models.CharField(
@@ -45,9 +41,14 @@ class UserProfile(models.Model):
         blank=True,
         null=True,
     )
-    department = models.CharField(
-        max_length=20,
-        choices=DEPARTMENT_CHOICES,
+    grade_level = models.CharField(
+        max_length=2,
+        choices=GRADE_LEVEL_CHOICES,
+        blank=True,
+        null=True,
+    )
+    section = models.CharField(
+        max_length=50,
         blank=True,
         null=True,
     )
@@ -70,7 +71,7 @@ class UserProfile(models.Model):
     region = models.CharField(max_length=20, default="asia-ph")
     date_format = models.CharField(max_length=10, default="MM/DD/YYYY")
     number_format = models.CharField(max_length=10, default="1,000.00")
-
+    
     def __str__(self):
         return self.user.username
 

@@ -1,4 +1,3 @@
-
 <div class="container mt-4">
   <div class="row">
     <!-- Left Column: Profile Info -->
@@ -7,7 +6,7 @@
         <img
           src="{% if request.user.profile.profile_picture %}{{ request.user.profile.profile_picture.url }}{% else %}{% load static %}{% static 'img/default_profile.jpg' %}{% endif %}"
           alt="Profile Picture"
-          class="rounded-circle mb-3 border"
+          class="rounded-circle mb-3 border mx-auto d-block"
           style="width: 120px; height: 120px; object-fit: cover;"
         />
         <h4 class="fw-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
@@ -61,28 +60,22 @@
                 <input type="email" class="form-control" value="{{ request.user.email }}" readonly>
               </div>
 
-              <hr class="my-3" />
-
               <div class="mb-3">
                 <label class="form-label fw-semibold">ID Number</label>
-                <input type="text" class="form-control" name="id_number" maxlength="9" pattern="\d{1,9}"
-                       title="ID Number must contain up to 9 digits only"
-                       placeholder="Enter your ID number"
-                       value="{{ request.user.profile.id_number|default_if_none:'' }}">
+                <input type="text" class="form-control" value="{{ request.user.profile.id_number|default_if_none:'' }}" readonly>
               </div>
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Department</label>
-                <select class="form-select" name="department">
-                  <option value="">-- Select Department --</option>
-                  <option value="JHS" {% if request.user.profile.department == 'JHS' %}selected{% endif %}>Junior High School</option>
-                  <option value="SHS" {% if request.user.profile.department == 'SHS' %}selected{% endif %}>Senior High School</option>
-                  <option value="CASE" {% if request.user.profile.department == 'CASE' %}selected{% endif %}>College of Arts, Sciences, and Education (CASE)</option>
-                  <option value="CHS" {% if request.user.profile.department == 'CHS' %}selected{% endif %}>College of Health Sciences (CHS)</option>
-                  <option value="CEAFA" {% if request.user.profile.department == 'CEAFA' %}selected{% endif %}>College of Engineering, Fine Arts, and Architecture (CEAFA)</option>
-                  <option value="CBMA" {% if request.user.profile.department == 'CBMA' %}selected{% endif %}>College of Business Management and Accountancy (CBMA)</option>
-                </select>
+                <label class="form-label fw-semibold">Grade Level</label>
+                <input type="text" class="form-control" value="{{ request.user.profile.get_grade_level_display|default_if_none:'' }}" readonly>
               </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Section</label>
+                <input type="text" class="form-control" value="{{ request.user.profile.section|default_if_none:'' }}" readonly>
+              </div>
+
+              <hr class="my-3" />
 
               <div class="mb-3">
                 <label class="form-label fw-semibold">Contact Number</label>

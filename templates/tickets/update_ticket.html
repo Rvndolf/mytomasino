@@ -2,27 +2,145 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid d-flex justify-content-center align-items-start ticket-form-container">
+  <div class="card shadow-sm p-4 border-0 ticket-form-card">
 
-  <div class="card shadow-sm border-0 p-4 mb-4">
-    <h2 class="fw-bold mb-3"><i class="fas fa-edit text-warning"></i> Update Ticket</h2>
+    <h3 class="mb-4" style="color: #144214;">Update Ticket</h3>
 
-    <form method="POST">
+    <form method="POST"
+          enctype="multipart/form-data">
       {% csrf_token %}
-      {{ form.non_field_errors }}
 
-      {% for field in form %}
-        <div class="mb-3">
-          {{ field.label_tag }}
-          {{ field }}
-          {{ field.errors }}
-        </div>
-      {% endfor %}
+      <!-- Category (Read-only) -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold" style="color: #144214;">Category</label>
+        <select class="form-select custom-select-gray" disabled>
+          <option selected>{{ ticket.get_category_display }}</option>
+        </select>
+      </div>
 
-      <button type="submit" class="btn btn-primary">Save Changes</button>
-      <a href="{% url 'tickets:ticket_detail' ticket.pk %}" class="btn btn-secondary ms-2">Cancel</a>
+      <!-- Django Form -->
+      <div class="django-form-styled">
+        {{ form.non_field_errors }}
+        {{ form.as_p }}
+      </div>
+
+      <div class="d-flex justify-content-between mt-3">
+        <a href="{% url 'tickets:ticket_detail' ticket.pk %}"
+           class="btn btn-secondary">
+          Cancel
+        </a>
+
+        <button type="submit" class="btn btn-primary custom-btn-green">
+          Update Ticket
+        </button>
+      </div>
+
     </form>
   </div>
-
 </div>
+
+<style>
+  /* Container styling (same as create / update partials) */
+  .ticket-form-container {
+    min-height: 100vh;
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+
+  .ticket-form-card {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  /* Gray theme for most inputs */
+  .custom-select-gray,
+  .django-form-styled input[type="text"],
+  .django-form-styled input[type="email"],
+  .django-form-styled input[type="number"],
+  .django-form-styled input[type="tel"],
+  .django-form-styled input[type="date"],
+  .django-form-styled input[type="time"],
+  .django-form-styled input[type="datetime-local"],
+  .django-form-styled input[type="file"],
+  .django-form-styled select {
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    padding: 10px 12px;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Green theme ONLY for textarea (Description) */
+  .django-form-styled textarea {
+    border: 2px solid #144214;
+    border-radius: 6px;
+    padding: 10px 12px;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .custom-select-gray:focus,
+  .django-form-styled input:focus,
+  .django-form-styled select:focus {
+    border-color: #9ca3af;
+    box-shadow: 0 0 0 0.2rem rgba(156, 163, 175, 0.25);
+    outline: none;
+  }
+
+  .django-form-styled textarea:focus {
+    border-color: #144214;
+    box-shadow: 0 0 0 0.2rem rgba(20, 66, 20, 0.25);
+    outline: none;
+  }
+
+  .django-form-styled label {
+    color: #144214;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* Primary action button */
+  .custom-btn-green {
+    background-color: #144214;
+    border-color: #144214;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .custom-btn-green:hover {
+    background-color: #0f3010;
+    border-color: #0f3010;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(20, 66, 20, 0.3);
+  }
+
+  /* Django form error messages */
+  .django-form-styled .errorlist {
+    color: #dc3545;
+    list-style: none;
+    padding: 0;
+    margin: 5px 0;
+    font-size: 0.875rem;
+  }
+
+  /* Responsive widths */
+  @media (min-width: 769px) {
+    .ticket-form-card {
+      max-width: 900px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .ticket-form-card {
+      max-width: 1000px;
+    }
+  }
+</style>
 {% endblock %}

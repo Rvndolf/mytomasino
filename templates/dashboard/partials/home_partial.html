@@ -75,11 +75,17 @@
         {% if history_entries %}
           {% for activity in history_entries %}
             <!-- Individual Activity Item Container -->
-            <div class="activity-item-card">
+            <div class="activity-item-card {% if activity.ticket is None and 'deleted' in activity.action %}deleted-ticket{% endif %}">
               <!-- Header row with timestamp -->
               <div class="d-flex justify-content-between align-items-start mb-1">
                 <p class="mb-0 activity-title font-main" style="font-size: 0.85rem;">
-                  <strong>{{ activity.ticket.title }}</strong>
+                  <strong>
+                    {% if activity.ticket %}
+                      {{ activity.ticket.title }}
+                    {% else %}
+                      {{ activity.ticket_title|default:"Deleted Ticket" }}
+                    {% endif %}
+                  </strong>
                 </p>
                 <small class="activity-time font-secondary" style="font-size: 0.7rem; white-space: nowrap; margin-left: 0.5rem;">
                   {{ activity.timestamp|short_timesince }}
@@ -92,12 +98,21 @@
                   {{ activity.action }}
                 </p>
                 
-                <!-- Status badge (if available) -->
-                {% if activity.new_status %}
-                  <span class="badge status-badge-{{ activity.new_status }} font-secondary">
-                    {{ activity.new_status|title }}
-                  </span>
-                {% endif %}
+                <!-- Status badge -->
+                <span class="badge 
+                  {% if activity.new_status == 'deleted' or 'deleted' in activity.action %}status-badge-deleted
+                  {% elif activity.new_status == 'completed' %}status-badge-completed
+                  {% elif activity.new_status == 'in_progress' %}status-badge-in_progress
+                  {% elif activity.new_status == 'open' %}status-badge-open
+                  {% elif 'created' in activity.action %}status-badge-created
+                  {% else %}status-badge-updated{% endif %} font-secondary">
+                  {% if activity.new_status == 'deleted' or 'deleted' in activity.action %}Deleted
+                  {% elif activity.new_status == 'completed' %}Completed
+                  {% elif activity.new_status == 'in_progress' %}In Progress
+                  {% elif activity.new_status == 'open' %}Open
+                  {% elif 'created' in activity.action %}Created
+                  {% else %}Updated{% endif %}
+                </span>
               </div>
             </div>
           {% endfor %}
@@ -297,7 +312,7 @@
   /* Recent Activity Items Container */
   .activity-items-container {
     background-color: #ffffff;
-    border-radius: 8px;
+    border-radius: 15px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid rgba(0,0,0,0.05);
     padding: 1rem;
@@ -317,7 +332,7 @@
   /* Category Chart Container - Matches Activity Items Container */
   .category-chart-container {
     background-color: #ffffff;
-    border-radius: 8px;
+    border-radius: 15px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid rgba(0,0,0,0.05);
     padding: 1.5rem;
@@ -414,6 +429,16 @@
     margin-bottom: 0;
   }
 
+  /* Deleted ticket styling */
+  .activity-item-card.deleted-ticket {
+    opacity: 0.7;
+  }
+
+  .activity-item-card.deleted-ticket .activity-title,
+  .activity-item-card.deleted-ticket .activity-action {
+    color: hsl(0, 0%, 45%);
+  }
+
   .activity-icon {
     padding-top: 4px;
   }
@@ -430,9 +455,17 @@
     color: hsl(0, 0%, 45%); /* muted gray */
   }
 
-  /* Status badges */
+  /* Updated Status badges with new colors */
   .status-badge-open {
-    background-color: #3b82f6;
+    background-color: #144214; /* Green */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-created {
+    background-color: #144214; /* Green */
     color: white;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
@@ -440,7 +473,7 @@
   }
 
   .status-badge-in_progress {
-    background-color: #f59e0b;
+    background-color: #ff8c00; /* Orange */
     color: white;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
@@ -448,7 +481,23 @@
   }
 
   .status-badge-completed {
-    background-color: #10b981;
+    background-color: #007bff; /* Blue */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-deleted {
+    background-color: #dc3545; /* Red */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-updated {
+    background-color: #6c757d; /* Gray */
     color: white;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
