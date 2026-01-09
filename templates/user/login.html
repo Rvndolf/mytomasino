@@ -8,25 +8,21 @@
 
 <div class="container-fluid">
 
-  <div class="d-flex justify-content-center align-items-center vh-100 bg-light">
-    <div class="card border-0 shadow-lg rounded-4 px-4 py-4"
-        style="width: 100%; max-width: 420px; background-color: #ffffff;">
+  <div class="d-flex flex-column justify-content-center align-items-center vh-100 bg-light gap-4">
 
-      <!-- Header -->
-      <div class="text-center mb-4">
-        <h2 class="fw-bold text-success mb-1">Welcome!</h2>
-        <p class="text-muted mb-0">Log in here.</p>
-      </div>
+  <!-- Welcome Text Container -->
+  <div class="text-center">
+    <h2 class="fw-bold text-success mb-0" style="font-family: Poppins; font-size: 2rem;background: linear-gradient(135deg, #144214 0%, #2d5a2d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Welcome, Thomasian!</h2>
+  </div>
+  
+  <!-- Login Card -->
+  <div class="card border-0 shadow-lg rounded-4 px-4 py-4"
+      style="width: 100%; max-width: 420px; background-color: #ffffff;">
 
-      <!-- Django Messages -->
-      {% if messages %}
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <h5 class="fw-bold mb-0" style="background: linear-gradient(180deg, #144214 0%, #2d5a2d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Log In</h5>
+    </div>
 
       <!-- Hidden Barcode Login -->
       <form method="post" id="barcodeForm" style="position: absolute; left: -9999px;">
@@ -40,7 +36,7 @@
         {% csrf_token %}
 
         <!-- Email -->
-        <div class="mb-3 input-wrapper">
+        <div class="mb-2 input-wrapper">
           <input
             type="email"
             class="form-control rounded-3 text-center login-input"
@@ -52,7 +48,7 @@
         </div>
 
         <!-- Password -->
-        <div class="mb-3 position-relative input-wrapper">
+        <div class="mb-4 position-relative input-wrapper">
           <input
             type="password"
             class="form-control rounded-3 text-center login-input pe-5"
@@ -74,13 +70,15 @@
         </div>
 
         <button type="submit"
-                class="btn btn-success w-100 fw-semibold py-2 rounded-3">
+                class="btn w-100 fw-semibold py-2 rounded-3 mb-2"
+                style="background-color: #144214; color: white;">
           Log in
         </button>
 
-        <div class="text-center mt-3">
+        <div class="text-start">
           <a href="{% url 'user:password_reset' %}"
-            class="text-success fw-medium text-decoration-none font-size:0.75rem">
+            class="text-success fw-medium text-decoration-none"
+            style="font-size: 0.85rem;">
             Forgot your password?
           </a>
         </div>
@@ -92,6 +90,31 @@
       </div>
 
     </div>
+</div>
+
+<!-- Toast Container (positioned absolutely, outside card) -->
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 9999;">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="toast show align-items-center border-0 shadow-sm 
+                  {% if message.tags == 'success' %}bg-success
+                  {% else %}bg-danger{% endif %} text-white" 
+           role="alert" 
+           aria-live="assertive" 
+           aria-atomic="true"
+           style="min-width: 280px; max-width: 350px;">
+        <div class="d-flex">
+          <div class="toast-body text-center w-100 py-2">
+            {{ message }}
+          </div>
+          <button type="button" 
+                  class="btn-close btn-close-white me-2 my-auto" 
+                  data-bs-dismiss="toast" 
+                  aria-label="Close"></button>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
 </div>
 
 <!-- Scripts -->
@@ -141,6 +164,17 @@
       icon.classList.remove('icon-animate');
     }, 150);
   });
+
+  /* Auto-hide toast after 4 seconds */
+  document.addEventListener('DOMContentLoaded', function() {
+    const toasts = document.querySelectorAll('.toast');
+    toasts.forEach(toast => {
+      setTimeout(() => {
+        const bsToast = bootstrap.Toast.getOrCreateInstance(toast);
+        bsToast.hide();
+      }, 4000);
+    });
+  });
 </script>
 
 <style>
@@ -189,6 +223,22 @@
   transform: scale(0.8) rotate(-10deg);
   opacity: 0.6;
   transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+/* Toast styling */
+.toast {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
 

@@ -175,27 +175,11 @@
   </div>
 
   <!-- Admin Notes/Responses -->
-  {% if admin_notes %}
-    <div class="card shadow-sm border-0 p-4 mb-4 staff-response-card">
-      <h5 class="mb-3">
-        <i class="fas fa-comments"></i> Staff Responses
-      </h5>
-      <div class="alert alert-info-custom mb-3">
-        <i class="fas fa-info-circle"></i> Staff has responded to your ticket.
-      </div>
-      <div class="responses-container">
-        {% for note in admin_notes %}
-          <div class="response-item">
-            <div class="response-header">
-              <span class="badge bg-secondary">Staff Response</span>
-              <small class="text-muted">{{ note.timestamp|date:"M d, Y h:i A" }}</small>
-            </div>
-            <div class="response-body">{{ note.action }}</div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-  {% endif %}
+  <div id="responses-section">
+    {% if admin_notes %}
+      {% include 'tickets/partials/ticket_responses.html' %}
+    {% endif %}
+  </div>
 
 </div>
 
@@ -415,17 +399,17 @@
   }
 
   .btn-action {
-    padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    border: 1px solid #000000;
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
     background-color: #ffffff;
     color: #000000;
-    font-weight: 500;
+    font-weight: 400;
+    font-size: 0.875rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     width: auto;
     display: inline-block;
-    text-decoration: none;
   }
 
   .btn-action:hover {
@@ -484,7 +468,7 @@
     color: #495057;
     line-height: 1.6;
   }
-
+  
   /* Mobile Responsiveness */
   @media (max-width: 768px) {
     .ticket-detail-container {
@@ -522,5 +506,8 @@
       width: auto;
     }
   }
+
+
+
 </style>
 {% endblock %}

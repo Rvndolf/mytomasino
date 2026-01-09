@@ -6,7 +6,7 @@
           hx-post="{% url 'tickets:create_ticket' %}"
           hx-target="#dashboard-content"
           hx-swap="innerHTML"
-          enctype="multipart/form-data">
+          hx-encoding="multipart/form-data">
       {% csrf_token %}
 
       <div class="mb-3">
@@ -38,7 +38,7 @@
         <a hx-get="{% url 'tickets:ticket_overview' %}"
            hx-target="#dashboard-content"
            hx-swap="innerHTML"
-           class="btn btn-secondary">
+           class="btn btn-secondary custom-btn-back">
           Cancel
         </a>
 
@@ -61,6 +61,28 @@
   .ticket-form-card {
     width: 100%;
     max-width: 600px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar styling */
+  .ticket-form-card::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .ticket-form-card::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .ticket-form-card::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+
+  .ticket-form-card::-webkit-scrollbar-thumb:hover {
+    background: #555;
   }
 
   /* Gray theme for most inputs */
@@ -121,19 +143,21 @@
     display: block;
   }
 
+  /* Create Ticket Button - White with black outline */
   .custom-btn-green {
-    background-color: #144214;
-    border-color: #144214;
-    color: white;
-    padding: 10px 24px;
+    background-color: white;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    color: #144214;
+    padding: 6px 16px;
     border-radius: 6px;
-    font-weight: 600;
+    font-weight: 400;
+    font-size: 0.875rem;
     transition: all 0.3s ease;
   }
 
   .custom-btn-green:hover {
-    background-color: #0f3010;
-    border-color: #0f3010;
+    background-color: #144214;
+    border-color: #144214;
     color: white;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(20, 66, 20, 0.3);
@@ -142,6 +166,31 @@
   .custom-btn-green:active {
     background-color: #0a2008;
     border-color: #0a2008;
+  }
+
+  /* Cancel/Back Button - White with black outline */
+  .custom-btn-back {
+    background-color: white;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    color: #6b7280;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-weight: 400;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+  }
+
+  .custom-btn-back:hover {
+    background-color: #6b7280;
+    border-color: #6b7280;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+  }
+
+  .custom-btn-back:active {
+    background-color: #4b5563;
+    border-color: #4b5563;
   }
 
   /* File input styling */
@@ -185,10 +234,15 @@
     display: block;
   }
 
-  /* Mobile spacing */
+  /* Mobile spacing - increased top margin */
   @media (max-width: 768px) {
     .ticket-form-container {
-      padding: 40px 20px;
+      padding: 80px 20px 20px 20px;
+      min-height: auto;
+    }
+    
+    .ticket-form-card {
+      max-height: calc(100vh - 100px);
     }
   }
 
@@ -200,6 +254,7 @@
     
     .ticket-form-card {
       max-width: 900px;
+      max-height: calc(100vh - 120px);
     }
   }
 
@@ -211,6 +266,7 @@
     
     .ticket-form-card {
       max-width: 1000px;
+      max-height: calc(100vh - 120px);
     }
   }
 </style>

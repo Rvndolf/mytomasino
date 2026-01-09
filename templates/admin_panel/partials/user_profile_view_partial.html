@@ -1,0 +1,161 @@
+<!-- admin_panel/partials/user_profile_view_partial.html -->
+<div class="container-fluid p-4 mt-5">
+  <div class="row">
+    <div class="col-12">
+      <!-- Back Button -->
+      <div class="mb-3">
+        <a href="{% url 'admin_panel:users_list' %}" 
+           hx-get="{% url 'admin_panel:users_list' %}" 
+           hx-target="#dashboard-content" 
+           hx-swap="innerHTML" 
+           hx-push-url="{% url 'admin_panel:users_list' %}"
+           class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Back to Users
+        </a>
+      </div>
+
+      <div class="card shadow-sm border-0 p-0">
+        <div class="p-4" style="background-color: #144214; border-radius: 0.375rem 0.375rem 0 0;">
+          <h4 class="fw-bold mb-0 text-white">
+            <i class="bi bi-person-badge me-2"></i>User Profile
+          </h4>
+        </div>
+
+        <div class="p-4">
+          <div class="row">
+            <!-- Profile Picture Section -->
+            <div class="col-md-3 text-center mb-4">
+              {% if profile_user.profile.profile_picture %}
+                <img src="{{ profile_user.profile.profile_picture.url }}" 
+                     alt="Profile Picture" 
+                     class="img-fluid rounded-circle shadow-sm mb-3"
+                     style="width: 150px; height: 150px; object-fit: cover;">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center rounded-circle bg-light shadow-sm mb-3 mx-auto" 
+                     style="width: 150px; height: 150px;">
+                  <i class="bi bi-person-circle text-muted" style="font-size: 5rem;"></i>
+                </div>
+              {% endif %}
+              <h5 class="fw-bold">{{ profile_user.first_name }} {{ profile_user.last_name }}</h5>
+              <p class="text-muted small">@{{ profile_user.username }}</p>
+              
+              {% if profile_user.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-secondary">Inactive</span>
+              {% endif %}
+            </div>
+
+            <!-- User Information -->
+            <div class="col-md-9">
+              <div class="row">
+                <!-- Basic Information -->
+                <div class="col-md-6 mb-4">
+                  <h6 class="fw-bold text-success mb-3">
+                    <i class="bi bi-info-circle me-2"></i>Basic Information
+                  </h6>
+                  <table class="table table-sm table-borderless">
+                    <tbody>
+                      <tr>
+                        <td class="text-muted" style="width: 40%;"><strong>Email:</strong></td>
+                        <td>{{ profile_user.email|default:"-" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="text-muted"><strong>ID Number:</strong></td>
+                        <td>{{ profile_user.profile.id_number|default:"-" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="text-muted"><strong>Grade Level:</strong></td>
+                        <td>{{ profile_user.profile.get_grade_level_display|default:"-" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="text-muted"><strong>Section:</strong></td>
+                        <td>{{ profile_user.profile.section|default:"-" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="text-muted"><strong>Contact Number:</strong></td>
+                        <td>{{ profile_user.profile.contact_number|default:"-" }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Account Information -->
+                <div class="col-md-6 mb-4">
+                  <h6 class="fw-bold text-success mb-3">
+                    <i class="bi bi-shield-check me-2"></i>Account Information
+                  </h6>
+                  <table class="table table-sm table-borderless">
+                    <tbody>
+                      <tr>
+                        <td class="text-muted" style="width: 40%;"><strong>Date Joined:</strong></td>
+                        <td>{{ profile_user.date_joined|date:"M d, Y h:i A" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="text-muted"><strong>Last Login:</strong></td>
+                        <td>{{ profile_user.last_login|date:"M d, Y h:i A"|default:"-" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="text-muted"><strong>Staff Status:</strong></td>
+                        <td>
+                          {% if profile_user.is_staff %}
+                            <span class="badge bg-warning">Staff</span>
+                          {% else %}
+                            <span class="badge bg-light text-dark">Regular User</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="text-muted"><strong>Superuser:</strong></td>
+                        <td>
+                          {% if profile_user.is_superuser %}
+                            <span class="badge bg-danger">Yes</span>
+                          {% else %}
+                            <span class="badge bg-light text-dark">No</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Address -->
+                <div class="col-12 mb-4">
+                  <h6 class="fw-bold text-success mb-3">
+                    <i class="bi bi-geo-alt me-2"></i>Address
+                  </h6>
+                  <p class="text-muted">{{ profile_user.profile.address|default:"No address provided" }}</p>
+                </div>
+
+                <!-- Notification Preferences -->
+                <div class="col-12 mb-4">
+                  <h6 class="fw-bold text-success mb-3">
+                    <i class="bi bi-bell me-2"></i>Notification Preferences
+                  </h6>
+                  <div class="d-flex gap-3">
+                    <div>
+                      <strong>Email Notifications:</strong>
+                      {% if profile_user.profile.email_notifications %}
+                        <span class="badge bg-success">Enabled</span>
+                      {% else %}
+                        <span class="badge bg-secondary">Disabled</span>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <strong>SMS Notifications:</strong>
+                      {% if profile_user.profile.sms_notifications %}
+                        <span class="badge bg-success">Enabled</span>
+                      {% else %}
+                        <span class="badge bg-secondary">Disabled</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -35,15 +35,15 @@
                         {% if entry.new_status == 'deleted' or "deleted" in entry.action %}
                           <span class="badge bg-danger">Deleted</span>
                         {% elif entry.new_status == 'completed' %}
-                          <span class="badge" style="background-color: #007bff;">Completed</span>
+                          <span class="badge" style="background-color: #144214;">Completed</span>
                         {% elif entry.new_status == 'in_progress' %}
-                          <span class="badge" style="background-color: #ff8c00;">In Progress</span>
+                          <span class="badge" style="background-color: #ffcc00;">In Progress</span>
                         {% elif entry.new_status == 'open' %}
-                          <span class="badge" style="background-color: #144214;">Open</span>
+                          <span class="badge" style="background-color: #007bff;">Open</span>
                         {% elif entry.new_status == 'resolved' %}
-                          <span class="badge" style="background-color: #007bff;">Resolved</span>
+                          <span class="badge" style="background-color: #4aa1fe;">Resolved</span>
                         {% elif "created" in entry.action %}
-                          <span class="badge" style="background-color: #144214;">Created</span>
+                          <span class="badge" style="background-color: #3c6d3c;">Created</span>
                         {% else %}
                           <span class="badge bg-secondary">Updated</span>
                         {% endif %}

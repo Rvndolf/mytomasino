@@ -264,6 +264,14 @@ sidebarToggle.addEventListener('click', (e) => {
   // Close notification sidebar if it's open
   notificationSidebar.classList.remove('active');
   notificationOverlay.classList.remove('active');
+  
+  // Show mobile controls when notification sidebar closes
+  if (window.innerWidth <= 768) {
+    sidebarToggle.style.opacity = '1';
+    sidebarToggle.style.pointerEvents = 'auto';
+    notificationToggle.style.opacity = '1';
+    notificationToggle.style.pointerEvents = 'auto';
+  }
 });
 
 // Click overlay to close sidebar
@@ -283,17 +291,48 @@ notificationToggle.addEventListener('click', () => {
   // Close nav sidebar if it's open
   sidebar.classList.remove('active');
   overlay.classList.remove('active');
+  
+  // Hide/show mobile controls on mobile
+  if (window.innerWidth <= 768) {
+    if (notificationSidebar.classList.contains('active')) {
+      sidebarToggle.style.opacity = '0';
+      sidebarToggle.style.pointerEvents = 'none';
+      notificationToggle.style.opacity = '0';
+      notificationToggle.style.pointerEvents = 'none';
+    } else {
+      sidebarToggle.style.opacity = '1';
+      sidebarToggle.style.pointerEvents = 'auto';
+      notificationToggle.style.opacity = '1';
+      notificationToggle.style.pointerEvents = 'auto';
+    }
+  }
 });
 
 closeNotification.addEventListener('click', () => {
   notificationSidebar.classList.remove('active');
   notificationOverlay.classList.remove('active');
+  
+  // Show mobile controls when notification sidebar closes on mobile
+  if (window.innerWidth <= 768) {
+    sidebarToggle.style.opacity = '1';
+    sidebarToggle.style.pointerEvents = 'auto';
+    notificationToggle.style.opacity = '1';
+    notificationToggle.style.pointerEvents = 'auto';
+  }
 });
 
 // Click overlay to close notification sidebar
 notificationOverlay.addEventListener('click', () => {
   notificationSidebar.classList.remove('active');
   notificationOverlay.classList.remove('active');
+  
+  // Show mobile controls when notification sidebar closes on mobile
+  if (window.innerWidth <= 768) {
+    sidebarToggle.style.opacity = '1';
+    sidebarToggle.style.pointerEvents = 'auto';
+    notificationToggle.style.opacity = '1';
+    notificationToggle.style.pointerEvents = 'auto';
+  }
 });
 
 // When user clicks a notification:
@@ -436,7 +475,12 @@ resetInactivityTimer();
 
 </script>
 
-  <style>
+ <style>
+  #dashboard-content.htmx-request {
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+  }
+
     .loading-overlay {
       position: fixed;
       top: 50%;
@@ -448,7 +492,46 @@ resetInactivityTimer();
       width: 3rem;
       height: 3rem;
     }
-  </style>
+
+    .profile-branding {
+      font-size: 0.875rem; /* 14px if base is 16px */
+    }
+
+    /* Notification header green gradient theme */
+    #notificationSidebar .notification-header {
+      background: linear-gradient(135deg, #144214 0%, #3c6d3c 100%) !important;
+      color: white !important;
+    }
+
+    #notificationSidebar .notification-header h5 {
+      color: white !important;
+    }
+
+    #notificationSidebar .notification-header h5 i {
+      color: white !important;
+    }
+
+    #notificationSidebar .close-notification {
+      color: white !important;
+    }
+
+    #notificationSidebar .close-notification:hover {
+      color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    /* Make notification icons white */
+    .notification-icon i {
+      color: white !important;
+    }
+
+    /* Add smooth transitions for mobile controls */
+    .mobile-menu-toggle,
+    .notification-bell {
+      transition: opacity 0.3s ease;
+    }
+
+  
+</style>
 
   {% block extra_js %}
   {% endblock %}

@@ -1,37 +1,82 @@
-<div id="update-ticket-{{ ticket.pk }}">
-  <h5>Ticket: {{ ticket.ticket_id }} - {{ ticket.title }}</h5>
-  <p><strong>Category:</strong> {{ ticket.get_category_display }}</p>
-  <p><strong>Created By:</strong> {{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</p>
-  <p><strong>Current Status:</strong> {{ ticket.get_status_display }}</p>
+<div id="update-ticket-{{ ticket.pk }}" class="p-4">
+  <h5 class="mb-3 fw-bold" style="font-size: 1rem;">Update Ticket - {{ ticket.ticket_id }}: {{ ticket.title }}</h5>
+  
+  <div class="mb-3">
+    <p class="mb-2" style="font-size: 0.875rem;"><strong>Category:</strong> {{ ticket.get_category_display }}</p>
+    <p class="mb-2" style="font-size: 0.875rem;"><strong>Created By:</strong> {{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</p>
+    <p class="mb-3" style="font-size: 0.875rem;"><strong>Current Status:</strong> {{ ticket.get_status_display }}</p>
+  </div>
 
   <form method="post"
         hx-post="{% url 'admin_panel:update_ticket' ticket.pk %}"
-        hx-target="#ticket-detail-{{ ticket.pk }}"
-        hx-swap="outerHTML"
-        class="mt-3">
+        hx-trigger="submit"
+        hx-target="this"
+        hx-swap="none"
+        hx-on::after-request="
+          htmx.ajax('GET', '{% url 'admin_panel:ticket_list' %}?status={{ status_filter|default_if_none:'' }}{% for cat in active_categories %}&categories={{ cat }}{% endfor %}', {target: '#ticket-table-body', swap: 'innerHTML'});
+          htmx.ajax('GET', '{% url 'admin_panel:ticket_detail' ticket.pk %}', {target: '#ticket-detail-container', swap: 'innerHTML'});
+        ">
     {% csrf_token %}
     <div class="mb-3">
-      <label for="status-{{ ticket.pk }}" class="form-label">Select New Status</label>
-      <select name="status" id="status-{{ ticket.pk }}" class="form-select" required>
+      <label for="status-{{ ticket.pk }}" class="form-label fw-semibold" style="font-size: 0.875rem;">Select New Status</label>
+      <select name="status" id="status-{{ ticket.pk }}" class="form-select" required style="font-size: 0.875rem;">
         {% for key, value in ticket.STATUS_CHOICES %}
         <option value="{{ key }}" {% if ticket.status == key %}selected{% endif %}>{{ value }}</option>
         {% endfor %}
       </select>
     </div>
 
-    <button type="submit" class="btn btn-primary">
-      <span class="button-text">Update Status</span>
-      <span class="htmx-indicator">
-        <span class="spinner-border spinner-border-sm ms-1" role="status" aria-hidden="true"></span>
-        <span class="ms-1">Updating...</span>
-      </span>
-    </button>
-    <a href="{% url 'admin_panel:ticket_list' %}"
-       class="btn btn-secondary"
-       hx-get="{% url 'admin_panel:ticket_list' %}"
-       hx-target="#ticket-table"
-       hx-swap="innerHTML">
-      Cancel
-    </a>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-update-confirm">
+        Update Status
+      </button>
+      <button type="button" 
+              class="btn btn-cancel-confirm"
+              hx-get="{% url 'admin_panel:ticket_detail' ticket.pk %}"
+              hx-target="#ticket-detail-container"
+              hx-swap="innerHTML">
+        Cancel
+      </button>
+    </div>
   </form>
 </div>
+
+<style>
+  /* Update button */
+  .btn-update-confirm {
+    background-color: transparent !important;
+    color: #333 !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    border-radius: 15px !important;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-update-confirm:hover {
+    background-color: #198754 !important;
+    color: white !important;
+    border-color: #198754 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2);
+  }
+
+  /* Cancel button */
+  .btn-cancel-confirm {
+    background-color: transparent !important;
+    color: #333 !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    border-radius: 15px !important;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-cancel-confirm:hover {
+    background-color: #6c757d !important;
+    color: white !important;
+    border-color: #6c757d !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
+  }
+</style>

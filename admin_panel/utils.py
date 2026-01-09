@@ -18,3 +18,15 @@ OFFICE_TICKET_CATEGORIES = {
     "Guidance Office": ["welfare"],     
     "Office of Media, Alumni, and Public Affairs": ["generalinquiry"],         
 }
+
+def get_office_for_category(category):
+    """Get the office(s) responsible for a ticket category"""
+    offices = []
+    for office, categories in OFFICE_TICKET_CATEGORIES.items():
+        if category in categories:
+            offices.append(office)
+    return offices
+
+def get_categories_for_office(office_name):
+    """Get all categories handled by an office"""
+    return OFFICE_TICKET_CATEGORIES.get(office_name, [])

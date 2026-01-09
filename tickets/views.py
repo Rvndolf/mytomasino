@@ -53,8 +53,22 @@ def ticket_detail(request, pk):
     ).update(is_read=True)
 
     history = TicketHistory.objects.filter(ticket=ticket).order_by('-timestamp')
-    admin_notes = history.filter(action__icontains='Note added by')
-    ticket_history = history.exclude(action__icontains='Note added by')
+    
+    # Get all conversation notes (staff responses and user replies)
+    # Exclude system messages like status changes, assignments, etc.
+    admin_notes = history.filter(
+        action__icontains='Note added by'
+    ) | history.filter(
+        action__icontains='User reply:'
+    )
+    admin_notes = admin_notes.order_by('timestamp')  # Chronological order for conversation flow
+    
+    # Get ticket history excluding conversation notes
+    ticket_history = history.exclude(
+        action__icontains='Note added by'
+    ).exclude(
+        action__icontains='User reply:'
+    )
 
     form = None
     if ticket.status != 'completed' and request.user == ticket.created_by:
@@ -69,6 +83,58 @@ def ticket_detail(request, pk):
 
     template = 'tickets/partials/ticket_detail_partial.html' if request.headers.get('HX-Request') else 'tickets/ticket_detail.html'
     return render(request, template, context)
+
+@login_required
+def add_user_reply(request, ticket_id):
+    """Allow users to reply to their own tickets (responding to staff notes)"""
+    ticket = get_object_or_404(Ticket, pk=ticket_id)
+    
+    # Ensure the user can only reply to their own tickets
+    if ticket.created_by != request.user:
+        return HttpResponse("Access denied", status=403)
+    
+    if request.method == "POST":
+        reply = request.POST.get("reply", "").strip()
+        if reply:
+            # Create history entry for user reply
+            TicketHistory.objects.create(
+                ticket=ticket,
+                ticket_title=ticket.title,
+                action=f"User reply: {reply}"
+            )
+            
+            # Notify assigned staff member if there is one
+            if ticket.assigned_to:
+                Notification.objects.create(
+                    user=ticket.assigned_to,
+                    ticket=ticket,
+                    notification_type='ticket_update',
+                    title='User Replied to Ticket',
+                    message=f'User {request.user.username} replied to ticket #{ticket.ticket_id()}: "{reply[:100]}..."'
+                )
+            
+            # If HTMX request, return updated partial
+            if request.headers.get("HX-Request"):
+                admin_notes = TicketHistory.objects.filter(
+                    ticket=ticket
+                ).exclude(
+                    action__startswith='Status changed'
+                ).exclude(
+                    action__startswith='Ticket created'
+                ).exclude(
+                    action__startswith='Assigned to'
+                ).order_by('-timestamp')
+                
+                return render(request, 'tickets/partials/ticket_responses.html', {
+                    'ticket': ticket,
+                    'admin_notes': admin_notes
+                })
+            
+            messages.success(request, "Reply sent successfully.")
+        else:
+            messages.error(request, "Reply cannot be empty.")
+    
+    return redirect('tickets:ticket_detail', pk=ticket_id)
 
 @login_required
 def create_ticket(request):

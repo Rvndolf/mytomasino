@@ -1,6 +1,544 @@
+{% load time_filters %}
 
-<div id="admin-home" class="container align-items-center">
-  <h1>Admin Dashboard</h1>
-  <p>Welcome, {{ request.user.first_name }}! Use the navigation to manage users and tickets.</p>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin Dashboard{% endblock %}</title>
+
+  <!-- Preload Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+
+<!-- dashboard/admin_home.html (partial for HTMX) -->
+<div class="container-fluid px-5 pt-5 pt-lg-4 white-bg">
+  <!-- Header Section -->
+  <div class="row mt-4 mb-0">
+    <div class="col-12">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <!-- Vertical bar -->
+          <div style="width: 4px; height: 60px; background-color: #144214; margin-right: 15px;"></div>
+          <!-- Text content -->
+          <div>
+            <h2 class="mb-1 gradient-green-text-bold font-main">
+              Hello, {{ request.user.first_name }}!
+            </h2>
+            <small class="text-muted font-secondary">Today is {% now "F j, Y" %}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Row -->
+  <div class="row align-items-center gx-2 content-container">
+    <!-- Left: See what's in store -->
+    <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center ps-lg-2 mobile-reduce-height">
+      <p class="text-muted mb-0 font-secondary">See what concerns the students.</p>
+    </div>
+
+    <!-- Right: View My Tickets Card -->
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm border-0" 
+          style="background-color: #144214; border-radius: 12px; clip-path: inset(round 15px 0);"
+          hx-get="{% url 'admin_panel:ticket_list' %}"
+          hx-target="#dashboard-content"
+          hx-swap="innerHTML"
+          hx-push-url="{% url 'admin_panel:ticket_list' %}">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="text-white mb-0 font-main">View Tickets</h4>
+            <button class="btn btn-link text-white p-0" style="font-size: 24px; text-decoration: none;">⋮</button>
+          </div>
+          
+          <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <small class="text-white-50 font-secondary">Ticket Completion</small>
+              <small class="text-white font-secondary">{{ completion_percentage }}%</small>
+            </div>
+            <div class="progress" style="height: 8px; background-color: rgba(255,255,255,0.2);">
+              <div class="progress-bar" role="progressbar" style="width: {{ completion_percentage }}%; background-color: #fbbf24;" aria-valuenow="{{ completion_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Section: Recent Activity & Tickets by Status -->
+  <div class="row mt-2 gx-2">
+    <!-- Left: Recent Activity -->
+    <div class="col-12 col-lg-6">
+      <!-- Recent Activity Header Container -->
+      <div class="activity-header-container">
+        <h6 class="mb-0 font-main">Recent Activity</h6>
+      </div>
+      
+      <!-- Recent Activity Items Container -->
+      <div class="activity-items-container">
+        {% if history_entries %}
+          {% for activity in history_entries %}
+            <!-- Individual Activity Item Container -->
+            <div class="activity-item-card {% if activity.ticket is None and 'deleted' in activity.action %}deleted-ticket{% endif %}">
+              <!-- Header row with timestamp -->
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <p class="mb-0 activity-title font-main" style="font-size: 0.85rem;">
+                  <strong>
+                    {% if activity.ticket %}
+                      {{ activity.ticket.title }}
+                    {% else %}
+                      {{ activity.ticket_title|default:"Deleted Ticket" }}
+                    {% endif %}
+                  </strong>
+                </p>
+                <small class="activity-time font-secondary" style="font-size: 0.7rem; white-space: nowrap; margin-left: 0.5rem;">
+                  {{ activity.timestamp|short_timesince }}
+                </small>
+              </div>
+              
+              <!-- Content row with action and badge -->
+              <div class="d-flex justify-content-between align-items-center">
+                <p class="mb-0 activity-action font-secondary" style="font-size: 0.75rem;">
+                  {{ activity.action }}
+                </p>
+                
+                <!-- Status badge -->
+                <span class="badge 
+                  {% if activity.new_status == 'deleted' or 'deleted' in activity.action %}status-badge-deleted
+                  {% elif activity.new_status == 'completed' %}status-badge-completed
+                  {% elif activity.new_status == 'in_progress' %}status-badge-in_progress
+                  {% elif activity.new_status == 'open' %}status-badge-open
+                  {% elif 'created' in activity.action %}status-badge-created
+                  {% else %}status-badge-updated{% endif %} font-secondary">
+                  {% if activity.new_status == 'deleted' or 'deleted' in activity.action %}Deleted
+                  {% elif activity.new_status == 'completed' %}Completed
+                  {% elif activity.new_status == 'in_progress' %}In Progress
+                  {% elif activity.new_status == 'open' %}Open
+                  {% elif 'created' in activity.action %}Created
+                  {% else %}Updated{% endif %}
+                </span>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="activity-item-card text-center">
+            <p class="text-muted mb-0 font-secondary">No recent activity</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right: Tickets by Status -->
+    <div class="col-12 col-lg-6 mt-3 mt-lg-0">
+      <!-- Summary Text Header -->
+      <div class="summary-text-container">
+        <p class="mb-0 font-main text-muted" style="font-size: 0.9rem;">Here's your Ticket Summary</p>
+      </div>
+      
+      <!-- Status Chart Container -->
+      <div class="category-chart-container">
+        <!-- Left side: Status list -->
+        <div class="category-list">
+          {% if status_counts.open > 0 %}
+            <div class="category-item">
+              <span class="category-color" style="background-color: #144214;"></span>
+              <span class="category-name font-secondary">Open</span>
+              <span class="category-count font-secondary">{{ status_counts.open }}</span>
+            </div>
+          {% endif %}
+          {% if status_counts.in_progress > 0 %}
+            <div class="category-item">
+              <span class="category-color" style="background-color: #ff8c00;"></span>
+              <span class="category-name font-secondary">In Progress</span>
+              <span class="category-count font-secondary">{{ status_counts.in_progress }}</span>
+            </div>
+          {% endif %}
+          {% if status_counts.completed > 0 %}
+            <div class="category-item">
+              <span class="category-color" style="background-color: #007bff;"></span>
+              <span class="category-name font-secondary">Completed</span>
+              <span class="category-count font-secondary">{{ status_counts.completed }}</span>
+            </div>
+          {% endif %}
+        </div>
+        
+        <!-- Right side: Chart -->
+        <div class="chart-wrapper">
+          <canvas id="statusPieChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+  (function() {
+    // Small delay to ensure canvas is in DOM
+    setTimeout(function() {
+      // Get canvas element
+      const canvas = document.getElementById('statusPieChart');
+      if (!canvas) {
+        console.error('Canvas element not found!');
+        return;
+      }
+
+      console.log('Canvas found, creating chart...');
+
+      // Status data from Django
+      const labels = [];
+      const data = [];
+      const colors = [];
+      
+      {% if status_counts.open > 0 %}
+        labels.push('Open');
+        data.push({{ status_counts.open }});
+        colors.push('#144214');
+      {% endif %}
+      
+      {% if status_counts.in_progress > 0 %}
+        labels.push('In Progress');
+        data.push({{ status_counts.in_progress }});
+        colors.push('#ff8c00');
+      {% endif %}
+      
+      {% if status_counts.completed > 0 %}
+        labels.push('Completed');
+        data.push({{ status_counts.completed }});
+        colors.push('#007bff');
+      {% endif %}
+
+      const statusData = {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: colors,
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      };
+
+      console.log('Status data:', statusData);
+
+      // Destroy existing chart if it exists
+      if (window.statusPieChart instanceof Chart) {
+        window.statusPieChart.destroy();
+      }
+
+      // Create the pie chart
+      const ctx = canvas.getContext('2d');
+      window.statusPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: statusData,
+        options: {
+          responsive: false,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false  // Hide legend since we show statuses separately
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              bodyFont: {
+                family: 'Inter, sans-serif',
+                size: 13
+              },
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                  return label + ': ' + value + ' (' + percentage + '%)';
+                }
+              }
+            }
+          }
+        }
+      });
+
+      console.log('Chart created successfully!');
+    }, 100);
+  })();
+</script>
+
+<style>
+  /* Font Classes */
+  .font-main {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  .font-secondary {
+    font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* Content container with shadow and rounded edges */
+  .content-container {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 1rem 1rem;
+    margin-top: 1rem;
+  }
+
+  /* Default: small height on mobile */
+  .mobile-reduce-height {
+    min-height: 120px;
+    margin-bottom: 1rem;
+  }
+  
+  /* Large screens: tall height */
+  @media (min-width: 992px) {
+    .mobile-reduce-height {
+      min-height: 200px;
+      margin-bottom: 0;
+    }
+  }
+
+  .card {
+    transition: all 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+    background-color: #1a5c1a !important;
+  }
+
+  /* Recent Activity Header Container */
+  .activity-header-container {
+    background-color: #144214;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    display: inline-block;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .activity-header-container h6 {
+    color: white !important;
+    background: none !important;
+    font-size: 0.75rem !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: white !important;
+  }
+
+  /* Recent Activity Items Container */
+  .activity-items-container {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 1rem;
+  }
+
+  /* Summary Text Container */
+  .summary-text-container {
+    padding: 0;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .summary-text-container p {
+    padding-left: 1rem;
+  }
+
+  /* Category Chart Container - Matches Activity Items Container */
+  .category-chart-container {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    position: relative;
+  }
+
+  /* Mobile: Stack vertically with chart on top */
+  @media (max-width: 767px) {
+    .category-chart-container {
+      flex-direction: column-reverse;
+      gap: 1.5rem;
+    }
+    
+    .chart-wrapper {
+      width: 100%;
+    }
+    
+    .category-list {
+      width: 100%;
+    }
+  }
+
+  /* Desktop: Side by side */
+  @media (min-width: 768px) {
+    .category-chart-container {
+      flex-direction: row;
+    }
+  }
+
+  /* Category list on the left */
+  .category-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .category-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .category-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .category-name {
+    flex: 1;
+    font-size: 0.85rem;
+    color: hsl(0, 0%, 28%);
+  }
+
+  .category-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: hsl(0, 0%, 12%);
+  }
+
+  /* Chart wrapper on the right */
+  .chart-wrapper {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #statusPieChart {
+    max-width: 180px !important;
+    max-height: 180px !important;
+    width: 180px !important;
+    height: 180px !important;
+  }
+
+  /* Individual Activity Item Card */
+  .activity-item-card {
+    background-color: hsl(210, 16%, 96%); /* soft neutral gray */
+    border: none;
+    border-radius: 15px;
+    padding: 0.5rem 0.6rem;
+    margin-bottom: 0.6rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  .activity-item-card:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Deleted ticket styling */
+  .activity-item-card.deleted-ticket {
+    opacity: 0.7;
+  }
+
+  .activity-item-card.deleted-ticket .activity-title,
+  .activity-item-card.deleted-ticket .activity-action {
+    color: hsl(0, 0%, 45%);
+  }
+
+  .activity-icon {
+    padding-top: 4px;
+  }
+
+  .activity-title {
+    color: hsl(0, 0%, 12%); /* near-black */
+  }
+
+  .activity-action {
+    color: hsl(0, 0%, 28%); /* soft dark gray */
+  }
+
+  .activity-time {
+    color: hsl(0, 0%, 45%); /* muted gray */
+  }
+
+  /* Updated Status badges with new colors */
+  .status-badge-open {
+    background-color: #144214; /* Green */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-created {
+    background-color: #144214; /* Green */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-in_progress {
+    background-color: #ff8c00; /* Orange */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-completed {
+    background-color: #007bff; /* Blue */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-deleted {
+    background-color: #dc3545; /* Red */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-updated {
+    background-color: #6c757d; /* Gray */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .gradient-green-text {
+    background: linear-gradient(90deg, #144214, #3C6D36);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    font-weight: 400;
+  }
+
+  .gradient-green-text-bold {
+    background: linear-gradient(90deg, #144214, #3C6D36);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    font-weight: 600;
+  }
+</style>

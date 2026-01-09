@@ -433,3 +433,51 @@ html {
 .lowered {
   margin-top: 100px;
 }
+
+.status-badge-open {
+    background-color: #007bff; /* Green */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-created {
+    background-color: #144214 !important; /* Green */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-in_progress {
+    background-color: #ffcc00 !important; /* Orange */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-completed {
+    background-color: #144214 !important; /* Blue */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-deleted {
+    background-color: #dc3545 !important; /* Red */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .status-badge-updated {
+    background-color: #6c757d !important; /* Gray */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }

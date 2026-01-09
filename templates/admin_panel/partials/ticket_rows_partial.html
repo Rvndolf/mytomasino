@@ -1,0 +1,32 @@
+{% load ticket_tags %}
+
+{% for ticket in tickets %}
+<tr id="ticket-row-{{ ticket.pk }}"
+    hx-get="{% url 'admin_panel:ticket_detail' ticket.pk %}"
+    hx-target="#ticket-detail-container"
+    hx-swap="innerHTML"
+    style="cursor: pointer; border-bottom: 1px solid #dee2e6;"
+    class="align-middle ticket-row">
+  <td class="text-center" style="padding: 0.875rem 0.75rem; font-size: 0.875rem;">{{ ticket.ticket_id }}</td>
+  <td class="text-center" style="padding: 0.875rem 0.75rem; font-size: 0.875rem; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ ticket.title }}</td>
+  <td class="text-center" style="padding: 0.875rem 0.75rem; font-size: 0.875rem;">{{ ticket.get_category_display|default:"N/A" }}</td>
+  <td class="text-center" style="padding: 0.875rem 0.75rem;">
+    {% if ticket.status == 'open' %}
+      <span class="badge bg-primary rounded-pill" style="font-size: 0.75rem; padding: 0.35rem 0.65rem;">Open</span>
+    {% elif ticket.status == 'in_progress' %}
+      <span class="badge bg-warning rounded-pill" style="font-size: 0.75rem; padding: 0.35rem 0.65rem;">In Progress</span>
+    {% elif ticket.status == 'completed' %}
+      <span class="badge bg-success rounded-pill" style="font-size: 0.75rem; padding: 0.35rem 0.65rem;">Completed</span>
+    {% endif %}
+  </td>
+  <td class="text-center" style="padding: 0.875rem 0.75rem; font-size: 0.875rem; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ ticket.created_by.get_full_name|default:ticket.created_by.username }}</td>
+  <td class="text-center" style="padding: 0.875rem 0.75rem; font-size: 0.875rem; white-space: nowrap;">{{ ticket.created_at|date:"M d, Y" }}</td>
+</tr>
+{% empty %}
+<tr class="no-hover-row">
+  <td colspan="6" class="text-center" style="padding: 3rem;">
+    <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+    <p class="text-muted mb-0" style="font-size: 0.875rem;">No tickets found.</p>
+  </td>
+</tr>
+{% endfor %}

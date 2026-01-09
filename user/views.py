@@ -16,6 +16,7 @@ User = get_user_model()
 from admin_panel import views as views
 from django.views.decorators.cache import never_cache
 from.models import UserProfile
+from django.contrib.sites.shortcuts import get_current_site
 
 @never_cache
 def login_view(request):
@@ -95,32 +96,35 @@ def password_reset_request(request):
     if request.method == "POST":
         email = request.POST.get("email")
         users = User.objects.filter(email=email)
-        if users.exists():
-            user = users.first()
-            subject = "Reset your MyTomasino password"
+
+        for user in users:  # supports multiple users w/ same email
+            current_site = get_current_site(request)
+
             context = {
                 'user': user,
-                'domain': '127.0.0.1:8000',  
+                'domain': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': default_token_generator.make_token(user),
                 'protocol': 'http',
             }
 
-            message = render_to_string('user/password_reset_email.txt', context)
+            subject = "Reset your MyTomasino password"
+            message = render_to_string(
+                'user/password_reset_email.txt',
+                context
+            )
 
             send_mail(
                 subject,
                 message,
                 settings.DEFAULT_FROM_EMAIL,
-                [email],
+                [user.email],
                 fail_silently=False,
             )
 
-            messages.success(request, "A password reset link has been sent to your email.")
-            return redirect('user:password_reset_done')
-        else:
-            messages.error(request, "No account found with that email.")
-    
+        # ALWAYS show success — prevents email enumeration
+        return redirect('user:password_reset_done')
+
     return render(request, 'user/password_reset.html')
 
 def password_reset_done(request):

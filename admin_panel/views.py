@@ -1,27 +1,23 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User
 from tickets.models import Ticket, TicketHistory, Notification
 from user.models import StaffProfile
-from .utils import send_ticket_status_email, OFFICE_TICKET_CATEGORIES
-from tickets.models import Ticket
+from .utils import send_ticket_status_email, OFFICE_TICKET_CATEGORIES, get_categories_for_office
+from django.core.paginator import Paginator
 
 
 def is_staff_or_superuser(user):
     return user.is_superuser or StaffProfile.objects.filter(user=user).exists()
 
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def admin_home(request):
-    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
-    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:10]
-
-    context = {
-        'unread_count': unread_count,
-        'notifications': notifications,
-    }
+    # notifications and unread_count are provided by context processor
+    context = {}
 
     template = 'admin_panel/partials/admin_home_partial.html' if request.headers.get('HX-Request') else 'admin_panel/admin_home.html'
     return render(request, template, context)
@@ -59,12 +55,19 @@ def ticket_list(request):
             ('in_progress', 'In Progress', 'warning'),
             ('completed', 'Completed', 'success'),
         ],
-        'OFFICE_TICKET_CATEGORIES': OFFICE_TICKET_CATEGORIES,  # <-- added here
+        'OFFICE_TICKET_CATEGORIES': OFFICE_TICKET_CATEGORIES,
     }
 
+    # Check if this is an HTMX request (from sidebar navigation or table refresh)
     if request.headers.get('HX-Request'):
+        # Check if this is a table refresh (only tbody needs to be updated)
+        if request.headers.get('HX-Target') == 'ticket-table-body':
+            # Return only table rows for tbody refresh
+            return render(request, 'admin_panel/partials/ticket_rows_partial.html', context)
+        # Otherwise return the full content partial (for sidebar navigation)
         return render(request, 'admin_panel/partials/ticket_list_partial.html', context)
-
+    
+    # Full page load (browser refresh)
     return render(request, 'admin_panel/ticket_list.html', context)
 
 @login_required
@@ -83,11 +86,28 @@ def ticket_detail(request, ticket_id):
         if ticket.category not in allowed_categories:
             return HttpResponse("Access denied", status=403)
 
+    # Mark notifications as read for staff
+    Notification.objects.filter(
+        user=request.user,
+        ticket=ticket,
+        is_read=False
+    ).update(is_read=True)
+
     history = TicketHistory.objects.filter(ticket=ticket).order_by('-timestamp')
+    
+    # Get all conversation notes (staff responses AND user replies)
+    from django.db.models import Q
+    
+    conversation_notes = TicketHistory.objects.filter(
+        ticket=ticket
+    ).filter(
+        Q(action__icontains='Note added by') | Q(action__icontains='User reply:')
+    ).order_by('timestamp')  # Chronological order for conversation
 
     context = {
         'ticket': ticket,
         'history': history,
+        'conversation_notes': conversation_notes,
     }
 
     # Return partial for HTMX requests
@@ -127,9 +147,18 @@ def update_ticket_status(request, ticket_id):
                        f"{request.user.get_full_name() or request.user.username}"
             )
 
+            # Create notification for ticket creator
+            Notification.objects.create(
+                user=ticket.created_by,
+                ticket=ticket,
+                notification_type='ticket_updated',
+                title=f'Ticket Status Updated',
+                message=f'Your ticket #{ticket.ticket_id()} "{ticket.title}" status has been changed to {new_status_display}.'
+            )
+
             # Send notification email
             try:
-                send_ticket_status_email(ticket.created_by, ticket.ticket_id, new_status)
+                send_ticket_status_email(ticket.created_by, ticket.ticket_id(), new_status)
             except Exception as e:
                 messages.warning(request, f"Status updated but email failed: {str(e)}")
 
@@ -143,7 +172,7 @@ def update_ticket_status(request, ticket_id):
                 response['HX-Trigger'] = 'showToast'
                 return response
 
-            messages.success(request, f"Ticket #{ticket.ticket_id} marked as {ticket.get_status_display()}.")
+            messages.success(request, f"Ticket #{ticket.ticket_id()} marked as {ticket.get_status_display()}.")
             return redirect('admin_panel:ticket_detail', ticket_id=ticket.id)
 
         messages.error(request, "Invalid status selected.")
@@ -176,14 +205,23 @@ def add_ticket_note(request, ticket_id):
                 ticket=ticket,
                 notification_type='ticket_response',
                 title='New Response on Your Ticket',
-                message=f'Staff has added a response to your ticket #{ticket.ticket_id}: "{note[:100]}..."'
+                message=f'Staff has added a response to your ticket #{ticket.ticket_id()}: "{note[:100]}..."'
             )
 
             if request.headers.get("HX-Request"):
+                # Return updated conversation view
                 history = TicketHistory.objects.filter(ticket=ticket).order_by('-timestamp')
+                conversation_notes = history.filter(
+                    action__icontains='Note added by'
+                ) | history.filter(
+                    action__icontains='User reply:'
+                )
+                conversation_notes = conversation_notes.order_by('timestamp')
+                
                 return render(request, 'admin_panel/partials/ticket_detail_partial.html', {
                     'ticket': ticket,
-                    'history': history
+                    'history': history,
+                    'conversation_notes': conversation_notes,
                 })
 
         messages.success(request, "Note added successfully.")
@@ -207,18 +245,21 @@ def delete_ticket(request, ticket_id):
         return render(request, 'admin_panel/partials/delete_ticket_partial.html', {'ticket': ticket})
 
     # POST: actually delete ticket
+    ticket_id_display = ticket.ticket_id()
+    
     TicketHistory.objects.create(
         ticket=None,
         ticket_title=ticket.title,
         new_status='deleted',
-        action=f"Ticket #{ticket.ticket_id} was deleted by {request.user.get_full_name() or request.user.username}"
+        action=f"Ticket #{ticket_id_display} was deleted by {request.user.get_full_name() or request.user.username}"
     )
+    
     Notification.objects.create(
         user=ticket.created_by,
         ticket=None,
         notification_type='ticket_updated',
         title='Ticket Deleted by Staff',
-        message=f'Your ticket #{ticket.ticket_id} has been deleted by staff.'
+        message=f'Your ticket #{ticket_id_display} has been deleted by staff.'
     )
 
     ticket.delete()
@@ -229,18 +270,110 @@ def delete_ticket(request, ticket_id):
         response['HX-Trigger'] = 'refreshTicketList, resetTicketDetail'
         return response
 
-    messages.success(request, f"Ticket #{ticket.ticket_id} has been deleted.")
+    messages.success(request, f"Ticket #{ticket_id_display} has been deleted.")
     return redirect('admin_panel:ticket_list')
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def users_list(request):
-    """View to list all users"""
-    users = User.objects.all().order_by('-date_joined')
+    """View to list all regular users (excluding staff)"""
+    # Filter out staff users - only show regular users
+    users = User.objects.filter(is_staff=False).order_by('-date_joined')
+    
+    # Add pagination (optional)
+    paginator = Paginator(users, 20)  # 20 users per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
-    context = {'users': users}
+    context = {
+        'users': page_obj,
+        'is_paginated': paginator.num_pages > 1,
+        'page_obj': page_obj,
+    }
 
     if request.headers.get('HX-Request'):
         return render(request, 'admin_panel/partials/users_list_partial.html', context)
 
     return render(request, 'admin_panel/users_list.html', context)
+
+
+# Notification API endpoints
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def notification_count(request):
+    """Return unread notification count for admin's office"""
+    try:
+        staff_profile = StaffProfile.objects.select_related('office').get(user=request.user)
+        office_name = staff_profile.office.name
+    except StaffProfile.DoesNotExist:
+        return JsonResponse({'unread_count': 0})
+    
+    # Get categories for this office
+    categories = get_categories_for_office(office_name)
+    
+    # Count unread notifications for tickets in these categories
+    unread_count = Notification.objects.filter(
+        user=request.user,
+        is_read=False,
+        ticket__category__in=categories
+    ).count()
+    
+    return JsonResponse({'unread_count': unread_count})
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def mark_notification_read(request, notification_id):
+    """Mark a single notification as read"""
+    if request.method == 'POST':
+        try:
+            notification = Notification.objects.get(
+                id=notification_id,
+                user=request.user
+            )
+            notification.is_read = True
+            notification.save()
+            return JsonResponse({'success': True})
+        except Notification.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Notification not found'})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def mark_all_notifications_read(request):
+    """Mark all notifications as read for admin's office"""
+    if request.method == 'POST':
+        try:
+            staff_profile = StaffProfile.objects.select_related('office').get(user=request.user)
+            office_name = staff_profile.office.name
+        except StaffProfile.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'No office assigned'})
+        
+        categories = get_categories_for_office(office_name)
+        
+        Notification.objects.filter(
+            user=request.user,
+            is_read=False,
+            ticket__category__in=categories
+        ).update(is_read=True)
+        
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def user_profile_view(request, user_id):
+    """View to display a user's profile details"""
+    profile_user = get_object_or_404(User, id=user_id)
+    
+    context = {
+        'profile_user': profile_user,
+    }
+    
+    if request.headers.get('HX-Request'):
+        return render(request, 'admin_panel/partials/user_profile_view_partial.html', context)
+    
+    return render(request, 'admin_panel/user_profile_view.html', context)

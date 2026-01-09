@@ -94,13 +94,7 @@ class AcademicSupportForm(forms.ModelForm):
 
 
 class LostAndFoundForm(forms.ModelForm):
-    DEPARTMENT_CHOICES = [
-        ('jhs', 'JHS'),
-        ('shs', 'SHS'),
-        ('college', 'College'),
-    ]
-    department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, label="Department")
-    
+
     item_description = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Describe the item'}), 
         label="Item Description"
@@ -126,20 +120,19 @@ class LostAndFoundForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['title', 'attachment']
+        fields = ['title']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Item Name'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Map the photo field to the attachment field
+        # Make photo optional
         if 'photo' in self.data or 'photo' in self.files:
-            self.fields['attachment'].required = False
+            self.fields['photo'].required = False
     
     def save(self, commit=True):
         ticket = super().save(commit=False)
-        department = self.cleaned_data.get('department')
         item_description = self.cleaned_data.get('item_description')
         location = self.cleaned_data.get('location')
         date_time = self.cleaned_data.get('date_time')
@@ -148,8 +141,6 @@ class LostAndFoundForm(forms.ModelForm):
         
         # Store structured data in metadata
         ticket.metadata = {
-            'department': department,
-            'department_display': dict(self.DEPARTMENT_CHOICES)[department],
             'location': location,
             'date_time': date_time.strftime('%Y-%m-%d %H:%M'),
         }
@@ -166,7 +157,6 @@ class LostAndFoundForm(forms.ModelForm):
         if commit:
             ticket.save()
         return ticket
-
 
 class WelfareForm(forms.ModelForm):
     CONTACT_CHOICES = [
@@ -264,16 +254,16 @@ class FacilitiesForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['title', 'attachment']
+        fields = ['title']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Issue Title'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Map the photo field to the attachment field
+        # Make photo optional
         if 'photo' in self.data or 'photo' in self.files:
-            self.fields['attachment'].required = False
+            self.fields['photo'].required = False
     
     def save(self, commit=True):
         ticket = super().save(commit=False)

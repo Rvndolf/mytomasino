@@ -1,48 +1,104 @@
 {% extends "dashboard_base.html" %} 
 {% block content %}
-<div class="container mt-4">
-  <div class="card shadow-sm border-0 p-4">
-    <h2 class="fw-bold mb-4">Recent Ticket Activity</h2>
+<div class="container-fluid p-4 mt-5">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm border-0 p-0">
+        <div class="p-4" style="background-color: #144214; border-radius: 0.375rem 0.375rem 0 0;">
+          <h4 class="fw-bold mb-0 text-white">Ticket History</h4>
+        </div>
 
-    {% if history_entries %}
-      <ul class="list-group list-group-flush">
-        {% for entry in history_entries %}
-          <li class="list-group-item d-flex justify-content-between align-items-start
-                     {% if entry.ticket is None and 'deleted' in entry.action %}text-muted{% endif %}">
-            <div class="flex-grow-1">
-              <strong>
-                {% if entry.ticket %}
-                  {{ entry.ticket.title }}
-                {% else %}
-                  {{ entry.ticket_title|default:"Deleted Ticket" }}
-                {% endif %}
-              </strong>
-              
-              {% if entry.new_status == 'deleted' or "deleted" in entry.action %}
-                <span class="badge bg-danger ms-2">Deleted</span>
-              {% elif entry.new_status == 'completed' %}
-                <span class="badge bg-success ms-2">Completed</span>
-              {% elif entry.new_status == 'in_progress' %}
-                <span class="badge bg-info ms-2">In Progress</span>
-              {% elif entry.new_status == 'open' %}
-                <span class="badge bg-warning text-dark ms-2">Open</span>
-              {% elif entry.new_status == 'resolved' %}
-                <span class="badge bg-primary ms-2">Resolved</span>
-              {% elif "created" in entry.action %}
-                <span class="badge bg-success ms-2">Created</span>
-              {% else %}
-                <span class="badge bg-secondary ms-2">Updated</span>
-              {% endif %}
+        <div class="p-4">
+          {% if history_entries %}
+            <div class="table-responsive">
+              <ul class="list-group list-group-flush">
+                {% for entry in history_entries %}
+                  <li class="list-group-item d-flex justify-content-between align-items-start
+                             {% if entry.ticket is None and 'deleted' in entry.action %}text-muted{% endif %}">
+                    <div class="flex-grow-1 mb-2 mb-md-0">
+                      <strong class="d-block small">
+                        {% if entry.ticket %}
+                          {{ entry.ticket.title }}
+                        {% else %}
+                          {{ entry.ticket_title|default:"Deleted Ticket" }}
+                        {% endif %}
+                      </strong>
 
-              <p class="mb-0 text-muted small">{{ entry.action }}</p>
+                      <p class="mb-0 text-muted small mt-2">{{ entry.action }}</p>
+                      
+                      <small class="text-muted d-block d-md-none mt-2" style="font-size: 0.75rem;">
+                        {{ entry.timestamp|date:"M d, Y h:i A" }}
+                      </small>
+                    </div>
+                    
+                    <div class="d-flex flex-column align-items-end ms-3">
+                      <div class="mb-2">
+                        {% if entry.new_status == 'deleted' or "deleted" in entry.action %}
+                          <span class="badge bg-danger">Deleted</span>
+                        {% elif entry.new_status == 'completed' %}
+                          <span class="badge" style="background-color: #144214;">Completed</span>
+                        {% elif entry.new_status == 'in_progress' %}
+                          <span class="badge" style="background-color: #ffcc00;">In Progress</span>
+                        {% elif entry.new_status == 'open' %}
+                          <span class="badge" style="background-color: #007bff;">Open</span>
+                        {% elif entry.new_status == 'resolved' %}
+                          <span class="badge" style="background-color: #4aa1fe;">Resolved</span>
+                        {% elif "created" in entry.action %}
+                          <span class="badge" style="background-color: #3c6d3c;">Created</span>
+                        {% else %}
+                          <span class="badge bg-secondary">Updated</span>
+                        {% endif %}
+                      </div>
+                      
+                      <small class="text-muted text-nowrap d-none d-md-block" style="font-size: 0.75rem;">
+                        {{ entry.timestamp|date:"M d, Y h:i A" }}
+                      </small>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
             </div>
-            <small class="text-muted text-nowrap ms-3">{{ entry.timestamp|date:"M d, Y h:i A" }}</small>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="text-muted mb-0">No recent activity found.</p>
-    {% endif %}
+
+            <!-- Pagination (if needed) -->
+            {% if is_paginated %}
+              <nav aria-label="History pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                  {% if page_obj.has_previous %}
+                    <li class="page-item">
+                      <a class="page-link small" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link small" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                  {% endif %}
+
+                  <li class="page-item active">
+                    <span class="page-link small">
+                      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                  </li>
+
+                  {% if page_obj.has_next %}
+                    <li class="page-item">
+                      <a class="page-link small" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link small" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                  {% endif %}
+                </ul>
+              </nav>
+            {% endif %}
+
+          {% else %}
+            <div class="text-center py-5">
+              <i class="bi bi-clock-history text-muted" style="font-size: 2.5rem;"></i>
+              <p class="text-muted mt-3 mb-0 small">No recent activity found.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

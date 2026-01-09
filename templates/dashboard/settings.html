@@ -1,18 +1,18 @@
-<div class="container mt-4">
+<div class="container" style="margin-top: 100px;">
   <div class="row">
     <!-- Left Column: Profile Info -->
     <div class="col-md-4 mb-4">
-      <div class="card border-0 shadow-sm p-4 text-center">
+      <div class="card border-0 shadow-sm p-4 text-center" style="background-color: #144214; color: white;">
         <img
           src="{% if request.user.profile.profile_picture %}{{ request.user.profile.profile_picture.url }}{% else %}{% load static %}{% static 'img/default_profile.jpg' %}{% endif %}"
           alt="Profile Picture"
-          class="rounded-circle mb-3 border mx-auto d-block"
+          class="rounded-circle mb-3 border"
           style="width: 120px; height: 120px; object-fit: cover;"
         />
-        <h4 class="fw-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
-        <p class="text-muted mb-0">{{ request.user.email }}</p>
-        <hr class="my-3" />
-        <p class="text-secondary small mb-0">
+        <h5 class="fw-bold mb-1" style="font-size: 1rem;">{{ request.user.get_full_name|default:request.user.username }}</h5>
+        <p class="mb-0" style="font-size: 0.85rem; opacity: 0.9;">{{ request.user.email }}</p>
+        <hr class="my-3" style="border-color: rgba(255,255,255,0.3); opacity: 1;" />
+        <p class="small mb-0" style="font-size: 0.8rem; opacity: 0.8;">
           Member since {{ request.user.date_joined|date:"F Y" }}
         </p>
       </div>
@@ -20,21 +20,21 @@
 
     <div class="col-md-8">
       <div class="card border-0 shadow-sm p-4">
-        <h4 class="fw-bold mb-3">Settings</h4>
+        <h5 class="fw-bold mb-3" style="font-size: 1rem;">Settings</h5>
 
         <ul class="nav nav-tabs mb-3" id="settingsTabs" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'profile' %}active{% endif %}" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-settings" type="button" role="tab">
+            <button class="nav-link {% if active_tab == 'profile' %}active{% endif %}" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-settings" type="button" role="tab" style="font-size: 0.85rem; color: #144214;">
               Profile
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'preferences' %}active{% endif %}" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences-settings" type="button" role="tab">
+            <button class="nav-link {% if active_tab == 'preferences' %}active{% endif %}" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences-settings" type="button" role="tab" style="font-size: 0.85rem; color: #144214;">
               Preferences
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'security' %}active{% endif %}" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-settings" type="button" role="tab">
+            <button class="nav-link {% if active_tab == 'security' %}active{% endif %}" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-settings" type="button" role="tab" style="font-size: 0.85rem; color: #144214;">
               Security
             </button>
           </li>
@@ -51,54 +51,60 @@
               <input type="hidden" name="form_type" value="profile">
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Full Name</label>
-                <input type="text" class="form-control" value="{{ request.user.get_full_name|default:request.user.username }}" readonly>
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Full Name</label>
+                <input type="text" class="form-control" style="font-size: 0.85rem;" value="{{ request.user.get_full_name|default:request.user.username }}" readonly>
               </div>
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Email Address</label>
-                <input type="email" class="form-control" value="{{ request.user.email }}" readonly>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">ID Number</label>
-                <input type="text" class="form-control" value="{{ request.user.profile.id_number|default_if_none:'' }}" readonly>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Grade Level</label>
-                <input type="text" class="form-control" value="{{ request.user.profile.get_grade_level_display|default_if_none:'' }}" readonly>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Section</label>
-                <input type="text" class="form-control" value="{{ request.user.profile.section|default_if_none:'' }}" readonly>
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Email Address</label>
+                <input type="email" class="form-control" style="font-size: 0.85rem;" value="{{ request.user.email }}" readonly>
               </div>
 
               <hr class="my-3" />
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Contact Number</label>
-                <input type="text" class="form-control" name="contact_number" pattern="^\+63\d{10}$" maxlength="13"
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">ID Number</label>
+                <input type="text" class="form-control" style="font-size: 0.85rem;" name="id_number" maxlength="9" pattern="\d{1,9}"
+                       title="ID Number must contain up to 9 digits only"
+                       placeholder="Enter your ID number"
+                       value="{{ request.user.profile.id_number|default_if_none:'' }}">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Department</label>
+                <select class="form-select" style="font-size: 0.85rem;" name="department">
+                  <option value="">-- Select Department --</option>
+                  <option value="JHS" {% if request.user.profile.department == 'JHS' %}selected{% endif %}>Junior High School</option>
+                  <option value="SHS" {% if request.user.profile.department == 'SHS' %}selected{% endif %}>Senior High School</option>
+                  <option value="CASE" {% if request.user.profile.department == 'CASE' %}selected{% endif %}>College of Arts, Sciences, and Education (CASE)</option>
+                  <option value="CHS" {% if request.user.profile.department == 'CHS' %}selected{% endif %}>College of Health Sciences (CHS)</option>
+                  <option value="CEAFA" {% if request.user.profile.department == 'CEAFA' %}selected{% endif %}>College of Engineering, Fine Arts, and Architecture (CEAFA)</option>
+                  <option value="CBMA" {% if request.user.profile.department == 'CBMA' %}selected{% endif %}>College of Business Management and Accountancy (CBMA)</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Contact Number</label>
+                <input type="text" class="form-control" style="font-size: 0.85rem;" name="contact_number" pattern="^\+63\d{10}$" maxlength="13"
                        title="Format must start with +63 followed by 10 digits (e.g., +639123456789)"
                        placeholder="+63"
                        value="{{ request.user.profile.contact_number|default_if_none:'' }}">
               </div>
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Address</label>
-                <textarea class="form-control" name="address" rows="2" placeholder="Enter your address">{{ request.user.profile.address|default_if_none:'' }}</textarea>
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Address</label>
+                <textarea class="form-control" style="font-size: 0.85rem;" name="address" rows="2" placeholder="Enter your address">{{ request.user.profile.address|default_if_none:'' }}</textarea>
               </div>
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Profile Picture</label>
-                <input type="file" class="form-control" name="profile_picture" accept="image/*">
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Profile Picture</label>
+                <input type="file" class="form-control" style="font-size: 0.85rem;" name="profile_picture" accept="image/*">
                 {% if request.user.profile.profile_picture %}
-                  <small class="text-muted">Current: {{ request.user.profile.profile_picture.name }}</small>
+                  <small class="text-muted" style="font-size: 0.75rem;">Current: {{ request.user.profile.profile_picture.name }}</small>
                 {% endif %}
               </div>
 
-              <button type="submit" class="btn btn-primary">Save Changes</button>
+              <button type="submit" class="btn btn-primary" style="font-size: 0.85rem;">Save Changes</button>
             </form>
           </div>
 
@@ -110,22 +116,22 @@
               {% csrf_token %}
               <input type="hidden" name="form_type" value="preferences">
 
-              <h6 class="fw-bold mb-2">Notification Settings</h6>
+              <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Notification Settings</h6>
               <div class="form-check form-switch mb-2">
                 <input class="form-check-input" type="checkbox" id="emailNotifSwitch" name="email_notifications" {% if request.user.profile.email_notifications %}checked{% endif %}>
-                <label class="form-check-label" for="emailNotifSwitch">Receive Email Notifications</label>
+                <label class="form-check-label" for="emailNotifSwitch" style="font-size: 0.85rem;">Receive Email Notifications</label>
               </div>
               <div class="form-check form-switch mb-3">
                 <input class="form-check-input" type="checkbox" id="smsNotifSwitch" name="sms_notifications" {% if request.user.profile.sms_notifications %}checked{% endif %}>
-                <label class="form-check-label" for="smsNotifSwitch">Receive SMS Notifications</label>
+                <label class="form-check-label" for="smsNotifSwitch" style="font-size: 0.85rem;">Receive SMS Notifications</label>
               </div>
 
               <hr class="my-3">
 
-              <h6 class="fw-bold mb-2">Localization Settings</h6>
+              <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Localization Settings</h6>
               <div class="mb-3">
-                <label class="form-label fw-semibold">Language</label>
-                <select class="form-select" name="language_preference">
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Language</label>
+                <select class="form-select" style="font-size: 0.85rem;" name="language_preference">
                   <option value="en" {% if request.user.profile.language_preference == "en" %}selected{% endif %}>English</option>
                   <option value="fil" {% if request.user.profile.language_preference == "fil" %}selected{% endif %}>Filipino</option>
                   <option value="es" {% if request.user.profile.language_preference == "es" %}selected{% endif %}>Spanish</option>
@@ -134,8 +140,8 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Region</label>
-                <select class="form-select" name="region">
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Region</label>
+                <select class="form-select" style="font-size: 0.85rem;" name="region">
                   <option value="asia-ph" {% if request.user.profile.region == "asia-ph" %}selected{% endif %}>Philippines</option>
                   <option value="asia-sg" {% if request.user.profile.region == "asia-sg" %}selected{% endif %}>Singapore</option>
                   <option value="us" {% if request.user.profile.region == "us" %}selected{% endif %}>United States</option>
@@ -144,8 +150,8 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Date Format</label>
-                <select class="form-select" name="date_format">
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Date Format</label>
+                <select class="form-select" style="font-size: 0.85rem;" name="date_format">
                   <option value="MM/DD/YYYY" {% if request.user.profile.date_format == "MM/DD/YYYY" %}selected{% endif %}>MM/DD/YYYY</option>
                   <option value="DD/MM/YYYY" {% if request.user.profile.date_format == "DD/MM/YYYY" %}selected{% endif %}>DD/MM/YYYY</option>
                   <option value="YYYY-MM-DD" {% if request.user.profile.date_format == "YYYY-MM-DD" %}selected{% endif %}>YYYY-MM-DD</option>
@@ -153,14 +159,14 @@
               </div>
 
               <div class="mb-4">
-                <label class="form-label fw-semibold">Number Format</label>
-                <select class="form-select" name="number_format">
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Number Format</label>
+                <select class="form-select" style="font-size: 0.85rem;" name="number_format">
                   <option value="1,000.00" {% if request.user.profile.number_format == "1,000.00" %}selected{% endif %}>1,000.00 (Comma for thousands)</option>
                   <option value="1.000,00" {% if request.user.profile.number_format == "1.000,00" %}selected{% endif %}>1.000,00 (Dot for thousands)</option>
                 </select>
               </div>
 
-              <button type="submit" class="btn btn-success">Save Preferences</button>
+              <button type="submit" class="btn btn-success" style="font-size: 0.85rem;">Save Preferences</button>
             </form>
           </div>
 
@@ -173,19 +179,19 @@
               <input type="hidden" name="form_type" value="security">
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Current Password</label>
-                <input type="password" class="form-control" name="current_password" placeholder="Enter current password" required>
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Current Password</label>
+                <input type="password" class="form-control" style="font-size: 0.85rem;" name="current_password" placeholder="Enter current password" required>
               </div>
               <div class="mb-3">
-                <label class="form-label fw-semibold">New Password</label>
-                <input type="password" class="form-control" name="new_password1" placeholder="Enter new password" required>
-                <small class="text-muted">Password must be at least 8 characters and contain: uppercase, lowercase, number, and special character.</small>
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">New Password</label>
+                <input type="password" class="form-control" style="font-size: 0.85rem;" name="new_password1" placeholder="Enter new password" required>
+                <small class="text-muted" style="font-size: 0.75rem;">Password must be at least 8 characters and contain: uppercase, lowercase, number, and special character.</small>
               </div>
               <div class="mb-3">
-                <label class="form-label fw-semibold">Confirm New Password</label>
-                <input type="password" class="form-control" name="new_password2" placeholder="Confirm new password" required>
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Confirm New Password</label>
+                <input type="password" class="form-control" style="font-size: 0.85rem;" name="new_password2" placeholder="Confirm new password" required>
               </div>
-              <button type="submit" class="btn btn-warning">Update Password</button>
+              <button type="submit" class="btn btn-warning" style="font-size: 0.85rem;">Update Password</button>
             </form>
           </div>
 

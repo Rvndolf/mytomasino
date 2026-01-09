@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "user",
     "dashboard",
     "admin_panel",
@@ -62,15 +63,17 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mytomasinoapp@gmail.com'         # Replace with your email
-EMAIL_HOST_PASSWORD = 'mzzyuaoiakdsvimk'   # App password if using Gmail
+EMAIL_HOST_PASSWORD = 'fcivlptqxkkorfpj'   # App password if using Gmail
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/user/login/'
+LOGIN_REDIRECT_URL = 'dashboard:home'
+LOGOUT_REDIRECT_URL = 'user:login'
 ROOT_URLCONF = "mytomasino.urls"
 
-SESSION_COOKIE_AGE = 120  # 30 minutes in seconds (1800 = 30 * 60)
-SESSION_SAVE_EVERY_REQUEST = True  # Reset timer on every request
+SITE_ID = 1
+
+SESSION_COOKIE_AGE = 1800 # 30 minutes in seconds (1800 = 30 * 60)
+SESSION_SAVE_EVERY_REQUEST = True # Reset timer on every request
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Session expires when browser closes
 
 # Optional: More security settings
