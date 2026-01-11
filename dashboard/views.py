@@ -14,6 +14,8 @@ from django.contrib.auth.password_validation import validate_password
 from tickets.models import Ticket, TicketHistory
 from django.db.models import Count
 
+
+
 @login_required(login_url='user:login')
 def dashboard_home(request):
     # Calculate ticket completion percentage
@@ -86,15 +88,15 @@ def dashboard_history(request):
 def dashboard_settings(request):
     user = request.user
     profile, created = UserProfile.objects.get_or_create(user=user)
+    active_tab = 'profile'  # default tab
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
 
         if form_type == "profile":
+            active_tab = 'profile'
             try:
-                # Update profile fields
-                profile.id_number = request.POST.get("id_number", "").strip() or None
-                profile.department = request.POST.get("department", "").strip() or None
+                # Update only editable profile fields (removed id_number, grade_level, section)
                 profile.contact_number = request.POST.get("contact_number", "").strip() or None
                 profile.address = request.POST.get("address", "").strip() or None
 
@@ -118,6 +120,7 @@ def dashboard_settings(request):
                 messages.error(request, f"Error saving profile: {str(e)}")
 
         elif form_type == "preferences":
+            active_tab = 'preferences'
             try:
                 # Handle checkbox fields properly
                 profile.email_notifications = "email_notifications" in request.POST
@@ -139,6 +142,7 @@ def dashboard_settings(request):
                 messages.error(request, f"Error saving preferences: {str(e)}")
 
         elif form_type == "security":
+            active_tab = 'security'
             # Security tab: password change
             current_password = request.POST.get("current_password", "")
             new_password1 = request.POST.get("new_password1", "")
@@ -159,13 +163,16 @@ def dashboard_settings(request):
                     update_session_auth_hash(request, user)  # Keep user logged in
                     messages.success(request, "Password updated successfully!")
                 except ValidationError as e:
-                    messages.error(request, " ".join(e.messages))
+                    # Show detailed validation errors
+                    for error in e.messages:
+                        messages.error(request, error)
 
         # For HTMX requests, return just the settings content
         if request.headers.get("HX-Request"):
             context = {
                 "profile": profile,
-                "user": user
+                "user": user,
+                "active_tab": active_tab
             }
             return render(request, "dashboard/settings.html", context)
         
@@ -175,7 +182,8 @@ def dashboard_settings(request):
     # GET request
     context = {
         "profile": profile,
-        "user": user
+        "user": user,
+        "active_tab": active_tab
     }
 
     # Check if HTMX request

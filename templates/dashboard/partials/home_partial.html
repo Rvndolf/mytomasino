@@ -30,7 +30,7 @@
   <div class="row align-items-center gx-2 content-container">
     <!-- Left: See what's in store -->
     <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center ps-lg-2 mobile-reduce-height">
-      <p class="text-muted mb-0 font-secondary">See what's in store for you today.</p>
+      <p class="text-muted mb-0 font-secondary home-text">See what's in store for you today.</p>
     </div>
 
     <!-- Right: View My Tickets Card -->
@@ -43,8 +43,12 @@
           hx-push-url="{% url 'tickets:ticket_overview' %}">
         <div class="card-body p-4">
           <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="text-white mb-0 font-main">View My Tickets</h4>
-            <button class="btn btn-link text-white p-0" style="font-size: 24px; text-decoration: none;">⋮</button>
+            <h4 class="text-white mb-0 font-main ticket-card-title">View My Tickets</h4>
+            <button class="btn btn-link text-white p-0" style="text-decoration: none;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
           </div>
           
           <div class="mt-4">
@@ -92,33 +96,17 @@
                 </small>
               </div>
               
-              <!-- Content row with action and badge -->
+              <!-- Content row with action only -->
               <div class="d-flex justify-content-between align-items-center">
                 <p class="mb-0 activity-action font-secondary" style="font-size: 0.75rem;">
                   {{ activity.action }}
                 </p>
-                
-                <!-- Status badge -->
-                <span class="badge 
-                  {% if activity.new_status == 'deleted' or 'deleted' in activity.action %}status-badge-deleted
-                  {% elif activity.new_status == 'completed' %}status-badge-completed
-                  {% elif activity.new_status == 'in_progress' %}status-badge-in_progress
-                  {% elif activity.new_status == 'open' %}status-badge-open
-                  {% elif 'created' in activity.action %}status-badge-created
-                  {% else %}status-badge-updated{% endif %} font-secondary">
-                  {% if activity.new_status == 'deleted' or 'deleted' in activity.action %}Deleted
-                  {% elif activity.new_status == 'completed' %}Completed
-                  {% elif activity.new_status == 'in_progress' %}In Progress
-                  {% elif activity.new_status == 'open' %}Open
-                  {% elif 'created' in activity.action %}Created
-                  {% else %}Updated{% endif %}
-                </span>
               </div>
             </div>
           {% endfor %}
         {% else %}
           <div class="activity-item-card text-center">
-            <p class="text-muted mb-0 font-secondary">No recent activity</p>
+            <p class="text-muted mb-0 font-secondary" style="font-size: 0.75rem;">No recent activity</p>
           </div>
         {% endif %}
       </div>
@@ -128,7 +116,7 @@
     <div class="col-12 col-lg-6 mt-3 mt-lg-0">
       <!-- Summary Text Header -->
       <div class="summary-text-container">
-        <p class="mb-0 font-main text-muted" style="font-size: 0.9rem;">Here's your Ticket Summary</p>
+        <p class="mb-0 font-main text-muted" style="font-size: 0.75rem;">Here's your Ticket Summary</p>
       </div>
       
       <!-- Category Chart Container -->
@@ -280,6 +268,21 @@
     }
   }
 
+  /* Mobile: Smaller font for ticket card title */
+  .ticket-card-title {
+    font-size: 1rem;
+  }
+
+  .home-text{
+    font-size: 1rem !important;
+  }
+  /* Desktop: Normal font size */
+  @media (min-width: 768px) {
+    .ticket-card-title {
+      font-size: 1.5rem;
+    }
+  }
+
   .card {
     transition: all 0.2s ease;
   }
@@ -294,7 +297,7 @@
   /* Recent Activity Header Container */
   .activity-header-container {
     background-color: #144214;
-    border-radius: 20px;
+    border-radius: 5px;
     padding: 0.5rem 1rem;
     display: inline-block;
     margin-top: 0.5rem;
@@ -321,7 +324,7 @@
   /* Summary Text Container */
   .summary-text-container {
     padding: 0;
-    margin-top: 1rem;
+    margin-top: 1.25rem;
     margin-bottom: 0.5rem;
   }
   
@@ -453,55 +456,6 @@
 
   .activity-time {
     color: hsl(0, 0%, 45%); /* muted gray */
-  }
-
-  /* Updated Status badges with new colors */
-  .status-badge-open {
-    background-color: #007bff; /* Green */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-  }
-
-  .status-badge-created {
-    background-color: #144214; /* Green */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-  }
-
-  .status-badge-in_progress {
-    background-color: #ffcc00; /* Orange */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-  }
-
-  .status-badge-completed {
-    background-color: #144214; /* Blue */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-  }
-
-  .status-badge-deleted {
-    background-color: #dc3545; /* Red */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-  }
-
-  .status-badge-updated {
-    background-color: #6c757d; /* Gray */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
   }
 
   .gradient-green-text {

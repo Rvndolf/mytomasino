@@ -33,19 +33,19 @@
                     <div class="d-flex flex-column align-items-end ms-3">
                       <div class="mb-2">
                         {% if entry.new_status == 'deleted' or "deleted" in entry.action %}
-                          <span class="badge bg-danger">Deleted</span>
+                          <span class="badge bg-danger" style="border-radius: 0; font-weight: normal;">Deleted</span>
                         {% elif entry.new_status == 'completed' %}
-                          <span class="badge" style="background-color: #144214;">Completed</span>
+                          <span class="badge" style="background-color: #144214; border-radius: 0; font-weight: normal;">Completed</span>
                         {% elif entry.new_status == 'in_progress' %}
-                          <span class="badge" style="background-color: #ffcc00;">In Progress</span>
+                          <span class="badge" style="background-color: #ffcc00; border-radius: 0; font-weight: normal;">In Progress</span>
                         {% elif entry.new_status == 'open' %}
-                          <span class="badge" style="background-color: #007bff;">Open</span>
+                          <span class="badge" style="background-color: #007bff; border-radius: 0; font-weight: normal;">Open</span>
                         {% elif entry.new_status == 'resolved' %}
-                          <span class="badge" style="background-color: #4aa1fe;">Resolved</span>
+                          <span class="badge" style="background-color: #4aa1fe; border-radius: 0; font-weight: normal;">Resolved</span>
                         {% elif "created" in entry.action %}
-                          <span class="badge" style="background-color: #3c6d3c;">Created</span>
+                          <span class="badge" style="background-color: #3c6d3c; border-radius: 0; font-weight: normal;">Created</span>
                         {% else %}
-                          <span class="badge bg-secondary">Updated</span>
+                          <span class="badge bg-secondary" style="border-radius: 0; font-weight: normal;">Updated</span>
                         {% endif %}
                       </div>
                       

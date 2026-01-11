@@ -100,7 +100,10 @@ def add_user_reply(request, ticket_id):
             TicketHistory.objects.create(
                 ticket=ticket,
                 ticket_title=ticket.title,
-                action=f"User reply: {reply}"
+                action=f"User reply: {reply}",
+                user=request.user,
+                activity_type='response',
+                new_status=ticket.status
             )
             
             # Notify assigned staff member if there is one
@@ -157,7 +160,13 @@ def create_ticket(request):
             ticket.save()
 
             assign_office_and_staff(ticket)
-            TicketHistory.objects.create(ticket=ticket, action="Ticket created by user")
+            TicketHistory.objects.create(
+                ticket=ticket, action="Ticket created by user",
+                ticket_title=ticket.title,
+                user=request.user,
+                activity_type='created',
+                new_status=ticket.status
+            )
 
             Notification.objects.create(
                 user=request.user,
@@ -219,7 +228,13 @@ def update_ticket(request, pk):
             updated_ticket = form.save()
 
             # Add history
-            TicketHistory.objects.create(ticket=updated_ticket, action="Ticket updated by user")
+            TicketHistory.objects.create(
+                ticket=updated_ticket, action="Ticket updated by user",
+                ticket_title=updated_ticket.title,
+                user=request.user,
+                activity_type='updated',
+                new_status=updated_ticket.status
+            )
 
             # Create notification
             Notification.objects.create(
@@ -268,7 +283,11 @@ def delete_ticket(request, pk):
         TicketHistory.objects.create(
             ticket=None,
             ticket_title=ticket_title,
-            action="Ticket deleted by user"
+            deleted_ticket_id=ticket_id,
+            action="Ticket deleted by user",
+            user=request.user,
+            activity_type='deleted',
+            new_status='deleted'
         )
 
         # Create notification

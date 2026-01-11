@@ -65,9 +65,31 @@ class TicketHistory(models.Model):
         blank=True
     )
     ticket_title = models.CharField(max_length=255, null=True, blank=True)
+    deleted_ticket_id = models.IntegerField(null=True, blank=True)  
     new_status = models.CharField(max_length=50, null=True, blank=True)  # NEW FIELD
     action = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    user = models.ForeignKey(
+        'auth.User',  # or settings.AUTH_USER_MODEL
+        on_delete=models.CASCADE,
+        related_name='ticket_history',
+        null=True,  # Allow null for migration
+        blank=True
+    )
+    activity_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('created', 'Created'),
+            ('updated', 'Updated'),
+            ('status_change', 'Status Changed'),
+            ('response', 'User Response'),
+            ('deleted', 'Deleted'),
+        ],
+        default='updated',
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return f"{self.ticket_title or 'Deleted ticket'} - {self.action}"

@@ -25,11 +25,13 @@
         <!-- STATUS FILTER BUTTONS -->
         <div style="flex: 0 0 auto; width: 100%;" class="filter-section">
           <span class="fw-bold mb-2 d-block text-muted" style="font-size: 0.85rem;">Filter by Status:</span>
-          <div class="d-flex flex-wrap gap-2">
+          <div class="d-flex flex-wrap gap-2" id="status-filter-buttons">
             {% for status_key, status_label, status_class in status_choices %}
               <a href="{% url 'admin_panel:ticket_list' %}?status={{ status_key }}{% for cat in active_categories %}&categories={{ cat }}{% endfor %}" 
-                 class="btn rounded-pill btn-sm status-filter-btn status-filter-{{ status_class }} {% if status_filter == status_key %}active{% endif %}"
-                 data-status="{{ status_class }}">
+                class="btn btn-sm status-filter-btn status-filter-{{ status_class }} {% if status_filter == status_key %}active{% endif %}"
+                style="border-radius: 5px;"
+                data-status="{{ status_class }}"
+                data-status-key="{{ status_key }}">
                 {{ status_label }}
               </a>
             {% endfor %}
@@ -44,7 +46,7 @@
     <!-- LEFT COLUMN: TICKET LIST (50% on desktop) -->
     <div class="col-md-6 mb-4 mb-md-0">
       <!-- TICKETS TABLE -->
-      <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden; height: 650px; display: flex; flex-direction: column;">
+      <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden; height: 650px; display: flex; flex-direction: column;">
         <div class="card-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
           <div class="table-responsive" style="flex: 1; overflow-y: auto;">
             <table class="table table-hover mb-0 sleek-table">
@@ -104,7 +106,7 @@
     <div class="col-md-6">
       <div id="ticket-detail-container"
            hx-on="resetTicketDetail: this.innerHTML='<div class=\'card shadow-sm border-0\' style=\'border-radius: 15px; height: 650px;\'><div class=\'card-body text-center d-flex flex-column align-items-center justify-content-center h-100\'><i class=\'fas fa-ticket-alt fa-3x text-muted mb-3\'></i><h5 class=\'text-muted\'>Select a ticket to view details</h5></div></div>'">
-        <div class="card shadow-sm border-0" style="border-radius: 15px; height: 650px;">
+        <div class="card shadow-sm border-0" style="border-radius: 10px; height: 650px;">
           <div class="card-body text-center d-flex flex-column align-items-center justify-content-center h-100">
             <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
             <h5 class="text-muted">Select a ticket to view details</h5>
@@ -136,7 +138,7 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   /* Status filter buttons - default state (white bg, green text/border) */
   .status-filter-btn {
     background-color: white !important;
@@ -235,15 +237,57 @@
 
   .table-responsive::-webkit-scrollbar-track {
     background: #f1f1f1;
-    border-radius: 10px;
+    border-radius: 8px;
   }
 
   .table-responsive::-webkit-scrollbar-thumb {
     background: #c1c1c1;
-    border-radius: 10px;
+    border-radius: 8px;
   }
 
   .table-responsive::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
   }
 </style>
+
+<script>
+  // Listen for ticket update or delete events
+  document.body.addEventListener('ticketUpdated', function(event) {
+    resetToOpenStatusAndRefresh();
+  });
+
+  document.body.addEventListener('ticketDeleted', function(event) {
+    resetToOpenStatusAndRefresh();
+  });
+
+  function resetToOpenStatusAndRefresh() {
+    // Get all status filter buttons
+    const filterButtons = document.querySelectorAll('.status-filter-btn');
+    
+    // Remove 'active' class from all buttons
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Find and activate the "Open" button
+    const openButton = document.querySelector('.status-filter-btn[data-status-key="open"]');
+    if (openButton) {
+      openButton.classList.add('active');
+      
+      // Update the URL to reflect the "Open" filter
+      const url = new URL(window.location);
+      url.searchParams.set('status', 'open');
+      window.history.pushState({}, '', url);
+      
+      // Refresh the ticket table with the "Open" filter using the button's href
+      htmx.ajax('GET', openButton.href, {
+        target: '#ticket-table-body',
+        swap: 'innerHTML'
+      });
+    }
+    
+    // Reset the ticket detail panel
+    const detailContainer = document.getElementById('ticket-detail-container');
+    if (detailContainer) {
+      htmx.trigger(detailContainer, 'resetTicketDetail');
+    }
+  }
+</script>

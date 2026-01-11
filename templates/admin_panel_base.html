@@ -59,6 +59,9 @@
       <a hx-get="{% url 'admin_panel:ticket_list' %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'admin_panel:ticket_list' %}" class="nav-item">
         <i class="bi bi-ticket-perforated"></i><span>Tickets</span>
       </a>
+      <a hx-get="{% url 'admin_panel:admin_history' %}" hx-target="#dashboard-content" hx-swap="innerHTML" hx-push-url="{% url 'admin_panel:admin_history' %}" class="nav-item">
+        <i class="bi bi-clock-history"></i><span>History</span>
+      </a>
     </div>
 
     <form method="POST" action="{% url 'user:logout' %}">
@@ -596,6 +599,24 @@ resetInactivityTimer();
       transition: opacity 0.3s ease;
     }
 
+    #dashboard-content {
+    min-height: calc(100vh - 200px);
+    padding-bottom: 100px;
+  }
+
+  @media (max-width: 768px) {
+    #dashboard-content {
+      padding-bottom: 150px;
+    }
+
+    #notificationToggle {
+    position: fixed !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    left: auto !important;
+  }
+}
+  
   </style>
 
   {% block extra_js %}

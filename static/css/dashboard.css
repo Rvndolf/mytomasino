@@ -320,12 +320,7 @@ html {
     display: flex;
   }
 
-  #notificationToggle { 
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1100;
-  }
+  /* REMOVED: #notificationToggle positioning - now handled by notification.css */
 
   /* Hide sidebar by default on mobile */
   .sidebar {

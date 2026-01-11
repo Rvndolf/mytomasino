@@ -10,7 +10,7 @@ def send_ticket_status_email(user, ticket_id, new_status):
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 OFFICE_TICKET_CATEGORIES = {
-    "Registrar’s Office": ["academic"],          
+    "Registrar's Office": ["academic"],          
     "ETC": ["technical"],                  
     "Physical Plant and Facilities Management Office": ["facilities"],  
     "Principal Office" : ["lostfound"],            
