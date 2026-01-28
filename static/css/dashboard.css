@@ -21,23 +21,22 @@ html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-top-right-radius: 16px;
-  border-bottom-right-radius: 16px;
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease;
   z-index: 1000;
   overflow-y: auto;
+  padding-top: 1.5rem;
 }
 
 /* Profile Section */
 .profile-section {
-  background: #144214 !important;
+  background: #ffffff !important;
   width: 100%;
-  padding: 2rem 1rem;
+  padding: 4rem 4rem !important;
   color: white;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  border-top-right-radius: 16px;
+  border-bottom: 1px solid #dee2e6 !important;
+  margin-bottom: 1rem;
 }
 
 .profile-branding {
@@ -62,12 +61,12 @@ html {
   margin-top: 0.8rem;
   margin-bottom: 0.3rem;
   font-size: 1rem;
-  color: white;
+  color: #144214;
 }
 
 .email {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: #144214 !important;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -176,7 +175,7 @@ html {
   position: fixed;
   top: 1rem;
   left: 1rem;
-  z-index: 1100;  
+  z-index: 1100;
   background: transparent;
   color: #198754;
   border: none;
@@ -303,97 +302,58 @@ html {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Responsive Design */
-@media (max-width: 992px) {
-  .sidebar {
-    width: 220px;
-  }
-
-  .content {
-    margin-left: 220px;
-  }
+/* Status Badges */
+.status-badge-open {
+  background-color: #007bff;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
 }
 
-@media (max-width: 768px) {
-  /* Show mobile menu toggle */
-  .mobile-menu-toggle {
-    display: flex;
-  }
-
-  /* REMOVED: #notificationToggle positioning - now handled by notification.css */
-
-  /* Hide sidebar by default on mobile */
-  .sidebar {
-    transform: translateX(-100%);
-    width: 280px;
-    border-radius: 0;
-    border-top-right-radius: 16px;
-    border-bottom-right-radius: 16px;
-  }
-
-  /* Show sidebar when active */
-  .sidebar.active {
-    transform: translateX(0);
-  }
-
-  /* Content takes full width on mobile */
-  .content {
-    margin-left: 0;
-    padding-top: 0;
-  }
-
-  /* Reset navigation padding on mobile */
-  .sidebar-nav {
-    padding: 1.5rem 0.5rem 1rem;
-    justify-content: flex-start;
-  }
-
-  .notif-sidebar {
-    width: 100%;
-    right: -100%;
-  }
-
-  .notif-sidebar.open {
-    right: 0;
-  }
-
-  .profile-img {
-    width: 70px;
-    height: 70px;
-  }
-
-  .profile-section {
-    padding: 1.2rem 0.8rem;
-  }
-
-  .logout-btn {
-    font-size: 0.85rem;
-    padding: 6px 12px;
-  }
+.status-badge-created {
+  background-color: #144214 !important;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
 }
 
-@media (max-width: 576px) {
-  .sidebar {
-    width: 260px;
-  }
+.status-badge-in_progress {
+  background-color: #ffcc00 !important;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
 
-  .mobile-menu-toggle {
-    width: 45px;
-    height: 45px;
-  }
+.status-badge-completed {
+  background-color: #144214 !important;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
 
-  .mobile-menu-toggle i {
-    font-size: 1.2rem;
-  }
+.status-badge-deleted {
+  background-color: #dc3545 !important;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
 
-  .card {
-    margin-bottom: 1rem;
-  }
+.status-badge-updated {
+  background-color: #6c757d !important;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
 
-  h2,
-  h4 {
-    font-size: 1.3rem;
-  }
+/* Utility Classes */
+.lowered {
+  margin-top: 100px;
 }
 
 /* Smooth Scrolling */
@@ -425,54 +385,185 @@ html {
   vertical-align: middle;
 }
 
-.lowered {
-  margin-top: 100px;
+/* ========================================
+   RESPONSIVE DESIGN - TABLET
+   ======================================== */
+@media (max-width: 992px) {
+  .sidebar {
+    width: 220px;
+    padding-top: 1.5rem;
+  }
+
+  .content {
+    margin-left: 220px;
+  }
 }
 
-.status-badge-open {
-    background-color: #007bff; /* Green */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE (TABLETS & SMALL DEVICES)
+   ======================================== */
+@media (max-width: 768px) {
+  /* Base font size reduction */
+  body {
+    font-size: 0.9rem;
+  }
+
+  /* Show mobile menu toggle */
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  /* Hide sidebar by default on mobile */
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+    border-radius: 0;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+  }
+
+  /* Show sidebar when active */
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  /* Content takes full width on mobile */
+  .content {
+    margin-left: 0;
+    padding-top: 0;
+  }
+
+  /* Profile Section - Mobile Text Sizes */
+  .profile-section {
+    padding: 1.2rem 0.8rem;
+  }
+
+  .profile-branding {
+    font-size: 1rem;
+  }
+
+  .profile-img {
+    width: 70px;
+    height: 70px;
+  }
+
+  .profile-name {
+    font-size: 0.9rem;
+  }
+
+  .email {
     font-size: 0.75rem;
   }
 
-  .status-badge-created {
-    background-color: #144214 !important; /* Green */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
+  /* Sidebar Navigation - Mobile */
+  .sidebar-nav {
+    padding: 1.5rem 0.5rem 1rem;
+    justify-content: flex-start;
   }
 
-  .status-badge-in_progress {
-    background-color: #ffcc00 !important; /* Orange */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
+  .sidebar-nav .nav-item {
+    font-size: 0.9rem;
+    padding: 10px 16px;
   }
 
-  .status-badge-completed {
-    background-color: #144214 !important; /* Blue */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
+  .sidebar-nav .nav-item i {
+    font-size: 1rem;
   }
 
-  .status-badge-deleted {
-    background-color: #dc3545 !important; /* Red */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
+  /* Logout Button - Mobile */
+  .logout-btn {
+    font-size: 0.85rem;
+    padding: 6px 12px;
   }
 
+  /* Notification Sidebar - Mobile */
+  .notif-sidebar {
+    width: 100%;
+    right: -100%;
+  }
+
+  .notif-sidebar.open {
+    right: 0;
+  }
+
+  .notif-sidebar h5 {
+    font-size: 1rem;
+  }
+
+  .notif-item {
+    font-size: 0.85rem;
+  }
+
+  /* Status Badges - Mobile */
+  .status-badge-open,
+  .status-badge-created,
+  .status-badge-in_progress,
+  .status-badge-completed,
+  .status-badge-deleted,
   .status-badge-updated {
-    background-color: #6c757d !important; /* Gray */
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
   }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN - SMALL MOBILE
+   ======================================== */
+@media (max-width: 576px) {
+  /* Base font size further reduction */
+  body {
+    font-size: 0.85rem;
+  }
+
+  /* Headings - Small Mobile */
+  h2,
+  h4 {
+    font-size: 1.1rem;
+  }
+
+  /* Sidebar - Small Mobile */
+  .sidebar {
+    width: 260px;
+    border-radius: 0px;
+    padding-top: 1.5rem;
+  }
+
+  /* Mobile Menu Toggle - Small Mobile */
+  .mobile-menu-toggle {
+    width: 45px;
+    height: 45px;
+  }
+
+  .mobile-menu-toggle i {
+    font-size: 1.2rem;
+  }
+
+  /* Profile Section - Small Mobile */
+  .profile-branding {
+    font-size: 0.95rem;
+  }
+
+  .profile-name {
+    font-size: 0.85rem;
+  }
+
+  .email {
+    font-size: 0.7rem;
+  }
+
+  /* Sidebar Navigation - Small Mobile */
+  .sidebar-nav .nav-item {
+    font-size: 0.85rem;
+    padding: 8px 14px;
+  }
+
+  .sidebar-nav .nav-item i {
+    font-size: 0.95rem;
+    margin-right: 10px;
+  }
+
+  /* Cards - Small Mobile */
+  .card {
+    margin-bottom: 1rem;
+  }
+}

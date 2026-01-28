@@ -30,9 +30,9 @@ def admin_home(request):
     else:
         completion_percentage = 0
     
-    # Get last 5 ticket histories for tickets visible to this user
+    # Get last 3 ticket histories for tickets visible to this user (including deleted ones)
     history_entries = TicketHistory.objects.filter(
-        ticket__in=user_tickets
+        Q(ticket__in=user_tickets) | Q(user=request.user, ticket__isnull=True)
     ).select_related('ticket').order_by('-timestamp')[:3]
     
     # Get status counts for the chart

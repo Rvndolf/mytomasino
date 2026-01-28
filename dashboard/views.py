@@ -27,9 +27,9 @@ def dashboard_home(request):
     else:
         completion_percentage = 0
     
-    # Get last 3 ticket histories for the user's tickets
+    # Get last 3 ticket histories for the user's tickets (including deleted ones)
     history_entries = TicketHistory.objects.filter(
-        ticket__created_by=request.user
+        Q(ticket__created_by=request.user) | Q(user=request.user, ticket__isnull=True)
     ).order_by('-timestamp')[:3]
     
     # Get tickets count by category (including open, in_progress, and completed)
@@ -70,7 +70,7 @@ def dashboard_home(request):
 @login_required
 def dashboard_history(request):
     history_entries = TicketHistory.objects.filter(
-        Q(ticket__created_by=request.user) | Q(ticket__isnull=True)
+        Q(ticket__created_by=request.user) | Q(user=request.user, ticket__isnull=True)
     ).order_by('-timestamp')
 
     context = {

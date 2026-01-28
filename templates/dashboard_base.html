@@ -14,6 +14,7 @@
   <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
   <link href="{% static 'css/notification.css' %}" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/ticket_overview.css' %}">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
   <!-- HTMX -->
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
@@ -477,9 +478,14 @@ resetInactivityTimer();
 </script>
 
  <style>
+
   #dashboard-content.htmx-request {
     opacity: 0.75;
     transition: opacity 0.15s ease;
+  }
+
+  body {
+      font-family: 'Satoshi', sans-serif !important;
   }
 
     .loading-overlay {
@@ -534,6 +540,7 @@ resetInactivityTimer();
       #dashboard-content {
     min-height: calc(100vh - 200px);
     padding-bottom: 100px;
+    font-family: 'Satoshi', 'sans-serif' !important;
   }
 
   @media (max-width: 768px) {

@@ -2,8 +2,8 @@
 <!-- Add Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
 <!-- dashboard/home.html (partial for HTMX) -->
 <div class="container-fluid px-5 pt-5 pt-lg-4 white-bg">
@@ -16,7 +16,7 @@
           <div style="width: 4px; height: 60px; background-color: #144214; margin-right: 15px;"></div>
           <!-- Text content -->
           <div>
-            <h2 class="mb-1 gradient-green-text-bold font-main">
+            <h2 class="mb-1 gradient-green-text-bold" style="font-family: Satoshi;">
               Hello, {{ request.user.first_name }}!
             </h2>
             <small class="text-muted font-secondary">Today is {% now "F j, Y" %}</small>
@@ -30,7 +30,7 @@
   <div class="row align-items-center gx-2 content-container">
     <!-- Left: See what's in store -->
     <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center ps-lg-2 mobile-reduce-height">
-      <p class="text-muted mb-0 font-secondary home-text">See what's in store for you today.</p>
+      <p class="text-muted mb-0 font-secondary home-text "style="font-family: Satoshi !important;">See what's in store for you today.</p>
     </div>
 
     <!-- Right: View My Tickets Card -->
@@ -43,7 +43,7 @@
           hx-push-url="{% url 'tickets:ticket_overview' %}">
         <div class="card-body p-4">
           <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="text-white mb-0 font-main ticket-card-title">View My Tickets</h4>
+            <h4 class="text-white mb-0 ticket-card-title "style="font-family: Satoshi !important;">View My Tickets</h4>
             <button class="btn btn-link text-white p-0" style="text-decoration: none;">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -53,8 +53,8 @@
           
           <div class="mt-4">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <small class="text-white-50 font-secondary">Ticket Completion</small>
-              <small class="text-white font-secondary">{{ completion_percentage }}%</small>
+              <small class="text-white-50 font-secondary "style="font-family: Satoshi !important;">Ticket Completion</small>
+              <small class="text-white "style="font-family: Satoshi !important;">{{ completion_percentage }}%</small>
             </div>
             <div class="progress" style="height: 8px; background-color: rgba(255,255,255,0.2);">
               <div class="progress-bar" role="progressbar" style="width: {{ completion_percentage }}%; background-color: #fbbf24;" aria-valuenow="{{ completion_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -71,7 +71,7 @@
     <div class="col-12 col-lg-6">
       <!-- Recent Activity Header Container -->
       <div class="activity-header-container">
-        <h6 class="mb-0 font-main">Recent Activity</h6>
+        <h6 class="mb-0 ticket-card-title " style="">Recent Activity</h6>
       </div>
       
       <!-- Recent Activity Items Container -->
@@ -82,7 +82,7 @@
             <div class="activity-item-card {% if activity.ticket is None and 'deleted' in activity.action %}deleted-ticket{% endif %}">
               <!-- Header row with timestamp -->
               <div class="d-flex justify-content-between align-items-start mb-1">
-                <p class="mb-0 activity-title font-main" style="font-size: 0.85rem;">
+                <p class="mb-0 activity-title font-main" style="font-size: 0.85rem; font-style: Satoshi !important;">
                   <strong>
                     {% if activity.ticket %}
                       {{ activity.ticket.title }}
@@ -91,14 +91,14 @@
                     {% endif %}
                   </strong>
                 </p>
-                <small class="activity-time font-secondary" style="font-size: 0.7rem; white-space: nowrap; margin-left: 0.5rem;">
+                <small class="activity-time font-secondary" style="font-size: 0.7rem; white-space: nowrap; margin-left: 0.5rem; font-family: Satoshi !important;">
                   {{ activity.timestamp|short_timesince }}
                 </small>
               </div>
               
               <!-- Content row with action only -->
               <div class="d-flex justify-content-between align-items-center">
-                <p class="mb-0 activity-action font-secondary" style="font-size: 0.75rem;">
+                <p class="mb-0 activity-action font-secondary" style="font-size: 0.75rem; font-style: Satoshi !important;">
                   {{ activity.action }}
                 </p>
               </div>
@@ -116,7 +116,7 @@
     <div class="col-12 col-lg-6 mt-3 mt-lg-0">
       <!-- Summary Text Header -->
       <div class="summary-text-container">
-        <p class="mb-0 font-main text-muted" style="font-size: 0.75rem;">Here's your Ticket Summary</p>
+        <p class="mb-0 font-main text-muted" style="font-size: 0.8rem; font-style: Inter !important;">Here's your Ticket Summary</p>
       </div>
       
       <!-- Category Chart Container -->
@@ -235,11 +235,11 @@
 </script>
 
 <style>
-  /* Font Classes */
+
   .font-main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   }
-
+ 
   .font-secondary {
     font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   }
