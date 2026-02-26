@@ -1,22 +1,19 @@
 <div class="container-fluid d-flex justify-content-center align-items-start ticket-form-container">
   <div class="card shadow-sm p-4 border-0 ticket-form-card">
-    <h3 class="mb-4" style="color: #144214;">Create New Ticket</h3>
+    <h3 class="mb-4 ticket-form-header">Create New Ticket</h3>
 
-    <form id="ticket-form"
-          hx-post="{% url 'tickets:create_ticket' %}"
-          hx-target="#dashboard-content"
-          hx-swap="innerHTML"
-          hx-encoding="multipart/form-data">
+    <form id="ticket-form" method="POST" enctype="multipart/form-data" hx-boost="false">
       {% csrf_token %}
 
       <div class="mb-3">
-        <label class="form-label fw-semibold" style="color: #144214;">Category</label>
+        <label class="category-label">Category</label>
         <select name="category" id="category-select" class="form-select custom-select-gray"
           hx-get="{% url 'tickets:create_ticket' %}"
           hx-target="#dynamic-form"
           hx-swap="innerHTML"
           hx-trigger="change"
-          hx-include="this">
+          hx-include="this"
+          hx-push-url="false">
           <option value="generalinquiry" {% if category == "generalinquiry" %}selected{% endif %}>General Inquiry</option>
           <option value="technical" {% if category == "technical" %}selected{% endif %}>Technical / Account Support</option>
           <option value="academic" {% if category == "academic" %}selected{% endif %}>Academic or Enrollment</option>
@@ -35,10 +32,8 @@
       </div>
 
       <div class="d-flex justify-content-between mt-3">
-        <a hx-get="{% url 'tickets:ticket_overview' %}"
-           hx-target="#dashboard-content"
-           hx-swap="innerHTML"
-           class="btn btn-secondary custom-btn-back">
+        <a href="{% url 'tickets:ticket_overview' %}"
+          class="btn btn-secondary custom-btn-back">
           Cancel
         </a>
 
@@ -64,6 +59,22 @@
     max-height: calc(100vh - 120px);
     overflow-y: auto;
     scroll-behavior: smooth;
+  }
+
+  /* Header styling - smaller on all screens */
+  .ticket-form-header {
+    color: #144214 !important;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* Category label - same size as other labels */
+  .category-label {
+    color: #144214 !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
   }
 
   /* Custom scrollbar styling */
@@ -102,11 +113,24 @@
     transition: all 0.3s ease;
     width: 100%;
     box-sizing: border-box;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* Custom dropdown arrow for select elements */
+  .custom-select-gray,
+  .django-form-styled select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    padding-right: 36px;
   }
 
   /* Green theme ONLY for textarea (Description) */
   .django-form-styled textarea {
-    border: 2px solid #144214;
+    border: 1px solid #144214;
     border-radius: 6px;
     padding: 10px 12px;
     transition: all 0.3s ease;
@@ -136,11 +160,13 @@
     outline: none;
   }
 
+  /* All django form labels - same size as category label */
   .django-form-styled label {
-    color: #144214;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    display: block;
+    color: #144214 !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
   }
 
   /* Create Ticket Button - White with black outline */
@@ -243,6 +269,13 @@
     
     .ticket-form-card {
       max-height: calc(100vh - 100px);
+    }
+
+    /* Ensure dropdown arrow stays inside on mobile */
+    .custom-select-gray,
+    .django-form-styled select {
+      background-position: right 10px center;
+      padding-right: 32px;
     }
   }
 

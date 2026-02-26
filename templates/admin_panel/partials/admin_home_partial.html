@@ -76,7 +76,7 @@
     <div class="col-12 col-lg-6">
       <!-- Recent Activity Header Container -->
       <div class="activity-header-container">
-        <h6 class="mb-0 font-main">Recent Activity</h6>
+        <h6 class="mb-0 font-main ticket-card-title">Recent Activity</h6>
       </div>
       
       <!-- Recent Activity Items Container -->
@@ -84,7 +84,7 @@
         {% if history_entries %}
           {% for activity in history_entries %}
             <!-- Individual Activity Item Container -->
-            <div class="activity-item-card {% if activity.ticket is None and 'deleted' in activity.action %}deleted-ticket{% endif %}">
+            <div class="activity-item-card">
               <!-- Header row with timestamp -->
               <div class="d-flex justify-content-between align-items-start mb-1">
                 <p class="mb-0 activity-title font-main" style="font-size: 0.85rem;">
@@ -130,21 +130,21 @@
         <div class="category-list">
           {% if status_counts.open > 0 %}
             <div class="category-item">
-              <span class="category-color" style="background-color: #007bff;"></span>
+              <span class="category-color" style="background-color: #6b9bc3;"></span>
               <span class="category-name font-secondary">Open</span>
               <span class="category-count font-secondary">{{ status_counts.open }}</span>
             </div>
           {% endif %}
           {% if status_counts.in_progress > 0 %}
             <div class="category-item">
-              <span class="category-color" style="background-color: #ffcc00;"></span>
+              <span class="category-color" style="background-color: #d4b86a;"></span>
               <span class="category-name font-secondary">In Progress</span>
               <span class="category-count font-secondary">{{ status_counts.in_progress }}</span>
             </div>
           {% endif %}
           {% if status_counts.completed > 0 %}
             <div class="category-item">
-              <span class="category-color" style="background-color: #144214;"></span>
+              <span class="category-color" style="background-color: #4a7350;"></span>
               <span class="category-name font-secondary">Completed</span>
               <span class="category-count font-secondary">{{ status_counts.completed }}</span>
             </div>
@@ -184,19 +184,19 @@
       {% if status_counts.open > 0 %}
         labels.push('Open');
         data.push({{ status_counts.open }});
-        colors.push('#007bff');
+        colors.push('#6b9bc3');  // Muted blue
       {% endif %}
       
       {% if status_counts.in_progress > 0 %}
         labels.push('In Progress');
         data.push({{ status_counts.in_progress }});
-        colors.push('#ffcc00');
+        colors.push('#d4b86a');  // Muted yellow
       {% endif %}
       
       {% if status_counts.completed > 0 %}
         labels.push('Completed');
         data.push({{ status_counts.completed }});
-        colors.push('#144214');
+        colors.push('#4a7350');  // Muted green
       {% endif %}
 
       const statusData = {
@@ -435,16 +435,6 @@
 
   .activity-item-card:last-child {
     margin-bottom: 0;
-  }
-
-  /* Deleted ticket styling */
-  .activity-item-card.deleted-ticket {
-    opacity: 0.7;
-  }
-
-  .activity-item-card.deleted-ticket .activity-title,
-  .activity-item-card.deleted-ticket .activity-action {
-    color: hsl(0, 0%, 45%);
   }
 
   .activity-icon {

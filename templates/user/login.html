@@ -8,11 +8,11 @@
 
 <div class="container-fluid">
 
-  <div class="d-flex flex-column justify-content-center align-items-center vh-100 bg-light gap-4">
+  <div class="d-flex flex-column justify-content-center align-items-center vh-100 bg-light gap-4 login-wrapper">
 
   <!-- Welcome Text Container -->
   <div class="text-center">
-    <h2 class="fw-bold text-success mb-0" style="font-family: Poppins; font-size: 2rem;background: linear-gradient(135deg, #144214 0%, #2d5a2d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Welcome, Thomasian!</h2>
+    <h2 class="fw-bold text-success mb-0 welcome-text" style="font-family: Poppins; font-size: 2rem;background: linear-gradient(135deg, #144214 0%, #2d5a2d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Welcome, Thomasian!</h2>
   </div>
   
   <!-- Login Card -->
@@ -21,7 +21,7 @@
 
     <!-- Header -->
     <div class="text-center mb-4">
-      <h5 class="fw-bold mb-0" style="font-size: 1rem; background: linear-gradient(180deg, #144214 0%, #2d5a2d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">LOGIN</h5>
+      <h5 class="fw-normal mb-0 login-header" style="font-size: 1rem; background: linear-gradient(180deg, #144214 0%, #2d5a2d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Log in here.</h5>
     </div>
 
       <!-- Hidden Barcode Login -->
@@ -29,6 +29,7 @@
         {% csrf_token %}
         <input type="text" name="student_id" id="barcodeInput" autofocus>
         <input type="hidden" name="barcode_login" value="1">
+        <input type="hidden" name="remember_me" id="barcodeRememberMe" value="">
       </form>
 
       <!-- Login Form -->
@@ -48,7 +49,7 @@
         </div>
 
         <!-- Password -->
-        <div class="mb-4 position-relative input-wrapper">
+        <div class="mb-3 position-relative input-wrapper">
           <input
             type="password"
             class="form-control rounded-3 text-center login-input pe-5"
@@ -64,30 +65,38 @@
             class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 text-muted password-toggle"
             aria-label="Toggle password visibility"
           >
-            <!-- DEFAULT: hidden password -->
             <i class="bi bi-eye-slash"></i>
           </button>
         </div>
 
+        <!-- Remember Me -->
+        <div class="mb-4 d-flex align-items-center gap-2 ps-1">
+          <input
+            type="checkbox"
+            class="remember-checkbox"
+            id="remember_me"
+            name="remember_me"
+            value="1"
+          >
+          <label for="remember_me" class="remember-label mb-0">Remember me</label>
+        </div>
+
         <button type="submit"
-                class="btn w-100 fw-semibold py-2 rounded-3 mb-2"
+                class="btn w-100 fw-semibold py-2 rounded-3 mb-2 login-btn"
                 style="background-color: #144214; color: white;">
           Log In
         </button>
 
         <div class="text-start">
           <a href="{% url 'user:password_reset' %}"
-            class="text-success fw-medium text-decoration-none"
+            class="text-success fw-medium text-decoration-none forgot-link"
             style="font-size: 0.85rem; color: #144214;">
             Forgot your password?
           </a>
         </div>
       </form>
 
-      <!-- Footer -->
-      <div class="text-center mt-4">
-        <small class="text-muted">© MyTomasino</small>
-      </div>
+
 
     </div>
 </div>
@@ -123,10 +132,14 @@
   let typingTimer;
   const barcodeInput = document.getElementById('barcodeInput');
   const barcodeForm = document.getElementById('barcodeForm');
+  const barcodeRememberMe = document.getElementById('barcodeRememberMe');
+  const rememberCheckbox = document.getElementById('remember_me');
 
   barcodeInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
+      // Sync the remember me value to barcode form before submitting
+      barcodeRememberMe.value = rememberCheckbox.checked ? '1' : '';
       barcodeForm.submit();
     }
   });
@@ -154,11 +167,9 @@
 
     passwordInput.type = isHidden ? 'text' : 'password';
 
-    // Animate icon
     icon.classList.add('icon-animate');
 
     setTimeout(() => {
-      // REVERSED LOGIC
       icon.classList.toggle('bi-eye-slash', !isHidden);
       icon.classList.toggle('bi-eye', isHidden);
       icon.classList.remove('icon-animate');
@@ -225,6 +236,22 @@
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
+/* Remember Me */
+.remember-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #144214;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.remember-label {
+  font-size: 0.85rem;
+  color: hsl(140, 17%, 37%);
+  cursor: pointer;
+  user-select: none;
+}
+
 /* Toast styling */
 .toast {
   animation: slideDown 0.3s ease-out;
@@ -238,6 +265,53 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Mobile responsive text sizing */
+@media (max-width: 576px) {
+  .login-wrapper {
+    justify-content: flex-start !important;
+    padding-top: 10vh;
+  }
+
+  .welcome-text {
+    font-size: 1.5rem !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .login-header {
+    font-size: 0.875rem !important;
+  }
+  
+  .login-input {
+    height: 44px;
+    font-size: 0.875rem;
+  }
+  
+  .login-input::placeholder {
+    font-size: 0.8rem;
+  }
+  
+  .login-btn {
+    font-size: 0.9rem;
+    padding: 0.5rem !important;
+  }
+  
+  .forgot-link {
+    font-size: 0.75rem !important;
+  }
+
+  .remember-label {
+    font-size: 0.75rem;
+  }
+
+  .remember-label {
+    font-size: 0.78rem;
+  }
+  
+  .footer-text {
+    font-size: 0.7rem;
   }
 }
 </style>

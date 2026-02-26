@@ -30,9 +30,9 @@ def admin_home(request):
     else:
         completion_percentage = 0
     
-    # Get last 3 ticket histories for tickets visible to this user (including deleted ones)
+    # Get last 5 ticket histories for tickets visible to this user
     history_entries = TicketHistory.objects.filter(
-        Q(ticket__in=user_tickets) | Q(user=request.user, ticket__isnull=True)
+        ticket__in=user_tickets
     ).select_related('ticket').order_by('-timestamp')[:3]
     
     # Get status counts for the chart
@@ -179,6 +179,7 @@ def update_ticket_status(request, ticket_id):
                 action=f"Status changed from {old_status_display} to {new_status_display} by "
                        f"{request.user.get_full_name() or request.user.username}",
                 user=request.user,
+                created_by=ticket.created_by,
                 activity_type='status_change'
             )
 
@@ -234,6 +235,7 @@ def add_ticket_note(request, ticket_id):
                 ticket_title=ticket.title,
                 action=f"Note added by {request.user.username.upper()} (Staff): {note}",
                 user=request.user,
+                created_by=ticket.created_by,
                 activity_type='updated',
                 new_status=ticket.status
             )
@@ -292,6 +294,7 @@ def delete_ticket(request, ticket_id):
         new_status='deleted',
         action=f"Ticket #{ticket_id_display} was deleted by {request.user.get_full_name() or request.user.username}",
         user=request.user,
+        created_by=ticket.created_by,
         activity_type='deleted'
     )
     

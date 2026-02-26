@@ -28,6 +28,7 @@
   <button class="notification-bell" 
           id="notificationToggle" 
           type="button"
+          style="position: fixed !important; top: 1rem !important; right: 1rem !important; left: auto !important;"
           hx-get="{% url 'admin_panel:notification_count' %}"
           hx-trigger="every 10s"
           hx-swap="none">
@@ -39,6 +40,9 @@
 
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
+    <div class="logo-section">
+      <img src="{% static 'img/logo.png' %}" alt="Logo" class="sidebar-logo">
+    </div>
     <div class="profile-section">
       <div class="profile-branding">MyTomasino Admin</div>
       {% if request.user.profile.profile_picture %}
@@ -47,7 +51,10 @@
         <img src="{% static 'img/default_profile.jpg' %}" alt="Default Profile" class="profile-img">
       {% endif %}
       <h6 class="profile-name">{{ request.user.first_name }}</h6>
-      <p class="email" title="{{ request.user.email }}">{{ request.user.email }}</p>
+      <p class="email">
+        <i class="bi bi-envelope"></i>
+        <span title="{{ request.user.email }}">{{ request.user.email }}</span>
+      </p>
     </div>
 
     <div class="sidebar-nav">
@@ -552,6 +559,11 @@ resetInactivityTimer();
 
   <style>
 
+    #dashboard-content.htmx-request {
+      opacity: 0.75;
+      transition: opacity 0.15s ease;
+    }
+
     body {
       font-family: 'Satoshi', sans-serif !important;
     }
@@ -614,14 +626,136 @@ resetInactivityTimer();
     #dashboard-content {
       padding-bottom: 150px;
     }
-
-    #notificationToggle {
-    position: fixed !important;
-    top: 1rem !important;
-    right: 1rem !important;
-    left: auto !important;
   }
-}
+
+  /* Logout button styling */
+  .logout-btn {
+    background-color: transparent !important;
+    color: #272727 !important;
+    border: 1px solid #4c4d4d !important;
+    border-radius: 6px;
+    padding: 6px 10px !important;
+    width: auto !important;
+    text-align: center !important;
+    font-size: 0.8125rem !important;
+    font-weight: 300 !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    margin: 0 auto !important;
+    transform: none !important;
+    opacity: 0.9 !important;
+  }
+
+  .logout-btn:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-color: #dc3545 !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .logout-btn i {
+    font-size: 0.8125rem !important;
+    color: #212529 !important;
+    transition: color 0.3s ease !important;
+  }
+
+  .logout-btn:hover i {
+    color: white !important;
+  }
+  
+  /* Logo section styling */
+  .logo-section {
+    padding: 1rem 1rem 0.25rem;
+    text-align: center;
+    margin-bottom: 0.25rem;
+  }
+  
+  .sidebar-logo {
+    max-width: 35px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+  
+  /* Email icon styling */
+  .email {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+  }
+  
+  .email i {
+    font-size: 0.75rem;
+    color: #6c757d;
+    opacity: 0.7;
+  }
+  
+  .email span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 180px;
+  }
+  
+  /* Reduce gap between profile section and sidebar navs */
+  .sidebar-nav {
+    margin-top: 1rem !important;
+    padding-top: 1rem !important;
+    flex: 0 0 auto !important; /* Don't let it grow */
+    justify-content: flex-start !important; /* Align items to top instead of center */
+  }
+  
+  /* Reduce profile section padding */
+  .profile-section {
+    padding-top: 1.5rem !important;
+    padding-bottom: 3rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  /* Position logout button container at bottom, not part of flex */
+  .sidebar form {
+    position: absolute !important;
+    bottom: 1.5rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Mobile styles - keep text smaller */
+  .sidebar-nav .nav-item {
+    font-size: 0.8125rem !important;
+    padding: 8px 12px !important;
+  }
+  
+  .sidebar-nav .nav-item i {
+    font-size: 0.875rem !important;
+  }
+  
+  /* Desktop styles - make text bigger */
+  @media (min-width: 769px) {
+    .sidebar-logo {
+      max-width: 40px;
+    }
+    
+    .sidebar-nav .nav-item {
+      font-size: 0.85rem !important; /* 15px if base is 16px */
+      padding: 10px 10px !important;
+    }
+    
+    .sidebar-nav .nav-item i {
+      font-size: 1rem !important; /* 16px */
+    }
+  }
   
   </style>
 

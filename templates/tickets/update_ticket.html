@@ -27,7 +27,7 @@
 
       <div class="d-flex justify-content-between mt-3">
         <a href="{% url 'tickets:ticket_detail' ticket.pk %}"
-           class="btn btn-secondary">
+           class="btn btn-secondary custom-btn-back">
           Cancel
         </a>
 
@@ -103,22 +103,54 @@
     display: block;
   }
 
-  /* Primary action button */
+  /* Update Ticket Button - White with black outline */
   .custom-btn-green {
-    background-color: #144214;
-    border-color: #144214;
-    color: white;
-    padding: 10px 24px;
+    background-color: white;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    color: #144214;
+    padding: 6px 16px;
     border-radius: 6px;
-    font-weight: 600;
+    font-weight: 400;
+    font-size: 0.875rem;
     transition: all 0.3s ease;
   }
 
   .custom-btn-green:hover {
-    background-color: #0f3010;
-    border-color: #0f3010;
+    background-color: #144214;
+    border-color: #144214;
+    color: white;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(20, 66, 20, 0.3);
+  }
+
+  .custom-btn-green:active {
+    background-color: #0a2008;
+    border-color: #0a2008;
+  }
+
+  /* Cancel/Back Button - White with black outline */
+  .custom-btn-back {
+    background-color: white;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    color: #6b7280;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-weight: 400;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+  }
+
+  .custom-btn-back:hover {
+    background-color: #6b7280;
+    border-color: #6b7280;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+  }
+
+  .custom-btn-back:active {
+    background-color: #4b5563;
+    border-color: #4b5563;
   }
 
   /* Django form error messages */

@@ -30,7 +30,7 @@
   <div class="row align-items-center gx-2 content-container">
     <!-- Left: See what's in store -->
     <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center ps-lg-2 mobile-reduce-height">
-      <p class="text-muted mb-0 font-secondary home-text "style="font-family: Satoshi !important;">See what's in store for you today.</p>
+      <p class="text-muted mb-0 font-secondary home-text "style="font-family: Satoshi !important; ">See what's in store for you today.</p>
     </div>
 
     <!-- Right: View My Tickets Card -->
@@ -79,7 +79,7 @@
         {% if history_entries %}
           {% for activity in history_entries %}
             <!-- Individual Activity Item Container -->
-            <div class="activity-item-card {% if activity.ticket is None and 'deleted' in activity.action %}deleted-ticket{% endif %}">
+            <div class="activity-item-card">
               <!-- Header row with timestamp -->
               <div class="d-flex justify-content-between align-items-start mb-1">
                 <p class="mb-0 activity-title font-main" style="font-size: 0.85rem; font-style: Satoshi !important;">
@@ -106,7 +106,7 @@
           {% endfor %}
         {% else %}
           <div class="activity-item-card text-center">
-            <p class="text-muted mb-0 font-secondary" style="font-size: 0.75rem;">No recent activity</p>
+            <p class="text-muted mb-0 font-secondary" style="font-size: 0.8frem;">No recent activity</p>
           </div>
         {% endif %}
       </div>
@@ -126,12 +126,12 @@
           {% for cat in category_counts %}
             <div class="category-item">
               <span class="category-color" style="background-color: 
-                {% if forloop.counter == 1 %}#144214
-                {% elif forloop.counter == 2 %}#3C6D36
-                {% elif forloop.counter == 3 %}#3b82f6
-                {% elif forloop.counter == 4 %}#f59e0b
-                {% elif forloop.counter == 5 %}#10b981
-                {% else %}#8b5cf6{% endif %};"></span>
+                {% if forloop.counter == 1 %}#2d5a2d
+                {% elif forloop.counter == 2 %}#4a7350
+                {% elif forloop.counter == 3 %}#668c73
+                {% elif forloop.counter == 4 %}#7d9c84
+                {% elif forloop.counter == 5 %}#94ab96
+                {% else %}#a8b9a8{% endif %};"></span>
               <span class="category-name font-secondary">{{ cat.category_display }}</span>
               <span class="category-count font-secondary">{{ cat.count }}</span>
             </div>
@@ -177,12 +177,12 @@
             {% endfor %}
           ],
           backgroundColor: [
-            '#144214',  // Dark green
-            '#3C6D36',  // Medium green
-            '#3b82f6',  // Blue
-            '#f59e0b',  // Orange
-            '#10b981',  // Light green
-            '#8b5cf6'   // Purple
+            '#2d5a2d',  // Deep forest green
+            '#4a7350',  // Sage green
+            '#668c73',  // Muted seafoam
+            '#7d9c84',  // Dusty green
+            '#94ab96',  // Soft moss
+            '#a8b9a8'   // Light sage
           ],
           borderWidth: 2,
           borderColor: '#ffffff'
@@ -212,7 +212,7 @@
               backgroundColor: 'rgba(0, 0, 0, 0.8)',
               padding: 12,
               bodyFont: {
-                family: 'Inter, sans-serif',
+                family: 'Satoshi, sans-serif',
                 size: 13
               },
               callbacks: {
@@ -274,14 +274,20 @@
   }
 
   .home-text{
-    font-size: 1rem !important;
+    font-size: 0.85rem !important;
   }
   /* Desktop: Normal font size */
   @media (min-width: 768px) {
     .ticket-card-title {
       font-size: 1.5rem;
     }
+
+    .home-text {
+      font-size: 1rem !important;
+    }
   }
+
+  
 
   .card {
     transition: all 0.2s ease;
@@ -360,6 +366,7 @@
     .category-list {
       width: 100%;
     }
+    
   }
 
   /* Desktop: Side by side */
@@ -430,16 +437,6 @@
 
   .activity-item-card:last-child {
     margin-bottom: 0;
-  }
-
-  /* Deleted ticket styling */
-  .activity-item-card.deleted-ticket {
-    opacity: 0.7;
-  }
-
-  .activity-item-card.deleted-ticket .activity-title,
-  .activity-item-card.deleted-ticket .activity-action {
-    color: hsl(0, 0%, 45%);
   }
 
   .activity-icon {

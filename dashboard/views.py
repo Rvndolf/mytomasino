@@ -29,7 +29,7 @@ def dashboard_home(request):
     
     # Get last 3 ticket histories for the user's tickets (including deleted ones)
     history_entries = TicketHistory.objects.filter(
-        Q(ticket__created_by=request.user) | Q(user=request.user, ticket__isnull=True)
+        Q(ticket__created_by=request.user) | Q(ticket__isnull=True, created_by=request.user)  # ADD created_by filter
     ).order_by('-timestamp')[:3]
     
     # Get tickets count by category (including open, in_progress, and completed)
@@ -69,19 +69,19 @@ def dashboard_home(request):
 
 @login_required
 def dashboard_history(request):
-    history_entries = TicketHistory.objects.filter(
-        Q(ticket__created_by=request.user) | Q(user=request.user, ticket__isnull=True)
-    ).order_by('-timestamp')
+       history_entries = TicketHistory.objects.filter(
+           Q(ticket__created_by=request.user) | 
+           Q(ticket__isnull=True, created_by=request.user)  # Show deleted tickets created by this user
+       ).order_by('-timestamp')
 
-    context = {
-        'history_entries': history_entries
-    }
+       context = {
+           'history_entries': history_entries
+       }
 
-    if request.headers.get("HX-Request"):
-        return render(request, "dashboard/partials/history_partial.html", context)
+       if request.headers.get("HX-Request"):
+           return render(request, "dashboard/partials/history_partial.html", context)
 
-    # For full page load (refresh), render the base template
-    return render(request, "dashboard_base.html", context)
+       return render(request, "dashboard_base.html", context)
 
 
 @login_required

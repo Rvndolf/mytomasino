@@ -14,6 +14,7 @@ from .forms import (
 )
 from .utils import assign_office_and_staff
 from admin_panel.utils import send_ticket_status_email
+from django.contrib import messages
 
 FORM_MAP = {
     "technical": TechnicalSupportForm,
@@ -102,6 +103,7 @@ def add_user_reply(request, ticket_id):
                 ticket_title=ticket.title,
                 action=f"User reply: {reply}",
                 user=request.user,
+                created_by=ticket.created_by,
                 activity_type='response',
                 new_status=ticket.status
             )
@@ -146,13 +148,9 @@ def create_ticket(request):
 
     if request.method == "POST":
         category = request.POST.get("category", DEFAULT_CATEGORY)
-    else:  
-        category = request.GET.get("category", DEFAULT_CATEGORY)
-
-    form_class = FORM_MAP.get(category, TicketForm)
-
-    if request.method == "POST":
+        form_class = FORM_MAP.get(category, TicketForm)
         form = form_class(request.POST, request.FILES)
+        
         if form.is_valid():
             ticket = form.save(commit=False)
             ticket.created_by = request.user
@@ -164,6 +162,7 @@ def create_ticket(request):
                 ticket=ticket, action="Ticket created by user",
                 ticket_title=ticket.title,
                 user=request.user,
+                created_by=ticket.created_by,
                 activity_type='created',
                 new_status=ticket.status
             )
@@ -176,43 +175,53 @@ def create_ticket(request):
                 message=f'Your {ticket.get_category_display()} ticket #{ticket.id} "{ticket.title}" has been successfully submitted and is being reviewed.'
             )
 
-            if request.headers.get("HX-Request"):
-                tickets = Ticket.objects.filter(created_by=request.user).order_by('-created_at')
-                context = {
-                    "open_tickets": tickets.filter(status='open'),
-                    "in_progress_tickets": tickets.filter(status='in_progress'),
-                    "completed_tickets": tickets.filter(status='completed'),
-                }
-                return render(request, "tickets/partials/ticket_overview_partial.html", context)
-            
-            # For non-HTMX requests (form submissions), redirect to ticket overview
+            messages.success(request, f'Ticket #{ticket.id} "{ticket.title}" has been successfully submitted!')
+
+            # Always redirect after successful POST
             return redirect("tickets:ticket_overview")
+        else:
+            # Form is NOT valid - return form with errors
+            if request.headers.get("HX-Request"):
+                return render(
+                    request,
+                    "tickets/partials/create_ticket_partial.html",
+                    {"form": form, "category": category}
+                )
+            else:
+                return render(
+                    request,
+                    "tickets/create_ticket.html",
+                    {"form": form, "category": category}
+                )
+    
+    # GET request
     else:
+        category = request.GET.get("category", DEFAULT_CATEGORY)
+        form_class = FORM_MAP.get(category, TicketForm)
         form = form_class()
 
-    # Handle HTMX category change
-    if request.headers.get("HX-Request") and request.method == "GET" and "category" in request.GET:
+        # Handle HTMX category change
+        if request.headers.get("HX-Request") and "category" in request.GET:
+            return render(
+                request,
+                "tickets/partials/forms/category_form_partial.html",
+                {"form": form, "category": category}
+            )
+        
+        # Handle HTMX navigation to create page
+        if request.headers.get("HX-Request"):
+            return render(
+                request,
+                "tickets/partials/create_ticket_partial.html",
+                {"form": form, "category": category}
+            )
+        
+        # For full page loads (refresh), render the full create page
         return render(
             request,
-            "tickets/partials/forms/category_form_partial.html",
+            "tickets/create_ticket.html",
             {"form": form, "category": category}
         )
-    
-    # Handle HTMX navigation to create page
-    if request.headers.get("HX-Request"):
-        return render(
-            request,
-            "tickets/partials/create_ticket_partial.html",
-            {"form": form, "category": category}
-        )
-    
-    # For full page loads (refresh), render the full create page
-    return render(
-        request,
-        "tickets/create_ticket.html",
-        {"form": form, "category": category}
-    )
-
 
 @login_required
 def update_ticket(request, pk):
@@ -232,6 +241,7 @@ def update_ticket(request, pk):
                 ticket=updated_ticket, action="Ticket updated by user",
                 ticket_title=updated_ticket.title,
                 user=request.user,
+                created_by=ticket.created_by,
                 activity_type='updated',
                 new_status=updated_ticket.status
             )
@@ -286,6 +296,7 @@ def delete_ticket(request, pk):
             deleted_ticket_id=ticket_id,
             action="Ticket deleted by user",
             user=request.user,
+            created_by=ticket.created_by,
             activity_type='deleted',
             new_status='deleted'
         )

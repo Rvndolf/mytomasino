@@ -25,6 +25,8 @@
   .create-ticket-btn {
     background-color: #144214 !important;
     border-color: #144214 !important;
+    font-size: 0.85rem !important;
+    padding: 0.5rem 1.1rem !important;
   }
   
   .create-ticket-btn:hover {
@@ -64,13 +66,22 @@
   
   /* Make ticket titles smaller */
   .ticket-section .card-title {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
   }
   
   /* Make ticket containers more compact */
   .ticket-section .card-body {
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.85rem;
+  }
+
+  /* Smaller badge and meta text */
+  .ticket-section .badge {
+    font-size: 0.7rem;
+  }
+
+  .ticket-section .text-muted.small {
+    font-size: 0.75rem;
   }
   
   /* Add faint green border to tickets container */
@@ -81,13 +92,13 @@
     border: 1px solid rgba(0,0,0,0.05);
   }
 
- .ticket-card {
-  cursor: pointer;
-  transition: opacity 0.3s ease, transform 0.2s ease;
+  .ticket-card {
+    cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.2s ease;
   }
 
   .ticket-card:hover {
-  opacity: 0.85;
+    opacity: 0.85;
   }
   
   /* Desktop: Add more margin between filter cards and status indicator */
@@ -106,6 +117,62 @@
     font-weight: 600;
   }
 
+  /* Mobile-specific styles */
+  @media (max-width: 767px) {
+    /* Smaller header */
+    .gradient-green-text-bold {
+      font-size: 1.25rem !important;
+    }
+    
+    /* Smaller filter card text */
+    .filter-card .fw-bold {
+      font-size: 0.9rem !important;
+    }
+    
+    .filter-subtitle {
+      font-size: 0.75rem !important;
+    }
+    
+    .filter-count {
+      font-size: 1rem !important;
+    }
+    
+    /* Smaller section label */
+    .section-label {
+      font-size: 0.8rem !important;
+    }
+    
+    /* Smaller ticket card text */
+    .ticket-section .card-title {
+      font-size: 0.8rem !important;
+    }
+    
+    .ticket-section .text-muted.small {
+      font-size: 0.7rem !important;
+    }
+    
+    /* Smaller badge text */
+    .badge {
+      font-size: 0.65rem !important;
+    }
+    
+    /* Adjust ticket card padding */
+    .ticket-section .card-body {
+      padding: 0.5rem 0.75rem !important;
+    }
+    
+    /* Smaller tickets container padding */
+    .tickets-container {
+      padding: 0.75rem !important;
+    }
+
+    /* Smaller create ticket button on mobile */
+    .create-ticket-btn {
+      font-size: 0.75rem !important;
+      padding: 0.4rem 0.85rem !important;
+    }
+  }
+
 </style>
 
 <div class="container lowered px-4">
@@ -118,7 +185,7 @@
          hx-swap="innerHTML" 
          hx-push-url="{% url 'tickets:create_ticket' %}" 
          class="btn btn-success create-ticket-btn">
-        <i class="fas fa-plus" style="font-size: 0.75rem;"></i> Create Ticket
+        <i class="fas fa-plus" style="font-size: 0.7rem;"></i> Create Ticket
       </a>
   </div>
   

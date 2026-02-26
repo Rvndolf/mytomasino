@@ -77,6 +77,14 @@ class TicketHistory(models.Model):
         null=True,  # Allow null for migration
         blank=True
     )
+    created_by = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='created_ticket_history',
+        null=True,
+        blank=True,
+        help_text="Original creator of the ticket"
+    )
     activity_type = models.CharField(
         max_length=20,
         choices=[

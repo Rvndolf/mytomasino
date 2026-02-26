@@ -9,7 +9,8 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,10 +21,10 @@ TEMPLATE_DIR = BASE_DIR / 'templates'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-%e&+wtfc@0q4g*_v8v6hj!8-%m6964rzdr27^9%1yg*w@dt8)r"
+SECRET_KEY = os.environ.get('SECRET_KEY', "django-insecure-%e&+wtfc@0q4g*_v8v6hj!8-%m6964rzdr27^9%1yg*w@dt8)r")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -63,7 +65,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mytomasinoapp@gmail.com'         # Replace with your email
-EMAIL_HOST_PASSWORD = 'fcivlptqxkkorfpj'   # App password if using Gmail
+EMAIL_HOST_PASSWORD = 'fcivlptqxkkorfpj' 
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')  # App password if using Gmail
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 LOGIN_REDIRECT_URL = 'dashboard:home'
@@ -72,12 +75,12 @@ ROOT_URLCONF = "mytomasino.urls"
 
 SITE_ID = 1
 
-SESSION_COOKIE_AGE = 1800 # 30 minutes in seconds (1800 = 30 * 60)
-SESSION_SAVE_EVERY_REQUEST = True # Reset timer on every request
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Session expires when browser closes
+SESSION_SAVE_EVERY_REQUEST = True # Reset timer on every request # Session expires when browser closes
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days max
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Optional: More security settings
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = True  # Set to True in production with HTTPS
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
 SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
 
@@ -104,10 +107,9 @@ WSGI_APPLICATION = "mytomasino.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL')
+    )
 }
 
 
@@ -150,6 +152,8 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # ← add this
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # ← add this
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
