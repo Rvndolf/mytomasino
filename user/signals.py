@@ -15,7 +15,7 @@ def extract_names_from_email(email):
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         # Create UserProfile automatically
-        UserProfile.objects.create(user=instance)
+        UserProfile.objects.get_or_create(user=instance)
 
         # Automatically set first_name and last_name
         first_name, last_name = extract_names_from_email(instance.email)

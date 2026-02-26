@@ -8,6 +8,6 @@ python manage.py migrate
 python manage.py shell -c "
 from django.contrib.auth.models import User
 if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@ust-legazpi.edu.ph', 'yourpassword')
+    User.objects.create_superuser('admin', 'admin@ust-legazpi.edu.ph', 'admin123')
 "
 python create_staff.py
