@@ -176,6 +176,27 @@
     }, 150);
   });
 
+  /* Loading indicator on login */
+  const loginForm = document.querySelector('form:not(#barcodeForm)');
+  const loginBtn = document.querySelector('.login-btn');
+
+  loginForm.addEventListener('submit', function() {
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = `
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      Logging in...
+    `;
+  });
+
+  // Re-enable button if there are error messages (login failed)
+  document.addEventListener('DOMContentLoaded', function() {
+    const hasErrors = document.querySelectorAll('.toast .bg-danger, .toast.bg-danger').length > 0;
+    if (hasErrors) {
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = 'Log In';
+    }
+  });
+
   /* Auto-hide toast after 4 seconds */
   document.addEventListener('DOMContentLoaded', function() {
     const toasts = document.querySelectorAll('.toast');
@@ -304,10 +325,6 @@
 
   .remember-label {
     font-size: 0.75rem;
-  }
-
-  .remember-label {
-    font-size: 0.78rem;
   }
   
   .footer-text {
