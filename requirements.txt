@@ -16,7 +16,7 @@ markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
 packaging==26.0
-pillow @ file:///Users/ec2-user/buildout/croot/pillow_1759953916943/work
+pillow==12.1.1
 psycopg2-binary==2.9.11
 Pygments==2.19.2
 pytailwindcss==0.3.0
