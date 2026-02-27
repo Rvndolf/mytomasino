@@ -175,3 +175,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+import sys
+print("CLOUDINARY_CLOUD_NAME:", os.environ.get('CLOUDINARY_CLOUD_NAME'), file=sys.stderr)
+print("CLOUDINARY_API_KEY:", os.environ.get('CLOUDINARY_API_KEY'), file=sys.stderr)
