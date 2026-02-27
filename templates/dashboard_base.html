@@ -204,12 +204,33 @@ document.body.addEventListener('htmx:beforeRequest', () => {
 
 document.body.addEventListener('htmx:afterSwap', () => {
   document.getElementById('loading').classList.add('d-none');
-  // Auto-close mobile sidebar after HTMX navigation
   if (window.innerWidth <= 768) {
     document.getElementById('sidebar').classList.remove('active');
     document.getElementById('sidebarOverlay').classList.remove('active');
   }
+  syncActiveNav();
 });
+
+function syncActiveNav() {
+  const currentPath = window.location.pathname;
+  const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+  navItems.forEach(item => item.classList.remove('active'));
+
+  const sorted = Array.from(navItems).sort((a, b) =>
+    b.getAttribute('hx-get').length - a.getAttribute('hx-get').length
+  );
+
+  let matched = false;
+  sorted.forEach(item => {
+    if (!matched) {
+      const url = item.getAttribute('hx-get');
+      if (currentPath === url || currentPath.startsWith(url)) {
+        item.classList.add('active');
+        matched = true;
+      }
+    }
+  });
+}
 
 document.body.addEventListener('htmx:afterRequest', () => {
   document.getElementById('loading').classList.add('d-none');
@@ -452,7 +473,7 @@ document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
     // Remove active class from all nav items
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
     // Add active class to clicked item
-    this.classList.add('active');
+    
     
     // Auto-close sidebar on mobile
     if (window.innerWidth <= 768) {
