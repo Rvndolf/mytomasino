@@ -148,21 +148,15 @@
       </div>
     {% endif %}
 
-    <!-- Handle attachments (photos) -->
+   <!-- Handle attachments (photos) -->
     {% if ticket.attachment %}
       <div class="attachment-section mt-3">
-        {% if ticket.attachment.url|lower|slice:"-4:" == ".jpg" or ticket.attachment.url|lower|slice:"-4:" == ".png" or ticket.attachment.url|lower|slice:"-5:" == ".jpeg" or ticket.attachment.url|lower|slice:"-5:" == ".webp" or ticket.attachment.url|lower|slice:"-4:" == ".gif" %}
-          <!-- Display image -->
-          <img src="{{ ticket.attachment.url }}" class="img-fluid rounded attachment-img" alt="Ticket Attachment">
-        {% else %}
-          <!-- Display download link for non-image files -->
-          <a href="{{ ticket.attachment.url }}" target="_blank" class="btn btn-outline-dark">
-            <i class="fas fa-download"></i> Download Attachment
-          </a>
-        {% endif %}
+        <h5 class="description-title">Attachment</h5>
+        <img src="{{ ticket.attachment.url }}" 
+            class="img-fluid rounded attachment-img" 
+            alt="Ticket Attachment">
       </div>
     {% endif %}
-  </div>
 
   <!-- Action Buttons outside card -->
   <div class="action-buttons mb-4">
