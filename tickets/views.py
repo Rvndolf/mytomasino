@@ -232,7 +232,7 @@ def update_ticket(request, pk):
 
     if request.method == "POST":
         # Bind POST data to the ticket instance
-        form = form_class(request.POST, instance=ticket)
+        form = form_class(request.POST, request.FILES, instance=ticket)
         if form.is_valid():
             updated_ticket = form.save()
 
