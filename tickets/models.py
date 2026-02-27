@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone  # Add this import
 from django.utils.timesince import timesince
+from cloudinary.models import CloudinaryField
 
 class Ticket(models.Model):
     CATEGORY_CHOICES = [
@@ -37,8 +38,8 @@ class Ticket(models.Model):
     metadata = models.JSONField(null=True, blank=True)
   
     urgency = models.CharField(max_length=10, choices=URGENCY_CHOICES, null=True, blank=True)
-    attachment = models.FileField(upload_to='ticket_attachments/', null=True, blank=True)
-
+    attachment = CloudinaryField('image', null=True, blank=True)
+    
     last_viewed_by_user = models.DateTimeField(null=True, blank=True)
     last_admin_update = models.DateTimeField(null=True, blank=True)
     
