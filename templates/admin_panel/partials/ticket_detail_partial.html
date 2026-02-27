@@ -45,6 +45,15 @@
       <div class="bg-light p-2 rounded" style="white-space: pre-line; font-size: 0.8rem;">{{ ticket.description }}</div>
     </div>
 
+    {% if ticket.attachment %}
+    <div class="mb-3">
+      <h6 style="font-size: 0.875rem; font-weight: 600; color: #144214;">Attachment:</h6>
+      <img src="{{ ticket.attachment.url }}" 
+          alt="Ticket Attachment" 
+          class="img-fluid rounded" 
+          style="max-height: 250px; object-fit: contain;">
+    </div>
+    {% endif %}
     <!-- Update Status -->
     <div class="mb-3">
       <h6 style="font-size: 0.875rem; font-weight: 600; color: #144214;">Update Status</h6>
