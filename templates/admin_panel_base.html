@@ -481,14 +481,36 @@ if (markAllReadBtn) {
 // Highlights the clicked navigation item
 // Removes highlight from all other nav items
 // Auto-closes sidebar on mobile after clicking
+// Sync active nav item based on current URL
+// Called after any HTMX navigation (sidebar clicks OR card links)
+function syncActiveNav() {
+  const currentPath = window.location.pathname;
+  const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+
+  navItems.forEach(item => item.classList.remove('active'));
+
+  const sortedNavItems = Array.from(navItems).sort((a, b) => {
+    return b.getAttribute('hx-get').length - a.getAttribute('hx-get').length;
+  });
+
+  let matched = false;
+  sortedNavItems.forEach(navItem => {
+    if (!matched) {
+      const targetUrl = navItem.getAttribute('hx-get');
+      if (currentPath === targetUrl || currentPath.startsWith(targetUrl)) {
+        navItem.classList.add('active');
+        matched = true;
+      }
+    }
+  });
+}
+
+// Highlights the clicked navigation item and auto-closes sidebar on mobile
 document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
   item.addEventListener('click', function() {
-    // Remove active class from all nav items
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
-    // Add active class to clicked item
     this.classList.add('active');
-    
-    // Auto-close sidebar on mobile
+
     if (window.innerWidth <= 768) {
       setTimeout(() => {
         sidebar.classList.remove('active');
@@ -498,6 +520,9 @@ document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
   });
 });
 
+// Re-sync active nav after any HTMX push (covers card links, back/forward, etc.)
+document.body.addEventListener('htmx:pushedIntoHistory', syncActiveNav);
+window.addEventListener('popstate', syncActiveNav);
 // Disables submit button for 2 seconds after clicking
 // Prevents users from accidentally submitting forms multiple times
 document.addEventListener('submit', (e) => {

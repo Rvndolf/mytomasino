@@ -87,14 +87,16 @@
                             <!-- Ticket Title & ID -->
                             <h6 class="mb-1 fw-semibold">
                               {% if entry.ticket and entry.activity_type != 'deleted' %}
-                                <a href="{% url 'admin_panel:ticket_detail' entry.ticket.id %}" 
-                                   class="text-decoration-none text-dark"
-                                   hx-get="{% url 'admin_panel:ticket_detail' entry.ticket.id %}"
-                                   hx-target="#dashboard-content"
-                                   hx-push-url="{% url 'admin_panel:ticket_detail' entry.ticket.id %}">
+                               <a href="#"
+                                  class="text-decoration-none text-dark"
+                                  hx-get="{% url 'admin_panel:ticket_list' %}"
+                                  hx-target="#dashboard-content"
+                                  hx-swap="innerHTML"
+                                  hx-push-url="{% url 'admin_panel:ticket_list' %}"
+                                  hx-on::after-request="htmx.ajax('GET', '{% url 'admin_panel:ticket_detail' entry.ticket.id %}', {target: '#ticket-detail-container', swap: 'innerHTML'})">
                                   {{ entry.ticket.title }}
                                   <small class="text-muted">#{{ entry.ticket.id }}</small>
-                                </a>
+                              </a>
                               {% else %}
                                 <span class="text-muted">{{ entry.ticket_title|default:"[Deleted Ticket]" }}</span>
                                 {% if entry.ticket_id %}
