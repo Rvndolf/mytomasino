@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import RegexValidator, MaxLengthValidator, MinLengthValidator
+from cloudinary.models import CloudinaryField
 
 
 class Office(models.Model):
@@ -31,7 +32,7 @@ class UserProfile(models.Model):
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    profile_picture = models.ImageField(upload_to="profiles/", blank=True, null=True)
+    profile_picture = CloudinaryField('image', blank=True, null=True)
     id_number = models.CharField(
         max_length=9,
         validators=[

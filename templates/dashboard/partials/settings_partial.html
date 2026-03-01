@@ -69,7 +69,8 @@
             <form method="post" enctype="multipart/form-data"
                   hx-post="{% url 'dashboard:settings' %}"
                   hx-target="#dashboard-content"
-                  hx-swap="innerHTML">
+                  hx-swap="innerHTML"
+                  hx-encoding="multipart/form-data">
               {% csrf_token %}
               <input type="hidden" name="form_type" value="profile">
 
@@ -117,7 +118,7 @@
                 <label class="form-label fw-semibold" style="font-size: 0.85rem;">Profile Picture</label>
                 <input type="file" class="form-control" style="font-size: 0.85rem;" name="profile_picture" accept="image/*">
                 {% if request.user.profile.profile_picture %}
-                  <small class="text-muted" style="font-size: 0.75rem;">Current: {{ request.user.profile.profile_picture.name }}</small>
+                  <small class="text-muted" style="font-size: 0.75rem;">Current: {{ request.user.profile.profile_picture.public_id }}</small>
                 {% endif %}
               </div>
 

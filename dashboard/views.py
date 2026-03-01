@@ -96,21 +96,32 @@ def dashboard_settings(request):
         if form_type == "profile":
             active_tab = 'profile'
             try:
-                # Update only editable profile fields (removed id_number, grade_level, section)
                 profile.contact_number = request.POST.get("contact_number", "").strip() or None
                 profile.address = request.POST.get("address", "").strip() or None
 
-                # Handle profile picture upload
+                # Handle profile picture upload via Cloudinary
                 if "profile_picture" in request.FILES:
-                    profile_picture = request.FILES["profile_picture"]
-                    # Optional: Delete old profile picture
+                    import cloudinary.uploader
+
+                    # Delete old picture from Cloudinary if it exists
                     if profile.profile_picture:
-                        profile.profile_picture.delete(save=False)
-                    profile.profile_picture = profile_picture
+                        try:
+                            cloudinary.uploader.destroy(profile.profile_picture.public_id)
+                        except Exception:
+                            pass  # Don't block the upload if deletion fails
+
+                    # Upload new picture to Cloudinary
+                    upload_result = cloudinary.uploader.upload(
+                        request.FILES["profile_picture"],
+                        folder="profile_pictures",
+                        resource_type="image",
+                    )
+                    profile.profile_picture = upload_result["public_id"]
 
                 profile.full_clean()
                 profile.save()
                 messages.success(request, "Profile updated successfully!")
+
             except ValidationError as e:
                 error_messages = []
                 for field, errors in e.message_dict.items():
@@ -122,7 +133,6 @@ def dashboard_settings(request):
         elif form_type == "preferences":
             active_tab = 'preferences'
             try:
-                # Handle checkbox fields properly
                 profile.email_notifications = "email_notifications" in request.POST
                 profile.sms_notifications = "sms_notifications" in request.POST
                 profile.language_preference = request.POST.get("language_preference", profile.language_preference)
@@ -133,6 +143,7 @@ def dashboard_settings(request):
                 profile.full_clean()
                 profile.save()
                 messages.success(request, "Preferences updated successfully!")
+
             except ValidationError as e:
                 error_messages = []
                 for field, errors in e.message_dict.items():
@@ -143,7 +154,6 @@ def dashboard_settings(request):
 
         elif form_type == "security":
             active_tab = 'security'
-            # Security tab: password change
             current_password = request.POST.get("current_password", "")
             new_password1 = request.POST.get("new_password1", "")
             new_password2 = request.POST.get("new_password2", "")
@@ -156,18 +166,15 @@ def dashboard_settings(request):
                 messages.error(request, "New passwords do not match.")
             else:
                 try:
-                    # Validate password against Django's validators
                     validate_password(new_password1, user)
                     user.set_password(new_password1)
                     user.save()
-                    update_session_auth_hash(request, user)  # Keep user logged in
+                    update_session_auth_hash(request, user)
                     messages.success(request, "Password updated successfully!")
                 except ValidationError as e:
-                    # Show detailed validation errors
                     for error in e.messages:
                         messages.error(request, error)
 
-        # For HTMX requests, return just the settings content
         if request.headers.get("HX-Request"):
             context = {
                 "profile": profile,
@@ -175,8 +182,7 @@ def dashboard_settings(request):
                 "active_tab": active_tab
             }
             return render(request, "dashboard/settings.html", context)
-        
-        # For regular requests (like form submissions), redirect to avoid resubmission
+
         return redirect("dashboard:settings")
 
     # GET request
@@ -186,11 +192,9 @@ def dashboard_settings(request):
         "active_tab": active_tab
     }
 
-    # Check if HTMX request
     if request.headers.get("HX-Request"):
         return render(request, "dashboard/settings.html", context)
-    
-    # For full page load (refresh), render the base template
+
     return render(request, "dashboard_base.html", context)
 
 
