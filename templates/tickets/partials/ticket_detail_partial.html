@@ -156,9 +156,9 @@
             alt="Ticket Attachment">
       </div>
     {% endif %}
-
+    </div>
   <!-- Action Buttons outside card -->
-  <div class="action-buttons mb-4">
+  <div class="action-buttons mt-4 mb-4">
     {% if ticket.status != 'completed' %}
       <button hx-get="{% url 'tickets:update_ticket' ticket.pk %}" 
               hx-target="#dashboard-content" 
