@@ -99,8 +99,20 @@ def dashboard_settings(request):
                 profile.contact_number = request.POST.get("contact_number", "").strip() or None
                 profile.address = request.POST.get("address", "").strip() or None
 
+                # Handle profile picture reset
+                if request.POST.get("reset_picture"):
+                    if profile.profile_picture:
+                        try:
+                            import cloudinary.uploader
+                            cloudinary.uploader.destroy(profile.profile_picture.public_id)
+                        except Exception:
+                            pass
+                    profile.profile_picture = None
+                    profile.save()
+                    messages.success(request, "Profile picture reset to default!")
+
                 # Handle profile picture upload via Cloudinary
-                if "profile_picture" in request.FILES:
+                elif "profile_picture" in request.FILES:
                     import cloudinary.uploader
 
                     # Delete old picture from Cloudinary if it exists
