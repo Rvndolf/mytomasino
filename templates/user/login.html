@@ -96,8 +96,6 @@
         </div>
       </form>
 
-
-
     </div>
 </div>
 
@@ -128,6 +126,23 @@
 
 <!-- Scripts -->
 <script>
+  /* Pre-fill email from remembered cookie */
+  document.addEventListener('DOMContentLoaded', function () {
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    const rememberedEmail = getCookie('remembered_email');
+    const emailInput = document.getElementById('email');
+    const rememberCheckbox = document.getElementById('remember_me');
+
+    if (rememberedEmail) {
+      emailInput.value = rememberedEmail;
+      rememberCheckbox.checked = true;
+    }
+  });
+
   /* Barcode focus logic */
   let typingTimer;
   const barcodeInput = document.getElementById('barcodeInput');
@@ -138,7 +153,6 @@
   barcodeInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Sync the remember me value to barcode form before submitting
       barcodeRememberMe.value = rememberCheckbox.checked ? '1' : '';
       barcodeForm.submit();
     }

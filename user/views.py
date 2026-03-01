@@ -37,10 +37,6 @@ def login_view(request):
 
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-                # Remember Me for barcode login
-                remember_me = request.POST.get('remember_me')
-                request.session.set_expiry(60 * 60 * 24 * 30 if remember_me else 0)
-
                 messages.success(request, f'Welcome, {user.get_full_name() or user.username}!')
 
                 if user.is_superuser or user.is_staff:
@@ -82,14 +78,19 @@ def login_view(request):
             if user:
                 login(request, user)
 
-                # Remember Me for email login
-                request.session.set_expiry(60 * 60 * 24 * 30 if remember_me else 0)
+                if user.is_superuser or user.is_staff:
+                    response = redirect('admin_panel:admin_home')
+                else:
+                    response = redirect('dashboard:home')
+
+                # Remember Me: save email in cookie, or clear it
+                if remember_me:
+                    response.set_cookie('remembered_email', email, max_age=60 * 60 * 24 * 30)
+                else:
+                    response.delete_cookie('remembered_email')
 
                 messages.success(request, "Logged in successfully!")
-
-                if user.is_superuser or user.is_staff:
-                    return redirect('admin_panel:admin_home')
-                return redirect('dashboard:home')
+                return response
             else:
                 messages.error(request, "Invalid email or password.")
         else:
