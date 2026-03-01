@@ -11,4 +11,3 @@ from django.contrib.auth.models import User
 User.objects.filter(username='admin').delete()
 User.objects.create_superuser('admin', 'admin@ust-legazpi.edu.ph', 'Admin_123')
 "
-python reset_students.py
