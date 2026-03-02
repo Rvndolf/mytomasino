@@ -149,13 +149,11 @@
               </div>
 
               <div class="d-flex gap-2">
-                <button type="submit" class="btn-action">Save Changes</button>
+                <button type="submit" name="form_type" value="profile" class="btn-action">Save Changes</button>
                 {% if request.user.profile.profile_picture %}
                   <button type="submit" name="reset_picture" value="1" class="btn-action">Reset Profile Picture</button>
                 {% endif %}
               </div>
-            </form>
-          </div>
 
               <!-- Messages for Profile Tab -->
               {% if messages and active_tab == 'profile' %}
