@@ -99,7 +99,6 @@ def dashboard_settings(request):
                 profile.contact_number = request.POST.get("contact_number", "").strip() or None
                 profile.address = request.POST.get("address", "").strip() or None
 
-                # Handle profile picture reset
                 if request.POST.get("reset_picture"):
                     if profile.profile_picture:
                         try:
@@ -111,28 +110,28 @@ def dashboard_settings(request):
                     profile.save()
                     messages.success(request, "Profile picture reset to default!")
 
-                # Handle profile picture upload via Cloudinary
                 elif "profile_picture" in request.FILES:
                     import cloudinary.uploader
-
-                    # Delete old picture from Cloudinary if it exists
                     if profile.profile_picture:
                         try:
                             cloudinary.uploader.destroy(profile.profile_picture.public_id)
                         except Exception:
-                            pass  # Don't block the upload if deletion fails
+                            pass
 
-                    # Upload new picture to Cloudinary
                     upload_result = cloudinary.uploader.upload(
                         request.FILES["profile_picture"],
                         folder="profile_pictures",
                         resource_type="image",
                     )
                     profile.profile_picture = upload_result["public_id"]
+                    profile.save()  # ✅ save after upload, skip full_clean for CloudinaryField
+                    messages.success(request, "Profile updated successfully!")
 
-                profile.full_clean()
-                profile.save()
-                messages.success(request, "Profile updated successfully!")
+                else:
+                    # Only contact/address changed — safe to full_clean and save
+                    profile.full_clean()
+                    profile.save()
+                    messages.success(request, "Profile updated successfully!")
 
             except ValidationError as e:
                 error_messages = []
