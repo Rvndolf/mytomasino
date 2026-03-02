@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 from admin_panel import views as views
 from django.views.decorators.cache import never_cache
-from.models import UserProfile
+from .models import UserProfile
 from django.contrib.sites.shortcuts import get_current_site
 
 @never_cache
@@ -55,7 +55,7 @@ def login_view(request):
 
     # Email + password login
     if request.method == "POST":
-        email = request.POST.get('email')
+        email = request.POST.get('email', '').strip()
         password = request.POST.get('password')
         remember_me = request.POST.get('remember_me')
 
@@ -108,7 +108,7 @@ def password_reset_request(request):
         email = request.POST.get("email")
         users = User.objects.filter(email=email)
 
-        for user in users:  # supports multiple users w/ same email
+        for user in users:
             current_site = get_current_site(request)
 
             context = {
