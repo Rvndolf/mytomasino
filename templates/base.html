@@ -177,10 +177,12 @@
 
   {% if messages %}
     {% for message in messages %}
-      <div class="toast-popup {{ message.tags }}">
-        <div class="toast-icon">✓</div>
-        <div class="toast-text">{{ message }}</div>
-      </div>
+      {% if forloop.first %}
+        <div class="toast-popup {{ message.tags }}">
+          <div class="toast-icon">✓</div>
+          <div class="toast-text">{{ message }}</div>
+        </div>
+      {% endif %}
     {% endfor %}
   {% endif %}
 

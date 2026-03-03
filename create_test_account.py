@@ -13,22 +13,24 @@ EMAIL = "Testaccount@ust-legazpi.edu.ph"
 PASSWORD = "Test_account123"
 USERNAME = EMAIL.split("@")[0]  # "Testaccount"
 
+# Delete if exists
 existing = User.objects.filter(username=USERNAME).first()
 if existing:
-    print(f"User '{USERNAME}' already exists, skipping.")
-else:
-    user = User.objects.create_user(
-        username=USERNAME,
-        email=EMAIL,
-        password=PASSWORD,
-        first_name="Test",
-        last_name="Account",
-    )
+    existing.delete()
+    print(f"Deleted existing user '{USERNAME}'")
 
-    profile = UserProfile.objects.get(user=user)
-    profile.id_number = "2024-0000"  # Change this if needed
-    profile.save()
+# Create fresh
+user = User.objects.create_user(
+    username=USERNAME,
+    email=EMAIL,
+    password=PASSWORD,
+    first_name="Test",
+    last_name="Account",
+)
 
-    print(f"Created user: {EMAIL} / {PASSWORD}")
+profile = UserProfile.objects.get(user=user)
+profile.id_number = "2024-0000"  # Change this if needed
+profile.save()
 
+print(f"Created user: {EMAIL} / {PASSWORD}")
 print("Done!")
