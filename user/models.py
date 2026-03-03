@@ -36,7 +36,7 @@ class UserProfile(models.Model):
     id_number = models.CharField(
         max_length=9,
         validators=[
-            RegexValidator(r"^\d{1,9}$", "ID Number must contain only up to 9 digits.")
+            RegexValidator(r"^\d{0,9}$", "ID number must be max 9 digits.")  # 0 allows empty
         ],
         unique=True,
         blank=True,

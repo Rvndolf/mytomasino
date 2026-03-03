@@ -83,7 +83,6 @@ def dashboard_history(request):
 
        return render(request, "dashboard_base.html", context)
 
-
 @login_required
 def dashboard_settings(request):
     user = request.user
@@ -124,12 +123,16 @@ def dashboard_settings(request):
                         resource_type="image",
                     )
                     profile.profile_picture = upload_result["public_id"]
-                    profile.save()  # ✅ save after upload, skip full_clean for CloudinaryField
+                    profile.save()
                     messages.success(request, "Profile updated successfully!")
 
                 else:
-                    # Only contact/address changed — safe to full_clean and save
-                    profile.full_clean()
+                    # Only validate fields relevant to the profile form
+                    profile.full_clean(exclude=[
+                        'id_number', 'grade_level', 'section', 'profile_picture',
+                        'email_notifications', 'sms_notifications', 'language_preference',
+                        'region', 'date_format', 'number_format'
+                    ])
                     profile.save()
                     messages.success(request, "Profile updated successfully!")
 
@@ -151,7 +154,11 @@ def dashboard_settings(request):
                 profile.date_format = request.POST.get("date_format", profile.date_format)
                 profile.number_format = request.POST.get("number_format", profile.number_format)
 
-                profile.full_clean()
+                # Only validate fields relevant to the preferences form
+                profile.full_clean(exclude=[
+                    'id_number', 'grade_level', 'section', 'profile_picture',
+                    'contact_number', 'address'
+                ])
                 profile.save()
                 messages.success(request, "Preferences updated successfully!")
 
