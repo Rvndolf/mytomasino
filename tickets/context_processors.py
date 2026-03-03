@@ -7,9 +7,17 @@ def notifications(request):
     if not request.user.is_authenticated:
         return {
             'notifications': [],
-            'unread_count': 0
+            'unread_count': 0,
+            'user_date_format': 'MM/DD/YYYY',
+            'user_number_format': '1,000.00',
         }
     
+    # ── User preferences ──────────────────────────────────────────
+    profile = getattr(request.user, 'profile', None)
+    user_date_format = getattr(profile, 'date_format', 'MM/DD/YYYY') if profile else 'MM/DD/YYYY'
+    user_number_format = getattr(profile, 'number_format', '1,000.00') if profile else '1,000.00'
+
+    # ── Notifications ─────────────────────────────────────────────
     # Check if user is staff with an office assignment
     try:
         staff_profile = StaffProfile.objects.select_related('office').get(user=request.user)
@@ -46,5 +54,7 @@ def notifications(request):
     
     return {
         'notifications': unread_notifications,
-        'unread_count': unread_count
+        'unread_count': unread_count,
+        'user_date_format': user_date_format,
+        'user_number_format': user_number_format,
     }

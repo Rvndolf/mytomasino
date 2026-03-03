@@ -149,15 +149,6 @@
               <hr class="my-3">
 
               <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Localization Settings</h6>
-              <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Language</label>
-                <select class="form-select" style="font-size: 0.85rem;" name="language_preference">
-                  <option value="en" {% if request.user.profile.language_preference == "en" %}selected{% endif %}>English</option>
-                  <option value="fil" {% if request.user.profile.language_preference == "fil" %}selected{% endif %}>Filipino</option>
-                  <option value="es" {% if request.user.profile.language_preference == "es" %}selected{% endif %}>Spanish</option>
-                  <option value="zh" {% if request.user.profile.language_preference == "zh" %}selected{% endif %}>Chinese</option>
-                </select>
-              </div>
 
               <div class="mb-3">
                 <label class="form-label fw-semibold" style="font-size: 0.85rem;">Region</label>

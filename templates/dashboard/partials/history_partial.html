@@ -1,3 +1,4 @@
+{% load format_filters %}
 <!-- dashboard/history.html (partial) -->
 <div class="container-fluid p-4 mt-5">
   <div class="row">
@@ -26,7 +27,7 @@
                       <p class="mb-0 text-muted small mt-2">{{ entry.action }}</p>
                       
                       <small class="text-muted d-block d-md-none mt-2" style="font-size: 0.75rem;">
-                        {{ entry.timestamp|date:"M d, Y h:i A" }}
+                        {{ entry.timestamp|format_date:user_date_format }} {{ entry.timestamp|date:"h:i A" }}
                       </small>
                     </div>
                     
@@ -50,7 +51,7 @@
                       </div>
                       
                       <small class="text-muted text-nowrap d-none d-md-block" style="font-size: 0.75rem;">
-                        {{ entry.timestamp|date:"M d, Y h:i A" }}
+                        {{ entry.timestamp|format_date:user_date_format }} {{ entry.timestamp|date:"h:i A" }}
                       </small>
                     </div>
                   </li>
