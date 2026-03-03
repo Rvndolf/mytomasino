@@ -1,5 +1,6 @@
 {% load ticket_tags %}
 {% load static %}
+{% load format_filters %}
 
 <style>
   .filter-card {
@@ -268,7 +269,7 @@
                       </span>
                       <span class="me-3"> • </span>
                       <span class="me-3">
-                        <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                        <i class="fas fa-clock"></i> {{ ticket.created_at|format_date:user_date_format }}
                       </span>
                     </div>
                   </div>
@@ -310,7 +311,7 @@
                       </span>
                       <span class="me-3"> • </span>
                       <span class="me-3">
-                        <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                        <i class="fas fa-clock"></i> {{ ticket.created_at|format_date:user_date_format }}
                       </span>
                     </div>
                   </div>
@@ -352,7 +353,7 @@
                       </span>
                       <span class="me-3"> • </span>
                       <span class="me-3">
-                        <i class="fas fa-clock"></i> {{ ticket.created_at|date:"M d, Y" }}
+                        <i class="fas fa-clock"></i> {{ ticket.created_at|format_date:user_date_format }}
                       </span>
                       {% if ticket.assigned_to %}
                         • <i class="fas fa-user-check text-success"></i> Resolved by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}

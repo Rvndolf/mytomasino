@@ -1,3 +1,4 @@
+{% load format_filters %}
 <div class="container ticket-detail-container">
 
   <!-- Header Section with Back Arrow -->
@@ -27,7 +28,7 @@
         </button>
       </div>
       
-      <p class="creation-date">Created on {{ ticket.created_at|date:"M d, Y h:i A" }}</p>
+      <p class="creation-date">Created on {{ ticket.created_at|format_date:user_date_format }}</p>
     </div>
   </div>
 
@@ -80,7 +81,7 @@
           {% if ticket.metadata.date_time %}
             <div class="info-item">
               <span class="info-label">Date/Time:</span>
-              <span class="info-value">{{ ticket.metadata.date_time }}</span>
+              <span class="info-value">{{ ticket.metadata.date_time|format_date:user_date_format }}</span>
             </div>
           {% endif %}
           
@@ -100,7 +101,7 @@
           {% if ticket.metadata.preferred_date %}
             <div class="info-item">
               <span class="info-label">Preferred Date:</span>
-              <span class="info-value">{{ ticket.metadata.preferred_date }}</span>
+              <span class="info-value">{{ ticket.metadata.preferred_date|format_date:user_date_format }}</span>
             </div>
           {% endif %}
           
