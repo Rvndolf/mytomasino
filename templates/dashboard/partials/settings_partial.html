@@ -148,17 +148,7 @@
 
               <hr class="my-3">
 
-              <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Localization Settings</h6>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size: 0.85rem;">Region</label>
-                <select class="form-select" style="font-size: 0.85rem;" name="region">
-                  <option value="asia-ph" {% if request.user.profile.region == "asia-ph" %}selected{% endif %}>Philippines</option>
-                  <option value="asia-sg" {% if request.user.profile.region == "asia-sg" %}selected{% endif %}>Singapore</option>
-                  <option value="us" {% if request.user.profile.region == "us" %}selected{% endif %}>United States</option>
-                  <option value="eu" {% if request.user.profile.region == "eu" %}selected{% endif %}>Europe</option>
-                </select>
-              </div>
+              <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Format Settings</h6>
 
               <div class="mb-3">
                 <label class="form-label fw-semibold" style="font-size: 0.85rem;">Date Format</label>
