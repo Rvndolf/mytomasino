@@ -37,8 +37,12 @@
           Cancel
         </a>
 
-        <button type="submit" class="btn btn-primary custom-btn-green">
-          Create Ticket
+        <button type="submit" id="submit-btn" class="btn btn-primary custom-btn-green">
+          <span id="btn-default-state">Create Ticket</span>
+          <span id="btn-loading-state" style="display: none; align-items: center; gap: 6px;">
+            <span class="btn-spinner"></span>
+            Submitting…
+          </span>
         </button>
       </div>
     </form>
@@ -179,9 +183,10 @@
     font-weight: 400;
     font-size: 0.875rem;
     transition: all 0.3s ease;
+    min-width: 130px;
   }
 
-  .custom-btn-green:hover {
+  .custom-btn-green:hover:not(:disabled) {
     background-color: #144214;
     border-color: #144214;
     color: white;
@@ -189,9 +194,17 @@
     box-shadow: 0 4px 8px rgba(20, 66, 20, 0.3);
   }
 
-  .custom-btn-green:active {
+  .custom-btn-green:active:not(:disabled) {
     background-color: #0a2008;
     border-color: #0a2008;
+  }
+
+  /* Disabled/loading state */
+  .custom-btn-green:disabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
   }
 
   /* Cancel/Back Button - White with black outline */
@@ -260,6 +273,22 @@
     display: block;
   }
 
+  /* ── Spinner ── */
+  @keyframes btn-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .btn-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(20, 66, 20, 0.25);
+    border-top-color: #144214;
+    border-radius: 50%;
+    animation: btn-spin 0.65s linear infinite;
+    flex-shrink: 0;
+  }
+
   /* Mobile spacing - increased top margin */
   @media (max-width: 768px) {
     .ticket-form-container {
@@ -303,3 +332,18 @@
     }
   }
 </style>
+
+<script>
+  (function () {
+    const form = document.getElementById('ticket-form');
+    const btn  = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', function () {
+      // checkValidity() is already enforced by the browser before this fires,
+      // so we only reach here when the form is genuinely submitting.
+      document.getElementById('btn-default-state').style.display = 'none';
+      document.getElementById('btn-loading-state').style.display = 'inline-flex';
+      btn.disabled = true;
+    });
+  })();
+</script>
