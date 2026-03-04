@@ -18,11 +18,10 @@
     {% endif %}
   </h3>
   
-  <!-- FILTERS ROW - Full Width, Side by Side on desktop, stacked on mobile -->
+  <!-- FILTERS ROW -->
   <div class="row mb-3">
     <div class="col-12">
       <div class="d-flex flex-column flex-md-row gap-4 align-items-start">
-        <!-- STATUS FILTER BUTTONS -->
         <div style="flex: 0 0 auto; width: 100%;" class="filter-section">
           <span class="fw-bold mb-2 d-block text-muted" style="font-size: 0.85rem;">Filter by Status:</span>
           <div class="d-flex flex-wrap gap-2" id="status-filter-buttons">
@@ -41,11 +40,10 @@
     </div>
   </div>
 
-  <!-- TABLE AND DETAIL ROW - 50-50 Split on desktop, stacked on mobile -->
+  <!-- TABLE AND DETAIL ROW -->
   <div class="row gx-4 gx-mobile-2">
-    <!-- LEFT COLUMN: TICKET LIST (50% on desktop) -->
+    <!-- LEFT COLUMN: TICKET LIST -->
     <div class="col-md-6 mb-4 mb-md-0">
-      <!-- TICKETS TABLE -->
       <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden; height: 650px; display: flex; flex-direction: column;">
         <div class="card-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
           <div class="table-responsive" style="flex: 1; overflow-y: auto;">
@@ -60,9 +58,13 @@
                   <th class="fw-semibold text-center" style="font-size: 0.875rem; padding: 1rem 0.75rem; color: white;">Date</th>
                 </tr>
               </thead>
+              <!--
+                hx-get bakes the current status + category filters at render time
+                so re-fetches on ticketUpdated always respect the active filter.
+              -->
               <tbody id="ticket-table-body"
-                     hx-get="{% url 'admin_panel:ticket_list' %}"
-                     hx-trigger="refreshTicketList from:body"
+                     hx-get="{% url 'admin_panel:ticket_list' %}?status={{ status_filter }}{% for cat in active_categories %}&categories={{ cat }}{% endfor %}"
+                     hx-trigger="refreshTicketList from:body, ticketUpdated from:body"
                      hx-target="this"
                      hx-swap="innerHTML">
                 {% for ticket in tickets %}
@@ -102,7 +104,7 @@
       </div>
     </div>
     
-    <!-- RIGHT COLUMN: TICKET DETAIL (50% width on desktop) -->
+    <!-- RIGHT COLUMN: TICKET DETAIL -->
     <div class="col-md-6">
       <div id="ticket-detail-container"
            hx-on="resetTicketDetail: this.innerHTML='<div class=\'card shadow-sm border-0\' style=\'border-radius: 15px; height: 650px;\'><div class=\'card-body text-center d-flex flex-column align-items-center justify-content-center h-100\'><i class=\'fas fa-ticket-alt fa-3x text-muted mb-3\'></i><h5 class=\'text-muted\'>Select a ticket to view details</h5></div></div>'">
@@ -240,10 +242,10 @@
 </style>
 
 <script>
-  // ticketUpdated — fired by update_ticket_status view
+  // ticketUpdated — HTMX handles the table re-fetch via hx-trigger on tbody.
+  // JS only needs to show the toast.
   document.body.addEventListener('ticketUpdated', function () {
     showToast('Ticket status updated successfully!');
-    refreshTicketTable();
   });
 
   // noteAdded — fired by add_ticket_note view
@@ -257,16 +259,6 @@
     showToast('Ticket deleted successfully!');
     resetToOpenStatusAndRefresh();
   });
-
-  function refreshTicketTable() {
-    // Re-fetch the ticket table with the currently active status filter
-    const activeBtn = document.querySelector('.status-filter-btn.active');
-    const url = activeBtn ? activeBtn.href : "{% url 'admin_panel:ticket_list' %}?status=open";
-    htmx.ajax('GET', url, {
-      target: '#ticket-table-body',
-      swap: 'innerHTML'
-    });
-  }
 
   function resetToOpenStatusAndRefresh() {
     const filterButtons = document.querySelectorAll('.status-filter-btn');
