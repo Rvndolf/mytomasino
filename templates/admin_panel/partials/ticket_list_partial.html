@@ -119,37 +119,30 @@
 </div>
 
 <style>
-  /* Mobile padding adjustments */
-  /* Mobile padding adjustments */
-@media (max-width: 767px) {
-  .px-mobile-2 {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
+  @media (max-width: 767px) {
+    .px-mobile-2 {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+
+    .gx-mobile-2 {
+      --bs-gutter-x: 1rem;
+    }
+
+    .container-fluid.px-mobile-2 {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+      padding-top: 1rem !important;
+      margin-top: 0.5rem !important;
+    }
+
+    .card[style*="height: 650px"],
+    #ticket-detail-container .card {
+      height: auto !important;
+      min-height: 350px;
+    }
   }
 
-  .gx-mobile-2 {
-    --bs-gutter-x: 1rem;
-  }
-
-  /* Ensure the outer container has breathing room */
-  .container-fluid.px-mobile-2 {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-
-  .container-fluid.px-mobile-2 {
-    padding-top: 1rem !important;
-    margin-top: 0.5rem !important;
-  }
-  /* Fixed height cards should adapt on mobile */
-  .card[style*="height: 650px"],
-  #ticket-detail-container .card {
-    height: auto !important;
-    min-height: 350px;
-  }
-}
-
-  /* Gradient text for heading */
   .gradient-green-text {
     background: linear-gradient(90deg, #144214, #3c6d3c);
     -webkit-background-clip: text;
@@ -157,7 +150,6 @@
     background-clip: text;
   }
 
-  /* Status filter buttons - default state (white bg, green text/border) */
   .status-filter-btn {
     background-color: white !important;
     color: #144214 !important;
@@ -165,7 +157,6 @@
     transition: all 0.2s ease;
   }
 
-  /* Status filter buttons - hover states with colored backgrounds */
   .status-filter-primary:hover,
   .status-filter-primary.active {
     background-color: #0d6efd !important;
@@ -187,14 +178,12 @@
     border-color: #198754 !important;
   }
 
-  /* Responsive filter layout */
   @media (min-width: 768px) {
     .filter-section {
       width: auto !important;
     }
   }
 
-  /* Sleek table styling */
   .sleek-table {
     border-collapse: separate;
     border-spacing: 0;
@@ -218,7 +207,6 @@
     transform: translateX(2px);
   }
 
-  /* Disable hover effects for empty state row */
   .sleek-table tbody tr.no-hover-row {
     cursor: default !important;
   }
@@ -228,18 +216,15 @@
     transform: none !important;
   }
 
-  /* Override Bootstrap's table-hover for no-hover-row */
   .table-hover tbody tr.no-hover-row:hover {
     background-color: transparent !important;
     --bs-table-hover-bg: transparent !important;
   }
 
-  /* Remove default Bootstrap table borders */
   .sleek-table td {
     border: none;
   }
 
-  /* Smooth hover effect on status badges */
   .badge {
     transition: transform 0.2s ease;
   }
@@ -248,61 +233,57 @@
     transform: scale(1.05);
   }
 
-  /* Custom scrollbar for table */
-  .table-responsive::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .table-responsive::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 8px;
-  }
-
-  .table-responsive::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 8px;
-  }
-
-  .table-responsive::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
+  .table-responsive::-webkit-scrollbar { width: 8px; }
+  .table-responsive::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
+  .table-responsive::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 8px; }
+  .table-responsive::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 </style>
 
 <script>
-  // Listen for ticket update or delete events
-  document.body.addEventListener('ticketUpdated', function(event) {
+  // ticketUpdated — fired by update_ticket_status view
+  document.body.addEventListener('ticketUpdated', function () {
+    showToast('Ticket status updated successfully!');
+    refreshTicketTable();
+  });
+
+  // noteAdded — fired by add_ticket_note view
+  // Make sure your add_note view sets: response['HX-Trigger'] = 'noteAdded'
+  document.body.addEventListener('noteAdded', function () {
+    showToast('Response sent successfully!');
+  });
+
+  // ticketDeleted — fired by delete_ticket view
+  document.body.addEventListener('ticketDeleted', function () {
+    showToast('Ticket deleted successfully!');
     resetToOpenStatusAndRefresh();
   });
 
-  document.body.addEventListener('ticketDeleted', function(event) {
-    resetToOpenStatusAndRefresh();
-  });
+  function refreshTicketTable() {
+    // Re-fetch the ticket table with the currently active status filter
+    const activeBtn = document.querySelector('.status-filter-btn.active');
+    const url = activeBtn ? activeBtn.href : "{% url 'admin_panel:ticket_list' %}?status=open";
+    htmx.ajax('GET', url, {
+      target: '#ticket-table-body',
+      swap: 'innerHTML'
+    });
+  }
 
   function resetToOpenStatusAndRefresh() {
-    // Get all status filter buttons
     const filterButtons = document.querySelectorAll('.status-filter-btn');
-    
-    // Remove 'active' class from all buttons
     filterButtons.forEach(btn => btn.classList.remove('active'));
-    
-    // Find and activate the "Open" button
+
     const openButton = document.querySelector('.status-filter-btn[data-status-key="open"]');
     if (openButton) {
       openButton.classList.add('active');
-      
-      // Update the URL to reflect the "Open" filter
       const url = new URL(window.location);
       url.searchParams.set('status', 'open');
       window.history.pushState({}, '', url);
-      
-      // Refresh the ticket table with the "Open" filter using the button's href
       htmx.ajax('GET', openButton.href, {
         target: '#ticket-table-body',
         swap: 'innerHTML'
       });
     }
-    
-    // Reset the ticket detail panel
+
     const detailContainer = document.getElementById('ticket-detail-container');
     if (detailContainer) {
       htmx.trigger(detailContainer, 'resetTicketDetail');

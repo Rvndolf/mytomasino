@@ -54,13 +54,13 @@
           style="max-height: 250px; object-fit: contain;">
     </div>
     {% endif %}
+
     <!-- Update Status -->
     <div class="mb-3">
       <h6 style="font-size: 0.875rem; font-weight: 600; color: #144214;">Update Status</h6>
       <form hx-post="{% url 'admin_panel:update_ticket' ticket.pk %}" 
             hx-target="#ticket-detail-container" 
             hx-swap="innerHTML"
-            hx-on::after-request="if(event.detail.successful) showToast('Status updated successfully!')"
             class="row g-2">
         {% csrf_token %}
         <div class="col-auto">
@@ -78,7 +78,7 @@
       </form>
     </div>
 
-    <!-- Conversation Section - Always Visible -->
+    <!-- Conversation Section -->
     <div class="mb-3">
       <h6 style="font-size: 0.875rem; font-weight: 600; color: #144214;">
         <i class="fas fa-comments"></i> Conversation with User
@@ -112,8 +112,7 @@
       <h6 style="font-size: 0.875rem; font-weight: 600; color: #144214;">Add Note / Response</h6>
       <form hx-post="{% url 'admin_panel:add_ticket_note' ticket.pk %}" 
             hx-target="#ticket-detail-container" 
-            hx-swap="innerHTML"
-            hx-on::after-request="if(event.detail.successful) showToast('Note added successfully!')">
+            hx-swap="innerHTML">
         {% csrf_token %}
         <div class="mb-2">
           <textarea name="note" class="form-control form-control-sm" rows="2" placeholder="Type your response to the user..." required style="font-size: 0.8rem;"></textarea>
@@ -146,8 +145,7 @@
       <button class="btn btn-action btn-delete"
               hx-get="{% url 'admin_panel:delete_ticket' ticket.pk %}"
               hx-target="#ticket-detail-container"
-              hx-swap="innerHTML"
-              hx-on::after-request="if(event.detail.successful) showToast('Ticket deleted successfully!')">
+              hx-swap="innerHTML">
         <i class="fas fa-trash"></i> Delete Ticket
       </button>
     </div>
@@ -155,7 +153,6 @@
 </div>
 
 <style>
-  /* Conversation Containers for Admin */
   .responses-container-admin {
     display: flex;
     flex-direction: column;
@@ -177,13 +174,11 @@
     transform: translateX(2px);
   }
 
-  /* User Reply in Admin Panel - Yellow border with white background */
   .user-response-admin {
     background-color: #ffffff;
     border-left: 2px solid #FFCC00;
   }
 
-  /* Staff Response in Admin Panel - Light Gray */
   .staff-response-admin {
     background-color: #ffffff;
     border-left: 2px solid #6c757d;
@@ -223,62 +218,31 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
 
-  /* Update Button - Green Hover */
   .btn-action.btn-update:hover {
     background-color: #144214;
     border-color: #144214;
     color: white;
   }
 
-  /* Send Response Button - Blue Hover */
   .btn-action.btn-add-note:hover {
     background-color: #007bff;
     border-color: #007bff;
     color: white;
   }
 
-  /* Delete Button - Red Hover */
   .btn-action.btn-delete:hover {
     background-color: #dc3545;
     border-color: #dc3545;
     color: white;
   }
 
-  /* Custom scrollbar for conversation */
-  .responses-container-admin::-webkit-scrollbar {
-    width: 6px;
-  }
+  .responses-container-admin::-webkit-scrollbar { width: 6px; }
+  .responses-container-admin::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+  .responses-container-admin::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+  .responses-container-admin::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
-  .responses-container-admin::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-
-  .responses-container-admin::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 10px;
-  }
-
-  .responses-container-admin::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
-
-  /* Custom scrollbar for history */
-  .list-group::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .list-group::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-
-  .list-group::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 10px;
-  }
-
-  .list-group::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
+  .list-group::-webkit-scrollbar { width: 6px; }
+  .list-group::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+  .list-group::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+  .list-group::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 </style>

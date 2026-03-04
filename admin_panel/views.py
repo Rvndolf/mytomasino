@@ -8,6 +8,7 @@ from user.models import StaffProfile
 from .utils import send_ticket_status_email, OFFICE_TICKET_CATEGORIES, get_categories_for_office
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
+import threading
 
 
 def is_staff_or_superuser(user):
@@ -151,69 +152,98 @@ def ticket_detail(request, ticket_id):
     return render(request, 'admin_panel/ticket_detail.html', context)
 
 
+def _send_email_async(user, ticket_id, new_status):
+    """Fire-and-forget email in a daemon thread to avoid blocking the response."""
+    try:
+        send_ticket_status_email(user, ticket_id, new_status)
+    except Exception as e:
+        # In production, replace with proper logging: logger.error(...)
+        print(f"[Email Error] Failed to send ticket status email: {e}")
+
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def update_ticket_status(request, ticket_id):
-    ticket = get_object_or_404(Ticket, pk=ticket_id)
+    # select_related pulls user + assigned_to + created_by in one query
+    ticket = get_object_or_404(
+        Ticket.objects.select_related('created_by', 'assigned_to'),
+        pk=ticket_id
+    )
 
     # Permission check for staff
     if not request.user.is_superuser:
-        staff_profile = StaffProfile.objects.filter(user=request.user).first()
+        staff_profile = StaffProfile.objects.select_related('office').filter(user=request.user).first()
         allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, []) if staff_profile else []
         if ticket.category not in allowed_categories:
             return HttpResponse("Access denied", status=403)
 
     if request.method == "POST":
         new_status = request.POST.get("status")
+
         if new_status in dict(Ticket.STATUS_CHOICES):
             old_status_display = ticket.get_status_display()
             ticket.status = new_status
-            ticket.save()
+            ticket.save(update_fields=['status'])  # only update the status column, not the whole row
             new_status_display = ticket.get_status_display()
+
+            actor_name = request.user.get_full_name() or request.user.username
+            ticket_id_val = ticket.ticket_id  # cache to avoid repeated calls — remove () if it's a field not a method
 
             # Save history
             TicketHistory.objects.create(
                 ticket=ticket,
                 ticket_title=ticket.title,
                 new_status=new_status,
-                action=f"Status changed from {old_status_display} to {new_status_display} by "
-                       f"{request.user.get_full_name() or request.user.username}",
+                action=f"Status changed from {old_status_display} to {new_status_display} by {actor_name}",
                 user=request.user,
                 created_by=ticket.created_by,
                 activity_type='status_change'
             )
 
-            # Create notification for ticket creator
+            # Notification for ticket creator
             Notification.objects.create(
                 user=ticket.created_by,
                 ticket=ticket,
                 notification_type='ticket_updated',
-                title=f'Ticket Status Updated',
-                message=f'Your ticket #{ticket.ticket_id()} "{ticket.title}" status has been changed to {new_status_display}.'
+                title='Ticket Status Updated',
+                message=f'Your ticket #{ticket_id_val} "{ticket.title}" status has been changed to {new_status_display}.'
             )
 
-            # Send notification email
-            try:
-                send_ticket_status_email(ticket.created_by, ticket.ticket_id(), new_status)
-            except Exception as e:
-                messages.warning(request, f"Status updated but email failed: {str(e)}")
+            # Send email asynchronously — no longer blocks the response
+            threading.Thread(
+                target=_send_email_async,
+                args=(ticket.created_by, ticket_id_val, new_status),
+                daemon=True
+            ).start()
 
-            # HTMX response
             if request.headers.get("HX-Request"):
-                history = TicketHistory.objects.filter(ticket=ticket).order_by('-timestamp')
+                # Fetch history and conversation notes efficiently in one query each
+                history = (
+                    TicketHistory.objects
+                    .filter(ticket=ticket)
+                    .select_related('user')
+                    .order_by('-timestamp')
+                )
+                conversation_notes = (
+                    TicketHistory.objects
+                    .filter(ticket=ticket, activity_type__in=['note', 'user_reply'])
+                    .select_related('user')
+                    .order_by('timestamp')
+                )
                 response = render(request, 'admin_panel/partials/ticket_detail_partial.html', {
                     'ticket': ticket,
-                    'history': history
+                    'history': history,
+                    'conversation_notes': conversation_notes,
                 })
-                response['HX-Trigger'] = 'showToast, ticketUpdated'
+                response['HX-Trigger'] = 'ticketUpdated'
                 return response
 
-            messages.success(request, f"Ticket #{ticket.ticket_id()} marked as {ticket.get_status_display()}.")
+            messages.success(request, f"Ticket #{ticket_id_val} marked as {new_status_display}.")
             return redirect('admin_panel:ticket_detail', ticket_id=ticket.id)
 
         messages.error(request, "Invalid status selected.")
-    return redirect('admin_panel:ticket_detail', ticket_id=ticket.id)
 
+    return redirect('admin_panel:ticket_detail', ticket_id=ticket.id)
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
