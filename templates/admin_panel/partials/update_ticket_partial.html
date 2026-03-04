@@ -10,13 +10,10 @@
   <form method="post"
         hx-post="{% url 'admin_panel:update_ticket' ticket.pk %}"
         hx-trigger="submit"
-        hx-target="this"
-        hx-swap="none"
+        hx-target="#ticket-detail-container"
+        hx-swap="innerHTML"
         hx-on::before-request="startUpdateLoading()"
-        hx-on::after-request="
-          stopUpdateLoading();
-          showUpdateToast(event.detail.successful);
-        ">
+        hx-on::after-request="stopUpdateLoading()">
     {% csrf_token %}
     <div class="mb-3">
       <label for="status-{{ ticket.pk }}" class="form-label fw-semibold" style="font-size: 0.875rem;">Select New Status</label>
@@ -62,32 +59,9 @@
     btn.querySelector('.btn-label').classList.remove('d-none');
     btn.querySelector('.btn-spinner').classList.add('d-none');
   }
-
-  function showUpdateToast(successful) {
-    // Remove any existing toast
-    const existing = document.querySelector('.toast-popup');
-    if (existing) existing.remove();
-
-    const toast = document.createElement('div');
-    toast.className = 'toast-popup';
-    toast.innerHTML = `
-      <div class="toast-icon">${successful ? '✓' : '✕'}</div>
-      <div class="toast-text">${successful ? 'Ticket status updated successfully.' : 'Failed to update ticket. Please try again.'}</div>
-    `;
-
-    if (!successful) {
-      toast.style.background = 'rgba(180, 30, 30, 0.85)';
-    }
-
-    document.body.appendChild(toast);
-
-    // Auto-remove after animation completes (3s slide-in + 0.4s fade-out)
-    setTimeout(() => toast.remove(), 3500);
-  }
 </script>
 
 <style>
-  /* Update button */
   .btn-update-confirm {
     background-color: transparent !important;
     color: #333 !important;
@@ -111,7 +85,6 @@
     cursor: not-allowed;
   }
 
-  /* Cancel button */
   .btn-cancel-confirm {
     background-color: transparent !important;
     color: #333 !important;
