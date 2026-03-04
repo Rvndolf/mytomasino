@@ -435,44 +435,61 @@ def is_staff_or_superuser(user):
 @user_passes_test(is_staff_or_superuser)
 def admin_history(request):
     """View to display all ticket activity history for staff"""
-    
+
     # Get all history entries, ordered by most recent first
-    history_qs = TicketHistory.objects.select_related('ticket', 'ticket__created_by', 'ticket__assigned_to').order_by('-timestamp')
-    
+    history_qs = TicketHistory.objects.select_related(
+        'ticket', 'ticket__created_by', 'ticket__assigned_to', 'user'
+    ).order_by('-timestamp')
+
     # FILTER BY OFFICE - Only show tickets for categories this office handles
     if not request.user.is_superuser:
         staff_profile = StaffProfile.objects.filter(user=request.user).first()
         if staff_profile:
-            # Get allowed categories for this office
             allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, [])
-            # Filter history to only show tickets in allowed categories
-            history_qs = history_qs.filter(ticket__category__in=allowed_categories)
+            # Include live ticket entries matching category OR deleted ticket entries (ticket=NULL)
+            history_qs = history_qs.filter(
+                Q(ticket__category__in=allowed_categories) |
+                Q(ticket__isnull=True)
+            )
         else:
-            # If no staff profile, show nothing
             history_qs = TicketHistory.objects.none()
-    
+
     # Apply filters from GET parameters
-    activity_type = request.GET.get('activity_type', '')
+    activity_type_filter = request.GET.get('activity_type', '')
     status = request.GET.get('status', '')
     user_search = request.GET.get('user', '')
-    
-    # Filter by activity type (based on action text)
-    if activity_type:
-        if activity_type == 'created':
-            history_qs = history_qs.filter(action__icontains='created')
-        elif activity_type == 'updated':
-            history_qs = history_qs.filter(action__icontains='updated')
-        elif activity_type == 'status_change':
-            history_qs = history_qs.filter(action__icontains='status')
-        elif activity_type == 'response':
-            history_qs = history_qs.filter(Q(action__icontains='response') | Q(action__icontains='reply'))
-        elif activity_type == 'deleted':
-            history_qs = history_qs.filter(action__icontains='deleted')
-    
+
+    # Filter by activity type
+    if activity_type_filter:
+        if activity_type_filter == 'created':
+            history_qs = history_qs.filter(
+                Q(activity_type='created') | Q(action__icontains='created')
+            )
+        elif activity_type_filter == 'updated':
+            history_qs = history_qs.filter(
+                Q(activity_type='updated') | Q(action__icontains='updated')
+            )
+        elif activity_type_filter == 'status_change':
+            history_qs = history_qs.filter(
+                Q(activity_type='status_change') | Q(action__icontains='status')
+            )
+        elif activity_type_filter == 'response':
+            history_qs = history_qs.filter(
+                Q(activity_type='response') |
+                Q(action__icontains='response') |
+                Q(action__icontains='reply')
+            )
+        elif activity_type_filter == 'deleted':
+            history_qs = history_qs.filter(
+                Q(activity_type='deleted') |
+                Q(ticket__isnull=True) |
+                Q(action__icontains='deleted')
+            )
+
     # Filter by status
     if status:
         history_qs = history_qs.filter(new_status=status)
-    
+
     # Filter by user
     if user_search:
         history_qs = history_qs.filter(
@@ -481,34 +498,34 @@ def admin_history(request):
             Q(user__first_name__icontains=user_search) |
             Q(user__last_name__icontains=user_search)
         )
-    
+
     # Enrich each history entry with computed fields for the template
     enriched_entries = []
     for entry in history_qs:
-        # Determine activity type from action text
         action_lower = entry.action.lower()
-        if 'created' in action_lower:
-            activity_type_computed = 'created'
+
+        # Determine activity type - prefer DB value, fall back to action text
+        if entry.activity_type:
+            final_activity_type = entry.activity_type
+        elif entry.ticket is None:
+            final_activity_type = 'deleted'
+        elif 'created' in action_lower:
+            final_activity_type = 'created'
         elif 'deleted' in action_lower:
-            activity_type_computed = 'deleted'
+            final_activity_type = 'deleted'
         elif 'status' in action_lower or 'changed' in action_lower:
-            activity_type_computed = 'status_change'
+            final_activity_type = 'status_change'
         elif 'response' in action_lower or 'replied' in action_lower or 'reply' in action_lower or 'comment' in action_lower:
-            activity_type_computed = 'response'
-        elif 'updated' in action_lower or 'modified' in action_lower:
-            activity_type_computed = 'updated'
+            final_activity_type = 'response'
         else:
-            activity_type_computed = 'updated'
-        
-        # Use activity_type from database if available, otherwise use computed
-        final_activity_type = entry.activity_type if entry.activity_type else activity_type_computed
-        
-        # Get user - use database user field, fallback to ticket.created_by
+            final_activity_type = 'updated'
+
+        # Get user - use entry user, fallback to ticket creator
         user = entry.user
         if not user and entry.ticket:
             user = entry.ticket.created_by
-        
-        # Extract old and new status from action if it's a status change
+
+        # Extract old/new status for status_change entries
         old_status = None
         new_status = entry.new_status
         if final_activity_type == 'status_change' and 'from' in action_lower and 'to' in action_lower:
@@ -517,27 +534,28 @@ def admin_history(request):
                 if len(parts) > 1:
                     status_part = parts[1].split('to')
                     if len(status_part) > 1:
-                        old_status = status_part[0].strip().strip('"').strip("'").strip()
-                        new_status = status_part[1].strip().strip('"').strip("'").strip()
-            except:
+                        old_status = status_part[0].strip().strip('"\'')
+                        new_status = status_part[1].strip().strip('"\'')
+            except Exception:
                 pass
-        
-        # Extract response preview if it's a response
+
+        # Extract response preview
         response_preview = None
-        if final_activity_type == 'response':
-            if ':' in entry.action:
-                try:
-                    preview_part = entry.action.split(':', 1)[1].strip().strip('"').strip("'")
-                    response_preview = preview_part[:200]
-                except:
-                    pass
-        
-        # Create enriched entry object with all needed attributes
-        enriched_entry = type('obj', (object,), {
+        if final_activity_type == 'response' and ':' in entry.action:
+            try:
+                preview_part = entry.action.split(':', 1)[1].strip().strip('"\'')
+                response_preview = preview_part[:200]
+            except Exception:
+                pass
+
+        # Resolve ticket_id safely
+        ticket_id = entry.ticket.id if entry.ticket else None
+
+        enriched_entries.append(type('EnrichedEntry', (object,), {
             'id': entry.id,
             'ticket': entry.ticket,
-            'ticket_id': entry.ticket.id if entry.ticket else getattr(entry, 'deleted_ticket_id', None),
-            'ticket_title': entry.ticket_title,
+            'ticket_id': ticket_id,
+            'ticket_title': entry.ticket_title if hasattr(entry, 'ticket_title') else None,
             'action': entry.action,
             'timestamp': entry.timestamp,
             'new_status': new_status,
@@ -545,22 +563,20 @@ def admin_history(request):
             'activity_type': final_activity_type,
             'user': user,
             'response_preview': response_preview,
-        })()
-        
-        enriched_entries.append(enriched_entry)
-    
+        })())
+
     # Pagination
-    paginator = Paginator(enriched_entries, 20)  # Show 20 entries per page
+    paginator = Paginator(enriched_entries, 20)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
-    
+
     context = {
         'history_entries': page_obj,
         'page_obj': page_obj,
         'is_paginated': page_obj.has_other_pages(),
     }
-    
+
     if request.headers.get('HX-Request'):
         return render(request, 'admin_panel/partials/admin_history_partial.html', context)
-    
+
     return render(request, 'admin_panel/admin_history.html', context)
