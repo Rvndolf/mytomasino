@@ -12,9 +12,10 @@
         hx-trigger="submit"
         hx-target="this"
         hx-swap="none"
+        hx-on::before-request="startUpdateLoading()"
         hx-on::after-request="
-          htmx.ajax('GET', '{% url 'admin_panel:ticket_list' %}?status={{ status_filter|default_if_none:'' }}{% for cat in active_categories %}&categories={{ cat }}{% endfor %}', {target: '#ticket-table-body', swap: 'innerHTML'});
-          htmx.ajax('GET', '{% url 'admin_panel:ticket_detail' ticket.pk %}', {target: '#ticket-detail-container', swap: 'innerHTML'});
+          stopUpdateLoading();
+          showUpdateToast(event.detail.successful);
         ">
     {% csrf_token %}
     <div class="mb-3">
@@ -26,9 +27,13 @@
       </select>
     </div>
 
-    <div class="d-flex gap-2">
-      <button type="submit" class="btn btn-update-confirm">
-        Update Status
+    <div class="d-flex gap-2 align-items-center">
+      <button type="submit" class="btn btn-update-confirm" id="update-btn-{{ ticket.pk }}">
+        <span class="btn-label">Update Status</span>
+        <span class="btn-spinner d-none">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Updating...
+        </span>
       </button>
       <button type="button" 
               class="btn btn-cancel-confirm"
@@ -40,6 +45,46 @@
     </div>
   </form>
 </div>
+
+<script>
+  function startUpdateLoading() {
+    const btn = document.querySelector('#update-btn-{{ ticket.pk }}');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.querySelector('.btn-label').classList.add('d-none');
+    btn.querySelector('.btn-spinner').classList.remove('d-none');
+  }
+
+  function stopUpdateLoading() {
+    const btn = document.querySelector('#update-btn-{{ ticket.pk }}');
+    if (!btn) return;
+    btn.disabled = false;
+    btn.querySelector('.btn-label').classList.remove('d-none');
+    btn.querySelector('.btn-spinner').classList.add('d-none');
+  }
+
+  function showUpdateToast(successful) {
+    // Remove any existing toast
+    const existing = document.querySelector('.toast-popup');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-popup';
+    toast.innerHTML = `
+      <div class="toast-icon">${successful ? '✓' : '✕'}</div>
+      <div class="toast-text">${successful ? 'Ticket status updated successfully.' : 'Failed to update ticket. Please try again.'}</div>
+    `;
+
+    if (!successful) {
+      toast.style.background = 'rgba(180, 30, 30, 0.85)';
+    }
+
+    document.body.appendChild(toast);
+
+    // Auto-remove after animation completes (3s slide-in + 0.4s fade-out)
+    setTimeout(() => toast.remove(), 3500);
+  }
+</script>
 
 <style>
   /* Update button */
@@ -53,12 +98,17 @@
     transition: all 0.2s ease;
   }
 
-  .btn-update-confirm:hover {
+  .btn-update-confirm:hover:not(:disabled) {
     background-color: #198754 !important;
     color: white !important;
     border-color: #198754 !important;
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2);
+  }
+
+  .btn-update-confirm:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
   }
 
   /* Cancel button */
