@@ -99,31 +99,6 @@
     </div>
 </div>
 
-<!-- Toast Container (positioned absolutely, outside card) -->
-<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 9999;">
-  {% if messages %}
-    {% for message in messages %}
-      <div class="toast show align-items-center border-0 shadow-sm 
-                  {% if message.tags == 'success' %}bg-success
-                  {% else %}bg-danger{% endif %} text-white" 
-           role="alert" 
-           aria-live="assertive" 
-           aria-atomic="true"
-           style="min-width: 280px; max-width: 350px;">
-        <div class="d-flex">
-          <div class="toast-body text-center w-100 py-2">
-            {{ message }}
-          </div>
-          <button type="button" 
-                  class="btn-close btn-close-white me-2 my-auto" 
-                  data-bs-dismiss="toast" 
-                  aria-label="Close"></button>
-        </div>
-      </div>
-    {% endfor %}
-  {% endif %}
-</div>
-
 <!-- Scripts -->
 <script>
   /* Pre-fill email from remembered cookie */
@@ -210,17 +185,6 @@
       loginBtn.innerHTML = 'Log In';
     }
   });
-
-  /* Auto-hide toast after 4 seconds */
-  document.addEventListener('DOMContentLoaded', function() {
-    const toasts = document.querySelectorAll('.toast');
-    toasts.forEach(toast => {
-      setTimeout(() => {
-        const bsToast = bootstrap.Toast.getOrCreateInstance(toast);
-        bsToast.hide();
-      }, 4000);
-    });
-  });
 </script>
 
 <style>
@@ -285,22 +249,6 @@
   color: hsl(140, 17%, 37%);
   cursor: pointer;
   user-select: none;
-}
-
-/* Toast styling */
-.toast {
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Mobile responsive text sizing */
