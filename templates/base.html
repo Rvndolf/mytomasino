@@ -111,6 +111,10 @@
       width: 90%;
     }
 
+    .toast-popup.error {
+      background: rgba(153, 27, 27, 0.85);
+    }
+
     .toast-icon {
       background: rgba(255, 255, 255, 0.2);
       width: 28px;
@@ -179,7 +183,9 @@
     {% for message in messages %}
       {% if forloop.first %}
         <div class="toast-popup {{ message.tags }}">
-          <div class="toast-icon">✓</div>
+          <div class="toast-icon">
+            {% if 'error' in message.tags %}✕{% else %}✓{% endif %}
+          </div>
           <div class="toast-text">{{ message }}</div>
         </div>
       {% endif %}
