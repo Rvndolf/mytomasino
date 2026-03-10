@@ -202,7 +202,8 @@
         <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
         <form hx-post="{% url 'tickets:delete_ticket' ticket.pk %}"
               hx-target="#dashboard-content"
-              hx-swap="innerHTML">
+              hx-swap="innerHTML"
+              hx-on::before-request="closeDeleteModal()">
           {% csrf_token %}
           <button type="submit" class="btn btn-modal-confirm-delete">Yes, Delete</button>
         </form>
@@ -211,6 +212,18 @@
     </div>
   </div>
 </div>
+
+<script>
+  function closeDeleteModal() {
+    const modalEl = document.getElementById('deleteTicketModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+  }
+</script>
 
 <style>
   .ticket-detail-container {
@@ -398,7 +411,6 @@
 
   .response-body { white-space: pre-line; color: #495057; line-height: 1.6; }
 
-  /* Modal Buttons */
   .btn-modal-cancel {
     background-color: transparent;
     color: #6b7280;

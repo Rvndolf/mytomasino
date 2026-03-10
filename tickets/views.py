@@ -314,7 +314,6 @@ def delete_ticket(request, pk):
         ticket.delete()
 
         if request.headers.get('HX-Request'):
-            # Fetch updated ticket lists for dashboard
             tickets = Ticket.objects.filter(created_by=request.user).order_by('-created_at')
             context = {
                 'open_tickets': tickets.filter(status='open'),
@@ -322,12 +321,10 @@ def delete_ticket(request, pk):
                 'completed_tickets': tickets.filter(status='completed'),
             }
             response = render(request, 'tickets/partials/ticket_overview_partial.html', context)
-            # Update the URL in the browser to ticket overview
             response['HX-Push-Url'] = reverse('tickets:ticket_overview')
             return response
 
         return redirect('tickets:ticket_overview')
 
-    # GET → render full page if normal request, partial if HTMX
-    template = 'tickets/partials/delete_ticket_partial.html' if request.headers.get('HX-Request') else 'tickets/delete_ticket.html'
-    return render(request, template, {'ticket': ticket})
+    # GET requests no longer used — modal handles confirmation in ticket_detail
+    return redirect('tickets:ticket_overview')
