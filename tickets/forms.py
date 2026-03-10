@@ -35,8 +35,8 @@ class TechnicalSupportForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         instance = kwargs.get('instance')
+        super().__init__(*args, **kwargs)
         if instance and instance.metadata:
             self.fields['issue_type'].initial = instance.metadata.get('issue_type')
 
@@ -81,8 +81,8 @@ class AcademicSupportForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         instance = kwargs.get('instance')
+        super().__init__(*args, **kwargs)
         if instance:
             if instance.metadata:
                 self.fields['program_year'].initial = instance.metadata.get('program_year')
@@ -143,18 +143,15 @@ class LostAndFoundForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         instance = kwargs.get('instance')
+        super().__init__(*args, **kwargs)
         if instance:
             if instance.metadata:
                 self.fields['location'].initial = instance.metadata.get('location')
-                # Format datetime string back to datetime-local format
                 raw_dt = instance.metadata.get('date_time')
                 if raw_dt:
-                    # datetime-local input expects 'YYYY-MM-DDTHH:MM'
                     self.fields['date_time'].initial = raw_dt.replace(' ', 'T')
             if instance.description:
-                # Strip out the appended notes section if present
                 desc_parts = instance.description.split('\n\nNotes: ', 1)
                 self.fields['item_description'].initial = desc_parts[0]
                 if len(desc_parts) > 1:
@@ -217,8 +214,8 @@ class WelfareForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         instance = kwargs.get('instance')
+        super().__init__(*args, **kwargs)
         if instance:
             if instance.metadata:
                 self.fields['contact_method'].initial = instance.metadata.get('contact_method')
@@ -293,8 +290,8 @@ class FacilitiesForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         instance = kwargs.get('instance')
+        super().__init__(*args, **kwargs)
         if instance:
             if instance.metadata:
                 self.fields['location'].initial = instance.metadata.get('location')
@@ -339,8 +336,8 @@ class GeneralInquiryForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         instance = kwargs.get('instance')
+        super().__init__(*args, **kwargs)
         if instance and instance.description:
             self.fields['inquiry'].initial = instance.description
 
