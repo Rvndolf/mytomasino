@@ -407,10 +407,14 @@ def mark_notification_read(request, notification_id):
             )
             notification.is_read = True
             notification.save()
-            return JsonResponse({'success': True})
+
+            # Return ticket_id only if ticket still exists
+            ticket_id = notification.ticket.id if notification.ticket else None
+            return JsonResponse({'success': True, 'ticket_id': ticket_id})
+
         except Notification.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Notification not found'})
-    
+            return JsonResponse({'success': False, 'error': 'Notification not found'}, status=404)
+
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 

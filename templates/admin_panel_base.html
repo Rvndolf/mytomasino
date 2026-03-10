@@ -97,7 +97,6 @@
         {% for notification in notifications %}
           <div class="notification-item {% if not notification.is_read %}unread{% endif %}" 
                data-notification-id="{{ notification.id }}"
-               data-ticket-id="{% if notification.ticket %}{{ notification.ticket.id }}{% endif %}"
                onclick="markAsRead(this)"
                style="cursor: pointer;">
             <div class="notification-icon">
@@ -184,7 +183,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    
+
 // Helper function to get CSRF token from cookies
 function getCookie(name) {
   let cookieValue = null;
@@ -236,13 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const dashboardContent = document.getElementById('dashboard-content');
   const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
   
-  // Clear all active states first to prevent multiple active items
   navItems.forEach(item => item.classList.remove('active'));
   
-  // Check if dashboard-content already has content (from server-side render on refresh)
   if (dashboardContent && dashboardContent.innerHTML.trim() !== '') {
-    // Content already loaded from server, just highlight the correct nav item
-    // Sort nav items by URL length (longest first) to match most specific URL first
     const sortedNavItems = Array.from(navItems).sort((a, b) => {
       const urlA = a.getAttribute('hx-get');
       const urlB = b.getAttribute('hx-get');
@@ -259,13 +254,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
-    return; // Don't load via HTMX since content is already there
+    return;
   }
   
-  // Dashboard content is empty (initial dashboard load), load via HTMX
   let matchFound = false;
   
-  // Sort nav items by URL length (longest first) to match most specific URL first
   const sortedNavItems = Array.from(navItems).sort((a, b) => {
     const urlA = a.getAttribute('hx-get');
     const urlB = b.getAttribute('hx-get');
@@ -283,7 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // If no matching nav item found (e.g., on /admin/ root), load home by default
   if (!matchFound) {
     const homeUrl = "{% url 'admin_panel:admin_home' %}";
     htmx.ajax('GET', homeUrl, '#dashboard-content');
@@ -294,8 +286,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Opens/closes the left navigation sidebar on mobile
-// Also closes notification sidebar when opening nav sidebar
 const sidebarToggle = document.getElementById('sidebarToggle');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('sidebarOverlay');
@@ -306,11 +296,9 @@ sidebarToggle.addEventListener('click', (e) => {
   e.stopPropagation();
   sidebar.classList.toggle('active');
   overlay.classList.toggle('active');
-  // Close notification sidebar if it's open
   notificationSidebar.classList.remove('active');
   notificationOverlay.classList.remove('active');
   
-  // Show mobile controls when notification sidebar closes
   if (window.innerWidth <= 768) {
     sidebarToggle.style.opacity = '1';
     sidebarToggle.style.pointerEvents = 'auto';
@@ -319,25 +307,20 @@ sidebarToggle.addEventListener('click', (e) => {
   }
 });
 
-// Click overlay to close sidebar
 overlay.addEventListener('click', () => {
   sidebar.classList.remove('active');
   overlay.classList.remove('active');
 });
 
-// Opens/closes the right notification sidebar
-// Also closes nav sidebar when opening notification sidebar
 const notificationToggle = document.getElementById('notificationToggle');
 const closeNotification = document.getElementById('closeNotification');
 
 notificationToggle.addEventListener('click', () => {
   notificationSidebar.classList.toggle('active');
   notificationOverlay.classList.toggle('active');
-  // Close nav sidebar if it's open
   sidebar.classList.remove('active');
   overlay.classList.remove('active');
   
-  // Hide/show mobile controls on mobile
   if (window.innerWidth <= 768) {
     if (notificationSidebar.classList.contains('active')) {
       sidebarToggle.style.opacity = '0';
@@ -357,7 +340,6 @@ closeNotification.addEventListener('click', () => {
   notificationSidebar.classList.remove('active');
   notificationOverlay.classList.remove('active');
   
-  // Show mobile controls when notification sidebar closes on mobile
   if (window.innerWidth <= 768) {
     sidebarToggle.style.opacity = '1';
     sidebarToggle.style.pointerEvents = 'auto';
@@ -366,12 +348,10 @@ closeNotification.addEventListener('click', () => {
   }
 });
 
-// Click overlay to close notification sidebar
 notificationOverlay.addEventListener('click', () => {
   notificationSidebar.classList.remove('active');
   notificationOverlay.classList.remove('active');
   
-  // Show mobile controls when notification sidebar closes on mobile
   if (window.innerWidth <= 768) {
     sidebarToggle.style.opacity = '1';
     sidebarToggle.style.pointerEvents = 'auto';
@@ -382,12 +362,12 @@ notificationOverlay.addEventListener('click', () => {
 
 // When user clicks a notification:
 // 1. Marks it as read in the database
-// 2. Updates the badge count
+// 2. Navigates to the ticket if it still exists
+// 3. Does nothing extra if the ticket was deleted
 function markAsRead(element) {
   const notificationId = element.getAttribute('data-notification-id');
   const csrftoken = getCookie('csrftoken');
 
-  // Build the URL dynamically
   const markReadUrl = "{% url 'admin_panel:mark_notification_read' 0 %}".replace('0', notificationId);
 
   fetch(markReadUrl, {
@@ -398,25 +378,55 @@ function markAsRead(element) {
     }
   })
   .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response.json();
   })
   .then(data => {
     if (data.success) {
-      // Remove unread styling from this notification
       element.classList.remove('unread');
-      
-      // Update the notification badge count
+
       const badge = document.querySelector('.notification-badge');
       if (badge) {
         const currentCount = parseInt(badge.textContent);
         if (currentCount > 1) {
           badge.textContent = currentCount - 1;
         } else {
-          badge.remove(); // Remove badge if this was the last notification
+          badge.remove();
         }
+      }
+
+      // Close notification sidebar
+      notificationSidebar.classList.remove('active');
+      notificationOverlay.classList.remove('active');
+      if (window.innerWidth <= 768) {
+        sidebarToggle.style.opacity = '1';
+        sidebarToggle.style.pointerEvents = 'auto';
+        notificationToggle.style.opacity = '1';
+        notificationToggle.style.pointerEvents = 'auto';
+      }
+
+      // Navigate to ticket only if it still exists (server returns ticket_id: null if deleted)
+      if (data.ticket_id) {
+        const ticketListUrl = "{% url 'admin_panel:ticket_list' %}";
+        const ticketDetailUrl = "{% url 'admin_panel:ticket_detail' 0 %}".replace('0', data.ticket_id);
+
+        // Highlight tickets nav item
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
+        const ticketsNav = document.querySelector(`.sidebar-nav .nav-item[hx-get="${ticketListUrl}"]`);
+        if (ticketsNav) ticketsNav.classList.add('active');
+
+        // Load ticket list, then load ticket detail inside it
+        htmx.ajax('GET', ticketListUrl, {
+          target: '#dashboard-content',
+          swap: 'innerHTML'
+        }).then(() => {
+          htmx.ajax('GET', ticketDetailUrl, {
+            target: '#ticket-detail-container',
+            swap: 'innerHTML'
+          });
+        });
+
+        window.history.pushState({}, '', ticketListUrl);
       }
     } else {
       console.error('Failed to mark notification as read:', data.error);
@@ -428,7 +438,6 @@ function markAsRead(element) {
 }
 
 // Marks all unread notifications as read at once
-// Updates UI to show all caught up
 const markAllReadBtn = document.getElementById('markAllRead');
 if (markAllReadBtn) {
   markAllReadBtn.addEventListener('click', (e) => {
@@ -443,25 +452,18 @@ if (markAllReadBtn) {
       }
     })
     .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return response.json();
     })
     .then(data => {
       if (data.success) {
-        // Remove unread styling from all notifications
         document.querySelectorAll('.notification-item.unread').forEach(item => {
           item.classList.remove('unread');
         });
         
-        // Remove notification badge
         const badge = document.querySelector('.notification-badge');
-        if (badge) {
-          badge.remove();
-        }
+        if (badge) badge.remove();
         
-        // Update the footer button to show "All caught up"
         const notificationFooter = document.querySelector('.notification-footer');
         if (notificationFooter) {
           notificationFooter.innerHTML = `
@@ -480,11 +482,6 @@ if (markAllReadBtn) {
   });
 }
 
-// Highlights the clicked navigation item
-// Removes highlight from all other nav items
-// Auto-closes sidebar on mobile after clicking
-// Sync active nav item based on current URL
-// Called after any HTMX navigation (sidebar clicks OR card links)
 function syncActiveNav() {
   const currentPath = window.location.pathname;
   const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
@@ -507,7 +504,6 @@ function syncActiveNav() {
   });
 }
 
-// Highlights the clicked navigation item and auto-closes sidebar on mobile
 document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
   item.addEventListener('click', function() {
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
@@ -522,11 +518,9 @@ document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
   });
 });
 
-// Re-sync active nav after any HTMX push (covers card links, back/forward, etc.)
 document.body.addEventListener('htmx:pushedIntoHistory', syncActiveNav);
 window.addEventListener('popstate', syncActiveNav);
-// Disables submit button for 2 seconds after clicking
-// Prevents users from accidentally submitting forms multiple times
+
 document.addEventListener('submit', (e) => {
   const submitBtn = e.target.querySelector('button[type="submit"]');
   if (submitBtn && !submitBtn.disabled) {
@@ -556,34 +550,30 @@ function hideToast() {
         toastEl.classList.remove('slide-out');
     }, 400);
 }
+
 // SESSION TIMEOUT WARNING
 let inactivityTimeout;
-const TIMEOUT_DURATION = 1800000; // 30 minutes in milliseconds (matches SESSION_COOKIE_AGE)
-const WARNING_TIME = 120000; // Show warning 2 minutes before timeout
+const TIMEOUT_DURATION = 1800000;
+const WARNING_TIME = 120000;
 
 function resetInactivityTimer() {
   clearTimeout(inactivityTimeout);
-  
-  // Show warning 2 minutes before logout
   inactivityTimeout = setTimeout(() => {
     if (confirm('Your session will expire in 2 minutes due to inactivity. Click OK to stay logged in.')) {
-      // User clicked OK, make a request to reset session
       fetch('{% url "admin_panel:admin_home" %}', { method: 'HEAD' });
       resetInactivityTimer();
     }
   }, TIMEOUT_DURATION - WARNING_TIME);
 }
 
-// Reset timer on user activity
 document.addEventListener('mousemove', resetInactivityTimer);
 document.addEventListener('keypress', resetInactivityTimer);
 document.addEventListener('click', resetInactivityTimer);
 document.addEventListener('scroll', resetInactivityTimer);
 
-// Initialize timer
 resetInactivityTimer();
 
-</script>
+  </script>
 
   <style>
 
@@ -608,10 +598,9 @@ resetInactivityTimer();
     }
 
     .profile-branding {
-      font-size: 0.875rem; /* 14px if base is 16px */
+      font-size: 0.875rem;
     }
 
-    /* Notification header green gradient theme */
     #notificationSidebar .notification-header {
       background: linear-gradient(135deg, #144214 0%, #3c6d36 100%) !important;
       color: white !important;
@@ -633,158 +622,148 @@ resetInactivityTimer();
       color: rgba(255, 255, 255, 0.8) !important;
     }
 
-    /* Make notification icons white */
     .notification-icon i {
       color: white !important;
     }
 
-    /* Add smooth transitions for mobile controls */
     .mobile-menu-toggle,
     .notification-bell {
       transition: opacity 0.3s ease;
     }
 
     #dashboard-content {
-    min-height: calc(100vh - 200px);
-    padding-bottom: 100px;
-    font-family: 'Satoshi', sans-serif;
-  }
-
-  @media (max-width: 768px) {
-    #dashboard-content {
-      padding-bottom: 150px;
+      min-height: calc(100vh - 200px);
+      padding-bottom: 100px;
+      font-family: 'Satoshi', sans-serif;
     }
-  }
 
-  /* Logout button styling */
-  .logout-btn {
-    background-color: transparent !important;
-    color: #272727 !important;
-    border: 1px solid #4c4d4d !important;
-    border-radius: 6px;
-    padding: 6px 10px !important;
-    width: auto !important;
-    text-align: center !important;
-    font-size: 0.8125rem !important;
-    font-weight: 300 !important;
-    transition: all 0.3s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    margin: 0 auto !important;
-    transform: none !important;
-    opacity: 0.9 !important;
-  }
+    @media (max-width: 768px) {
+      #dashboard-content {
+        padding-bottom: 150px;
+      }
+    }
 
-  .logout-btn:hover {
-    background-color: #dc3545 !important;
-    color: white !important;
-    border-color: #dc3545 !important;
-    transform: none !important;
-    box-shadow: none !important;
-  }
+    .logout-btn {
+      background-color: transparent !important;
+      color: #272727 !important;
+      border: 1px solid #4c4d4d !important;
+      border-radius: 6px;
+      padding: 6px 10px !important;
+      width: auto !important;
+      text-align: center !important;
+      font-size: 0.8125rem !important;
+      font-weight: 300 !important;
+      transition: all 0.3s ease !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      margin: 0 auto !important;
+      transform: none !important;
+      opacity: 0.9 !important;
+    }
 
-  .logout-btn i {
-    font-size: 0.8125rem !important;
-    color: #212529 !important;
-    transition: color 0.3s ease !important;
-  }
+    .logout-btn:hover {
+      background-color: #dc3545 !important;
+      color: white !important;
+      border-color: #dc3545 !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
 
-  .logout-btn:hover i {
-    color: white !important;
-  }
-  
-  /* Logo section styling */
-  .logo-section {
-    padding: 1rem 1rem 0.25rem;
-    text-align: center;
-    margin-bottom: 0.25rem;
-  }
-  
-  .sidebar-logo {
-    max-width: 35px;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-  }
-  
-  /* Email icon styling */
-  .email {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-top: 0.25rem;
-  }
-  
-  .email i {
-    font-size: 0.75rem;
-    color: #6c757d;
-    opacity: 0.7;
-  }
-  
-  .email span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 180px;
-  }
-  
-  /* Reduce gap between profile section and sidebar navs */
-  .sidebar-nav {
-    margin-top: 1rem !important;
-    padding-top: 1rem !important;
-    flex: 0 0 auto !important; /* Don't let it grow */
-    justify-content: flex-start !important; /* Align items to top instead of center */
-  }
-  
-  /* Reduce profile section padding */
-  .profile-section {
-    padding-top: 1.5rem !important;
-    padding-bottom: 3rem !important;
-    margin-bottom: 1.5rem !important;
-  }
-  
-  /* Position logout button container at bottom, not part of flex */
-  .sidebar form {
-    position: absolute !important;
-    bottom: 1.5rem !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  
-  /* Mobile styles - keep text smaller */
-  .sidebar-nav .nav-item {
-    font-size: 0.8125rem !important;
-    padding: 8px 12px !important;
-  }
-  
-  .sidebar-nav .nav-item i {
-    font-size: 0.875rem !important;
-  }
-  
-  /* Desktop styles - make text bigger */
-  @media (min-width: 769px) {
+    .logout-btn i {
+      font-size: 0.8125rem !important;
+      color: #212529 !important;
+      transition: color 0.3s ease !important;
+    }
+
+    .logout-btn:hover i {
+      color: white !important;
+    }
+
+    .logo-section {
+      padding: 1rem 1rem 0.25rem;
+      text-align: center;
+      margin-bottom: 0.25rem;
+    }
+
     .sidebar-logo {
-      max-width: 40px;
+      max-width: 35px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
     }
-    
+
+    .email {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: #6c757d;
+      margin-top: 0.25rem;
+    }
+
+    .email i {
+      font-size: 0.75rem;
+      color: #6c757d;
+      opacity: 0.7;
+    }
+
+    .email span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 180px;
+    }
+
+    .sidebar-nav {
+      margin-top: 1rem !important;
+      padding-top: 1rem !important;
+      flex: 0 0 auto !important;
+      justify-content: flex-start !important;
+    }
+
+    .profile-section {
+      padding-top: 1.5rem !important;
+      padding-bottom: 3rem !important;
+      margin-bottom: 1.5rem !important;
+    }
+
+    .sidebar form {
+      position: absolute !important;
+      bottom: 1.5rem !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      width: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
     .sidebar-nav .nav-item {
-      font-size: 0.85rem !important; /* 15px if base is 16px */
-      padding: 10px 10px !important;
+      font-size: 0.8125rem !important;
+      padding: 8px 12px !important;
     }
-    
+
     .sidebar-nav .nav-item i {
-      font-size: 1rem !important; /* 16px */
+      font-size: 0.875rem !important;
     }
-  }
-  
+
+    @media (min-width: 769px) {
+      .sidebar-logo {
+        max-width: 40px;
+      }
+
+      .sidebar-nav .nav-item {
+        font-size: 0.85rem !important;
+        padding: 10px 10px !important;
+      }
+
+      .sidebar-nav .nav-item i {
+        font-size: 1rem !important;
+      }
+    }
+
   </style>
 
   {% block extra_js %}
