@@ -47,7 +47,6 @@
   function startUpdateLoading() {
     const btn = document.querySelector('#update-btn-{{ ticket.pk }}');
     if (!btn) return;
-    // Capture selected status label before the swap destroys the DOM
     const select = document.querySelector('#status-{{ ticket.pk }}');
     if (select) {
       window._pendingStatusLabel = select.selectedOptions[0]?.text || null;
@@ -58,26 +57,13 @@
   }
 
   function stopUpdateLoading() {
-    const btn = document.querySelector('#update-btn-{{ ticket.pk }}');
-    if (!btn) return;
-    btn.disabled = false;
-    btn.querySelector('.btn-label').classList.remove('d-none');
-    btn.querySelector('.btn-spinner').classList.add('d-none');
+    const label = window._pendingStatusLabel;
+    const message = label
+      ? `Ticket status updated to "<strong>${label}</strong>"`
+      : 'Ticket updated successfully!';
+    showToastNotification(message);
+    window._pendingStatusLabel = null;
   }
-
-  // Listen for successful update and show toast
-  document.body.addEventListener('htmx:afterRequest', function handler(event) {
-    if (event.detail.successful &&
-        event.detail.requestConfig.path.includes('update-ticket')) {
-      const label = window._pendingStatusLabel;
-      const message = label
-        ? `Ticket status updated to "<strong>${label}</strong>"`
-        : 'Ticket updated successfully!';
-      showToastNotification(message);
-      window._pendingStatusLabel = null;
-      document.body.removeEventListener('htmx:afterRequest', handler);
-    }
-  });
 </script>
 
 <style>

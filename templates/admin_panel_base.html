@@ -210,7 +210,9 @@ document.body.addEventListener('htmx:configRequest', (event) => {
 
 // Shows a loading spinner when HTMX makes a request
 // Hides it when the request completes
-document.body.addEventListener('htmx:beforeRequest', () => {
+document.body.addEventListener('htmx:beforeRequest', (event) => {
+  const path = event.detail.requestConfig.path;
+  if (path.includes('notification')) return;
   document.getElementById('loading').classList.remove('d-none');
 });
 
