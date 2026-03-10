@@ -34,15 +34,19 @@ class TechnicalSupportForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'placeholder': 'Ticket Title'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance and instance.metadata:
+            self.fields['issue_type'].initial = instance.metadata.get('issue_type')
+
     def save(self, commit=True):
         ticket = super().save(commit=False)
         issue_type = self.cleaned_data.get('issue_type')
-
         ticket.metadata = {
             'issue_type': issue_type,
             'issue_type_display': dict(self.ISSUE_CHOICES)[issue_type]
         }
-
         if commit:
             ticket.save()
         return ticket
@@ -76,20 +80,27 @@ class AcademicSupportForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'placeholder': 'Ticket Title'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance:
+            if instance.metadata:
+                self.fields['program_year'].initial = instance.metadata.get('program_year')
+                self.fields['inquiry_type'].initial = instance.metadata.get('inquiry_type')
+            if instance.description:
+                self.fields['question'].initial = instance.description
+
     def save(self, commit=True):
         ticket = super().save(commit=False)
         program_year = self.cleaned_data.get('program_year')
         inquiry_type = self.cleaned_data.get('inquiry_type')
         question = self.cleaned_data.get('question')
-
         ticket.metadata = {
             'program_year': program_year,
             'inquiry_type': inquiry_type,
             'inquiry_type_display': dict(self.INQUIRY_CHOICES)[inquiry_type]
         }
-
         ticket.description = question
-
         if commit:
             ticket.save()
         return ticket
@@ -131,6 +142,24 @@ class LostAndFoundForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'placeholder': 'Item Name'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance:
+            if instance.metadata:
+                self.fields['location'].initial = instance.metadata.get('location')
+                # Format datetime string back to datetime-local format
+                raw_dt = instance.metadata.get('date_time')
+                if raw_dt:
+                    # datetime-local input expects 'YYYY-MM-DDTHH:MM'
+                    self.fields['date_time'].initial = raw_dt.replace(' ', 'T')
+            if instance.description:
+                # Strip out the appended notes section if present
+                desc_parts = instance.description.split('\n\nNotes: ', 1)
+                self.fields['item_description'].initial = desc_parts[0]
+                if len(desc_parts) > 1:
+                    self.fields['notes'].initial = desc_parts[1]
+
     def save(self, commit=True):
         ticket = super().save(commit=False)
         item_description = self.cleaned_data.get('item_description')
@@ -138,19 +167,15 @@ class LostAndFoundForm(forms.ModelForm):
         date_time = self.cleaned_data.get('date_time')
         notes = self.cleaned_data.get('notes', '')
         photo = self.cleaned_data.get('photo')
-
         ticket.metadata = {
             'location': location,
             'date_time': date_time.strftime('%Y-%m-%d %H:%M'),
         }
-
         ticket.description = item_description
         if notes:
             ticket.description += f"\n\nNotes: {notes}"
-
         if photo:
             ticket.attachment = photo
-
         if commit:
             ticket.save()
         return ticket
@@ -191,25 +216,32 @@ class WelfareForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'placeholder': 'Counseling Request Title'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance:
+            if instance.metadata:
+                self.fields['contact_method'].initial = instance.metadata.get('contact_method')
+                self.fields['request_type'].initial = instance.metadata.get('request_type')
+                self.fields['preferred_date'].initial = instance.metadata.get('preferred_date')
+            if instance.description:
+                self.fields['description'].initial = instance.description
+
     def save(self, commit=True):
         ticket = super().save(commit=False)
         contact_method = self.cleaned_data.get('contact_method')
         request_type = self.cleaned_data.get('request_type')
         description = self.cleaned_data.get('description')
         preferred_date = self.cleaned_data.get('preferred_date')
-
         ticket.metadata = {
             'contact_method': contact_method,
             'contact_method_display': dict(self.CONTACT_CHOICES)[contact_method],
             'request_type': request_type,
             'request_type_display': dict(self.REQUEST_CHOICES)[request_type],
         }
-
         if preferred_date:
             ticket.metadata['preferred_date'] = preferred_date.strftime('%Y-%m-%d')
-
         ticket.description = description
-
         if commit:
             ticket.save()
         return ticket
@@ -260,6 +292,17 @@ class FacilitiesForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'placeholder': 'Issue Title'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance:
+            if instance.metadata:
+                self.fields['location'].initial = instance.metadata.get('location')
+                self.fields['issue_type'].initial = instance.metadata.get('issue_type')
+                self.fields['urgency'].initial = instance.metadata.get('urgency')
+            if instance.description:
+                self.fields['description'].initial = instance.description
+
     def save(self, commit=True):
         ticket = super().save(commit=False)
         location = self.cleaned_data.get('location')
@@ -267,7 +310,6 @@ class FacilitiesForm(forms.ModelForm):
         description = self.cleaned_data.get('description')
         urgency = self.cleaned_data.get('urgency')
         photo = self.cleaned_data.get('photo')
-
         ticket.metadata = {
             'location': location,
             'issue_type': issue_type,
@@ -275,12 +317,9 @@ class FacilitiesForm(forms.ModelForm):
             'urgency': urgency,
             'urgency_display': dict(self.URGENCY_CHOICES)[urgency]
         }
-
         ticket.description = description
-
         if photo:
             ticket.attachment = photo
-
         if commit:
             ticket.save()
         return ticket
@@ -299,15 +338,17 @@ class GeneralInquiryForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'placeholder': 'Brief subject or title'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance and instance.description:
+            self.fields['inquiry'].initial = instance.description
+
     def save(self, commit=True):
         ticket = super().save(commit=False)
         inquiry = self.cleaned_data.get('inquiry')
-
         ticket.description = inquiry
-        ticket.metadata = {
-            'form_type': 'general_inquiry'
-        }
-
+        ticket.metadata = {'form_type': 'general_inquiry'}
         if commit:
             ticket.save()
         return ticket
