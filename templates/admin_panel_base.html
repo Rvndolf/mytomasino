@@ -536,8 +536,10 @@ document.addEventListener('submit', (e) => {
 });
 
 /* Toast Functions */
-function showToastNotification() {
+function showToastNotification(message = 'Action completed successfully!') {
     const toastEl = document.getElementById('successToast');
+    document.querySelector('#successToast .toast-body').innerHTML =
+      `<i class="fas fa-check-circle me-2"></i>${message}`;
     toastEl.classList.remove('slide-out');
     toastEl.style.display = 'block';
     void toastEl.offsetWidth;
@@ -554,7 +556,6 @@ function hideToast() {
         toastEl.classList.remove('slide-out');
     }, 400);
 }
-
 // SESSION TIMEOUT WARNING
 let inactivityTimeout;
 const TIMEOUT_DURATION = 1800000; // 30 minutes in milliseconds (matches SESSION_COOKIE_AGE)

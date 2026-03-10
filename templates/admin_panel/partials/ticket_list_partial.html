@@ -58,10 +58,6 @@
                   <th class="fw-semibold text-center" style="font-size: 0.875rem; padding: 1rem 0.75rem; color: white;">Date</th>
                 </tr>
               </thead>
-              <!--
-                hx-get bakes the current status + category filters at render time
-                so re-fetches on ticketUpdated always respect the active filter.
-              -->
               <tbody id="ticket-table-body"
                      hx-get="{% url 'admin_panel:ticket_list' %}?status={{ status_filter }}{% for cat in active_categories %}&categories={{ cat }}{% endfor %}"
                      hx-trigger="refreshTicketList from:body, ticketUpdated from:body"
@@ -135,7 +131,7 @@
       padding-left: 1rem !important;
       padding-right: 1rem !important;
       padding-top: 1rem !important;
-      margin-top: 4rem !important; /* ✅ Increased to clear hamburger icon */
+      margin-top: 4rem !important;
     }
 
     .card[style*="height: 650px"],
@@ -242,21 +238,16 @@
 </style>
 
 <script>
-  // ticketUpdated — HTMX handles the table re-fetch via hx-trigger on tbody.
-  // JS only needs to show the toast.
   document.body.addEventListener('ticketUpdated', function () {
-    showToast('Ticket status updated successfully!');
+    showToastNotification('Ticket status updated successfully!');
   });
 
-  // noteAdded — fired by add_ticket_note view
-  // Make sure your add_note view sets: response['HX-Trigger'] = 'noteAdded'
   document.body.addEventListener('noteAdded', function () {
-    showToast('Response sent successfully!');
+    showToastNotification('Response sent successfully!');
   });
 
-  // ticketDeleted — fired by delete_ticket view
   document.body.addEventListener('ticketDeleted', function () {
-    showToast('Ticket deleted successfully!');
+    showToastNotification('Ticket deleted successfully!');
     resetToOpenStatusAndRefresh();
   });
 

@@ -61,6 +61,8 @@
       <form hx-post="{% url 'admin_panel:update_ticket' ticket.pk %}" 
             hx-target="#ticket-detail-container" 
             hx-swap="innerHTML"
+            hx-on::before-request="captureAdminStatusLabel(this)"
+            hx-on::after-request="showAdminUpdateToast()"
             class="row g-2">
         {% csrf_token %}
         <div class="col-auto">
@@ -142,15 +144,81 @@
 
     <!-- Delete -->
     <div class="d-flex justify-content-end gap-2">
-      <button class="btn btn-action btn-delete"
-              hx-get="{% url 'admin_panel:delete_ticket' ticket.pk %}"
-              hx-target="#ticket-detail-container"
-              hx-swap="innerHTML">
+      <button type="button"
+              class="btn btn-action btn-delete"
+              data-bs-toggle="modal"
+              data-bs-target="#adminDeleteTicketModal">
         <i class="fas fa-trash"></i> Delete Ticket
       </button>
     </div>
   </div>
 </div>
+
+<!-- ── Delete Confirmation Modal ── -->
+<div class="modal fade" id="adminDeleteTicketModal" tabindex="-1" aria-labelledby="adminDeleteTicketModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-danger" id="adminDeleteTicketModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body pt-2">
+        <p class="mb-1">Are you sure you want to delete:</p>
+        <p class="fw-bold mb-2">{{ ticket.title }}</p>
+        <p class="text-muted" style="font-size: 0.875rem;">
+          This action <strong>cannot be undone</strong>.
+        </p>
+      </div>
+
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
+        <form hx-post="{% url 'admin_panel:delete_ticket' ticket.pk %}"
+              hx-target="#ticket-detail-container"
+              hx-swap="innerHTML"
+              hx-on::before-request="closeAdminDeleteModal()">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-modal-confirm-delete">Yes, Delete</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Capture status label before swap destroys the DOM
+  function captureAdminStatusLabel(form) {
+    const select = form.querySelector('select[name="status"]');
+    if (select) {
+      window._pendingAdminStatusLabel = select.selectedOptions[0]?.text || null;
+    }
+  }
+
+  // Show toast after status update
+  function showAdminUpdateToast() {
+    const label = window._pendingAdminStatusLabel;
+    const message = label
+      ? `Ticket status updated to "<strong>${label}</strong>"`
+      : 'Ticket updated successfully!';
+    showToastNotification(message);
+    window._pendingAdminStatusLabel = null;
+  }
+
+  // Clean up modal backdrop before HTMX swap
+  function closeAdminDeleteModal() {
+    const modalEl = document.getElementById('adminDeleteTicketModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+  }
+</script>
 
 <style>
   .responses-container-admin {
@@ -234,6 +302,40 @@
     background-color: #dc3545;
     border-color: #dc3545;
     color: white;
+  }
+
+  /* Modal Buttons */
+  .btn-modal-cancel {
+    background-color: transparent;
+    color: #6b7280;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 15px;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+  }
+  .btn-modal-cancel:hover {
+    background-color: #6c757d;
+    color: white;
+    border-color: #6c757d;
+    transform: translateY(-1px);
+  }
+
+  .btn-modal-confirm-delete {
+    background-color: transparent;
+    color: #dc3545;
+    border: 1px solid rgba(220,53,69,0.3);
+    border-radius: 15px;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+  }
+  .btn-modal-confirm-delete:hover {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(220,53,69,0.2);
   }
 
   .responses-container-admin::-webkit-scrollbar { width: 6px; }
