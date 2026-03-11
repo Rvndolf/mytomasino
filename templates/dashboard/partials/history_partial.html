@@ -1,6 +1,71 @@
 {% load format_filters %}
 <!-- dashboard/history.html (partial) -->
-<div class="container-fluid p-4 mt-5">
+
+<!-- Scroll-to-top button -->
+<style>
+  #scrollToTopBtn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1050;
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    background-color: #fff;
+    border: 2px solid #144214;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  #scrollToTopBtn.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  #scrollToTopBtn:hover {
+    background-color: #f0f7f0;
+  }
+
+  #scrollToTopBtn svg {
+    color: #144214;
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Pulse ring */
+  #scrollToTopBtn::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 13px;
+    border: 2px solid #144214;
+    opacity: 0;
+    animation: pulseRing 2s ease-out infinite;
+  }
+
+  @keyframes pulseRing {
+    0%   { opacity: 0.6; transform: scale(1); }
+    70%  { opacity: 0;   transform: scale(1.25); }
+    100% { opacity: 0;   transform: scale(1.25); }
+  }
+</style>
+
+<button id="scrollToTopBtn" title="Back to top" aria-label="Scroll to top">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="18 15 12 9 6 15"></polyline>
+  </svg>
+</button>
+
+<div class="container-fluid p-4 mt-5" id="historyContainer">
   <div class="row">
     <div class="col-12">
       <div class="card shadow-sm border-0 p-0">
@@ -101,3 +166,26 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    const btn = document.getElementById('scrollToTopBtn');
+    const container = document.getElementById('historyContainer');
+
+    if (!btn || !container) return;
+
+    // Show button once user scrolls past the top of the history container
+    window.addEventListener('scroll', function () {
+      const containerTop = container.getBoundingClientRect().top;
+      if (containerTop < 0) {
+        btn.classList.add('visible');
+      } else {
+        btn.classList.remove('visible');
+      }
+    }, { passive: true });
+
+    btn.addEventListener('click', function () {
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  })();
+</script>
