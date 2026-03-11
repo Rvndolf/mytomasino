@@ -580,103 +580,71 @@ resetInactivityTimer();
     }
   }
 
-  @media (max-width: 768px) {
-    .toast-popup {
-      top: 16px;
-      padding: 10px 14px;
-      gap: 10px;
-      font-size: 0.8rem;
-      max-width: 300px;
-    }
-
-    .toast-icon {
-      width: 22px;
-      height: 22px;
-      font-size: 0.85rem;
-    }
-  }
-
   #dashboard-content.htmx-request {
     opacity: 0.75;
     transition: opacity 0.15s ease;
   }
 
   body {
-      font-family: 'Satoshi', sans-serif !important;
+    font-family: 'Satoshi', sans-serif !important;
   }
 
-    .loading-overlay {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 9999;
-    }
-    .spinner-border {
-      width: 3rem;
-      height: 3rem;
-    }
+  .loading-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
 
-    .profile-branding {
-      font-size: 0.875rem; /* 14px if base is 16px */
-    }
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+  }
 
-    /* Notification header green gradient theme */
-    #notificationSidebar .notification-header {
-      background: linear-gradient(135deg, #144214 0%, #3c6d3c 100%) !important;
-      color: white !important;
-    }
+  .profile-branding {
+    font-size: 0.875rem;
+  }
 
-    #notificationSidebar .notification-header h5 {
-      color: white !important;
-    }
+  /* Notification header green gradient theme */
+  #notificationSidebar .notification-header {
+    background: linear-gradient(135deg, #144214 0%, #3c6d3c 100%) !important;
+    color: white !important;
+  }
 
-    #notificationSidebar .notification-header h5 i {
-      color: white !important;
-    }
+  #notificationSidebar .notification-header h5 {
+    color: white !important;
+  }
 
-    #notificationSidebar .close-notification {
-      color: white !important;
-    }
+  #notificationSidebar .notification-header h5 i {
+    color: white !important;
+  }
 
-    #notificationSidebar .close-notification:hover {
-      color: rgba(255, 255, 255, 0.8) !important;
-    }
+  #notificationSidebar .close-notification {
+    color: white !important;
+  }
 
-    /* Make notification icons white */
-    .notification-icon i {
-      color: white !important;
-    }
+  #notificationSidebar .close-notification:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
 
-    /* Add smooth transitions for mobile controls */
-    .mobile-menu-toggle,
-    .notification-bell {
-      transition: opacity 0.3s ease;
-    }
+  /* Make notification icons white */
+  .notification-icon i {
+    color: white !important;
+  }
 
-      #dashboard-content {
+  /* Add smooth transitions for mobile controls */
+  .mobile-menu-toggle,
+  .notification-bell {
+    transition: opacity 0.3s ease;
+  }
+
+  #dashboard-content {
     min-height: calc(100vh - 200px);
     padding-bottom: 100px;
-    font-family: 'Satoshi', 'sans-serif' !important;
+    font-family: 'Satoshi', sans-serif !important;
   }
 
-  @media (max-width: 768px) {
-    #dashboard-content {
-      padding-bottom: 150px;
-    }
-    .sidebar {
-    overflow-y: auto !important;
-    }
-    .sidebar form {
-    position: static !important;
-    transform: none !important;
-    left: auto !important;
-    bottom: auto !important;
-    margin: 1.5rem auto 1.5rem !important;
-    display: flex !important;
-    justify-content: center !important;
-    }
-  }
   /* Logout button styling */
   .logout-btn {
     background-color: transparent !important;
@@ -715,21 +683,21 @@ resetInactivityTimer();
   .logout-btn:hover i {
     color: white !important;
   }
-  
+
   /* Logo section styling */
   .logo-section {
     padding: 1rem 1rem 0.25rem;
     text-align: center;
     margin-bottom: 0.25rem;
   }
-  
+
   .sidebar-logo {
     max-width: 35px;
     height: auto;
     display: block;
     margin: 0 auto;
   }
-  
+
   /* Email icon styling */
   .email {
     display: flex;
@@ -740,71 +708,98 @@ resetInactivityTimer();
     color: #6c757d;
     margin-top: 0.25rem;
   }
-  
+
   .email i {
     font-size: 0.75rem;
     color: #6c757d;
     opacity: 0.7;
   }
-  
+
   .email span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 180px;
   }
-  
+
   /* Reduce gap between profile section and sidebar navs */
   .sidebar-nav {
     margin-top: 1rem !important;
     padding-top: 1rem !important;
-    flex: 0 0 auto !important; /* Don't let it grow */
-    justify-content: flex-start !important; /* Align items to top instead of center */
+    flex: 0 0 auto !important;
+    justify-content: flex-start !important;
   }
-  
+
   /* Reduce profile section padding */
   .profile-section {
     padding-top: 1.5rem !important;
     padding-bottom: 3rem !important;
     margin-bottom: 1.5rem !important;
   }
-  
-  /* Position logout button container at bottom, not part of flex */
+
+  /* Logout button: sits below nav with auto top margin on desktop */
   .sidebar form {
-    position: static !important;
-    transform: none !important;
-    left: auto !important;
-    bottom: auto !important;
-    margin: 1.5rem auto 1.5rem !important;
+    width: auto !important;
+    margin: auto auto 1.5rem !important;
+    padding: 0 !important;
     display: flex !important;
     justify-content: center !important;
   }
-  /* Mobile styles - keep text smaller */
+
+  /* Mobile styles */
   .sidebar-nav .nav-item {
     font-size: 0.8125rem !important;
     padding: 8px 12px !important;
   }
-  
+
   .sidebar-nav .nav-item i {
     font-size: 0.875rem !important;
   }
-  
-  /* Desktop styles - make text bigger */
+
+  @media (max-width: 768px) {
+    .toast-popup {
+      top: 16px;
+      padding: 10px 14px;
+      gap: 10px;
+      font-size: 0.8rem;
+      max-width: 300px;
+    }
+
+    .toast-icon {
+      width: 22px;
+      height: 22px;
+      font-size: 0.85rem;
+    }
+
+    #dashboard-content {
+      padding-bottom: 150px;
+    }
+
+    .sidebar {
+      overflow-y: auto !important;
+    }
+
+    .sidebar form {
+      margin: 1.5rem auto !important;
+    }
+  }
+
+  /* Desktop styles */
   @media (min-width: 769px) {
     .sidebar-logo {
       max-width: 40px;
     }
-    
+
     .sidebar-nav .nav-item {
-      font-size: 0.85rem !important; /* 15px if base is 16px */
+      font-size: 0.85rem !important;
       padding: 10px 10px !important;
     }
-    
+
     .sidebar-nav .nav-item i {
-      font-size: 1rem !important; /* 16px */
+      font-size: 1rem !important;
     }
   }
-  
+
 </style>
 
 
