@@ -34,6 +34,8 @@ class TechnicalSupportForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'placeholder': 'Ticket Title'}),
         }
 
+    field_order = ['issue_type', 'title', 'description']
+
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance')
         super().__init__(*args, **kwargs)
