@@ -664,6 +664,18 @@ resetInactivityTimer();
     #dashboard-content {
       padding-bottom: 150px;
     }
+    .sidebar {
+    overflow-y: auto !important;
+    }
+    .sidebar form {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    bottom: auto !important;
+    margin: 1.5rem auto 1.5rem !important;
+    display: flex !important;
+    justify-content: center !important;
+    }
   }
   /* Logout button styling */
   .logout-btn {
@@ -759,15 +771,14 @@ resetInactivityTimer();
   
   /* Position logout button container at bottom, not part of flex */
   .sidebar form {
-    position: absolute !important;
-    bottom: 1.5rem !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    bottom: auto !important;
+    margin: 1.5rem auto 1.5rem !important;
+    display: flex !important;
+    justify-content: center !important;
   }
-  
   /* Mobile styles - keep text smaller */
   .sidebar-nav .nav-item {
     font-size: 0.8125rem !important;
