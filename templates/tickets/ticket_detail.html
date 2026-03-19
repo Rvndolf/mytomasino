@@ -184,38 +184,6 @@
     {% endif %}
   </div>
 
-  <!-- User Reply Form -->
-  {% if ticket.status != 'completed' %}
-  <div class="reply-form-section mt-3">
-    <form hx-post="{% url 'tickets:add_user_reply' ticket.pk %}"
-          hx-target="#responses-section"
-          hx-swap="innerHTML"
-          hx-encoding="multipart/form-data">
-      {% csrf_token %}
-      <div class="mb-2">
-        <textarea name="reply" 
-                  class="form-control reply-textarea" 
-                  placeholder="Write a reply..." 
-                  rows="3"></textarea>
-      </div>
-      <div class="reply-form-footer">
-        <label class="attachment-upload-label">
-          <i class="fa-solid fa-paperclip"></i>
-          <input type="file" 
-                 name="attachment" 
-                 class="d-none" 
-                 accept="image/*,.pdf,.doc,.docx"
-                 onchange="updateFileName(this)">
-          <span id="file-name-display">Attach a file</span>
-        </label>
-        <button type="submit" class="btn btn-reply-submit">Send Reply</button>
-      </div>
-    </form>
-  </div>
-  {% endif %}
-
-</div>
-
 <!-- ── Delete Confirmation Modal ── -->
 <div class="modal fade" id="deleteTicketModal" tabindex="-1" aria-labelledby="deleteTicketModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

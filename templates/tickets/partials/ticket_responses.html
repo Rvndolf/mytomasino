@@ -21,6 +21,22 @@
           <div class="response-body">
             {{ note.action|extract_note_content }}
           </div>
+          {% if note.attachment %}
+            <div class="response-attachment mt-1">
+              {% with note.attachment.name|lower as fname %}
+                {% if '.jpg' in fname or '.jpeg' in fname or '.png' in fname or '.gif' in fname or '.webp' in fname %}
+                  <img src="{{ note.attachment.url }}"
+                       alt="Attachment"
+                       class="img-fluid rounded"
+                       style="max-height: 200px; object-fit: contain;">
+                {% else %}
+                  <a href="{{ note.attachment.url }}" target="_blank" class="attachment-link">
+                    <i class="fa-solid fa-paperclip me-1"></i>{{ note.attachment.name|slice:"30:" }}
+                  </a>
+                {% endif %}
+              {% endwith %}
+            </div>
+          {% endif %}
         </div>
       {% endfor %}
     </div>
@@ -28,10 +44,7 @@
     <!-- Reply Form - Only show if ticket is not completed -->
     {% if ticket.status != 'completed' %}
       <div class="reply-form-container mt-4">
-        <form hx-post="{% url 'tickets:add_user_reply' ticket.pk %}" 
-              hx-target="#responses-section"
-              hx-swap="outerHTML"
-              class="reply-form">
+        <form id="reply-form" enctype="multipart/form-data" class="reply-form">
           {% csrf_token %}
           <div class="mb-2">
             <textarea 
@@ -42,14 +55,47 @@
               placeholder="Type your reply..."
               required></textarea>
           </div>
-          <button type="submit" class="btn btn-primary btn-send-reply">
-            <i class="fas fa-paper-plane"></i> Send
-          </button>
+          <div class="reply-form-footer">
+            <label class="attachment-upload-label">
+              <i class="fa-solid fa-paperclip"></i>
+              <input type="file"
+                     name="attachment"
+                     class="d-none"
+                     accept="image/*,.pdf,.doc,.docx"
+                     onchange="updateFileName(this)">
+              <span id="file-name-display">Attach a file</span>
+            </label>
+            <button type="button" onclick="submitReply()" class="btn btn-send-reply">
+              <i class="fas fa-paper-plane"></i> Send
+            </button>
+          </div>
         </form>
       </div>
     {% endif %}
   </div>
 {% endif %}
+
+<script>
+  function updateFileName(input) {
+    const display = document.getElementById('file-name-display');
+    display.textContent = input.files.length ? input.files[0].name : 'Attach a file';
+  }
+
+  function submitReply() {
+    const form = document.getElementById('reply-form');
+    const formData = new FormData(form);
+
+    fetch("{% url 'tickets:add_user_reply' ticket.pk %}", {
+      method: "POST",
+      headers: { "HX-Request": "true" },
+      body: formData,
+    })
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('responses-section').innerHTML = html;
+    });
+  }
+</script>
 
 <style>
 .responses-container {
@@ -69,7 +115,6 @@
   transform: translateX(2px);
 }
 
-/* User Response Styling */
 .user-response {
   background-color: #e3f2fd;
   border-left: 2px solid #2196F3;
@@ -105,7 +150,25 @@
   margin: 0;
 }
 
-/* Compact Reply Form */
+.response-attachment {
+  margin-top: 0.35rem;
+}
+
+.attachment-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #495057;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.attachment-link:hover { background-color: #e9ecef; color: #212529; }
+
 .reply-form-container {
   background-color: transparent;
   border-radius: 8px;
@@ -128,24 +191,42 @@
   outline: none;
 }
 
+.reply-form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.attachment-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #6c757d;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.attachment-upload-label:hover { color: #144214; }
+
 .btn-send-reply {
-    padding: 6px 16px;
-    border-radius: 6px;
-    border: 2px solid rgba(0, 0, 0, 0.2);
-    background-color: #ffffff;
-    color: #000000;
-    font-weight: 400;
-    font-size: 0.875rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    width: auto;
-    display: inline-block;
-  }
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  background-color: #ffffff;
+  color: #000000;
+  font-weight: 400;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  width: auto;
+  display: inline-block;
+}
 
 .btn-send-reply:hover {
-   background-color: #144214;
-   border-color: #144214;
-   color: white;
+  background-color: #144214;
+  border-color: #144214;
+  color: white;
 }
 
 .btn-send-reply i {
@@ -153,24 +234,11 @@
   font-size: 0.8rem;
 }
 
-/* Mobile Responsiveness */
 @media (max-width: 768px) {
-   .response-item {
-    padding: 0.3rem 0.45rem;
-  }
-  
-  .response-body {
-    font-size: 0.8rem;
-  }
-  
-  .reply-form textarea {
-    font-size: 0.85rem;
-    padding: 0.5rem 0.6rem;
-  }
-  
-  .btn-send-reply {
-    width: 100%;
-    padding: 0.5rem;
-  }
+  .response-item { padding: 0.3rem 0.45rem; }
+  .response-body { font-size: 0.8rem; }
+  .reply-form textarea { font-size: 0.85rem; padding: 0.5rem 0.6rem; }
+  .reply-form-footer { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .btn-send-reply { width: 100%; padding: 0.5rem; text-align: center; }
 }
 </style>
