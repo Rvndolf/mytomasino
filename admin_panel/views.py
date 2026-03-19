@@ -259,13 +259,15 @@ def add_ticket_note(request, ticket_id):
 
     if request.method == "POST":
         note = request.POST.get("note", "").strip()
-        if note:
-            attachment = request.FILES.get("attachment")
+        attachment = request.FILES.get("attachment")
+
+        if note or attachment:
+            action_text = f"Note added by {request.user.username.upper()} (Staff): {note}" if note else f"Note added by {request.user.username.upper()} (Staff): [Attachment]"
 
             TicketHistory.objects.create(
                 ticket=ticket,
                 ticket_title=ticket.title,
-                action=f"Note added by {request.user.username.upper()} (Staff): {note}",
+                action=action_text,
                 user=request.user,
                 created_by=ticket.created_by,
                 activity_type='updated',
@@ -278,7 +280,7 @@ def add_ticket_note(request, ticket_id):
                 ticket=ticket,
                 notification_type='ticket_response',
                 title='New Response on Your Ticket',
-                message=f'Staff has added a response to your ticket #{ticket.ticket_id()}: "{note[:100]}..."'
+                message=f'Staff has added a response to your ticket #{ticket.ticket_id()}: "{note[:100] if note else "Attachment"}"'
             )
 
             if request.headers.get("HX-Request"):
@@ -289,7 +291,7 @@ def add_ticket_note(request, ticket_id):
                     action__icontains='User reply:'
                 )
                 conversation_notes = conversation_notes.order_by('timestamp')
-                
+
                 return render(request, 'admin_panel/partials/ticket_detail_partial.html', {
                     'ticket': ticket,
                     'history': history,
