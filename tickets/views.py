@@ -331,3 +331,11 @@ def delete_ticket(request, pk):
 
     # GET requests no longer used — modal handles confirmation in ticket_detail
     return redirect('tickets:ticket_overview')
+
+
+def debug_attachment(request):
+    from tickets.models import TicketHistory
+    note = TicketHistory.objects.filter(attachment__isnull=False).last()
+    if note:
+        return HttpResponse(f"name: {note.attachment.name} | url: {note.attachment.url}")
+    return HttpResponse("No attachments found")
