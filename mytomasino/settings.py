@@ -69,6 +69,12 @@ cloudinary.config(
     secure=True
 )
 
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dg6lxeyko',
+    'API_KEY': '723881147414884',
+    'API_SECRET': '9LbajDzt0XAQo806s7SGxSpcAL4',
+}
+
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
