@@ -46,24 +46,23 @@
     </div>
 
     <!-- Ticket Attachment -->
-    {% if ticket.attachment %}
-    <div class="mb-3">
-      <h6 style="font-size: 0.875rem; font-weight: 600; color: #144214;">Attachment:</h6>
-      {% with ticket.attachment.name|lower as fname %}
-        {% if '.jpg' in fname or '.jpeg' in fname or '.png' in fname or '.gif' in fname or '.webp' in fname %}
-          <img src="{{ ticket.attachment.url }}" 
-              alt="Ticket Attachment" 
-              class="img-fluid rounded" 
-              style="max-height: 250px; object-fit: contain;">
-        {% else %}
-          <a href="{{ ticket.attachment.url }}" target="_blank" class="attachment-link-admin">
-            <i class="fa-solid fa-paperclip me-1"></i>{{ ticket.attachment.name|slice:"30:" }}
-          </a>
-        {% endif %}
-      {% endwith %}
-    </div>
+      {% if ticket.attachment %}
+      <div class="attachment-section mt-3">
+        <h5 class="description-title">Attachment</h5>
+        {% with ticket.attachment.url as furl %}
+          {% if '.jpg' in furl or '.jpeg' in furl or '.png' in furl or '.gif' in furl or '.webp' in furl %}
+            <img src="{{ furl }}" 
+                class="img-fluid rounded attachment-img" 
+                alt="Ticket Attachment">
+          {% else %}
+            <a href="{{ furl }}" target="_blank" class="attachment-link">
+              <i class="fa-solid fa-paperclip me-1"></i> View Attachment
+            </a>
+          {% endif %}
+        {% endwith %}
+      </div>
     {% endif %}
-
+    
     <!-- Update Status -->
     <div class="mb-3">
       <h6 style="font-size: 0.875rem; font-weight: 600; color: #144214;">Update Status</h6>

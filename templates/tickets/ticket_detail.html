@@ -143,20 +143,19 @@
     {% if ticket.attachment %}
       <div class="attachment-section mt-3">
         <h5 class="description-title">Attachment</h5>
-        {% with ticket.attachment.name|lower as fname %}
-          {% if '.jpg' in fname or '.jpeg' in fname or '.png' in fname or '.gif' in fname or '.webp' in fname %}
-            <img src="{{ ticket.attachment.url }}" 
+        {% with ticket.attachment.url as furl %}
+          {% if '.jpg' in furl or '.jpeg' in furl or '.png' in furl or '.gif' in furl or '.webp' in furl %}
+            <img src="{{ furl }}" 
                 class="img-fluid rounded attachment-img" 
                 alt="Ticket Attachment">
           {% else %}
-            <a href="{{ ticket.attachment.url }}" target="_blank" class="attachment-link">
-              <i class="fa-solid fa-paperclip me-1"></i>{{ ticket.attachment.name|slice:"30:" }}
+            <a href="{{ furl }}" target="_blank" class="attachment-link">
+              <i class="fa-solid fa-paperclip me-1"></i> View Attachment
             </a>
           {% endif %}
         {% endwith %}
       </div>
     {% endif %}
-  </div>
 
   <!-- Action Buttons -->
   <div class="action-buttons mt-4 mb-4">

@@ -23,15 +23,15 @@
           </div>
           {% if note.attachment %}
             <div class="response-attachment mt-1">
-              {% with note.attachment.name|lower as fname %}
-                {% if '.jpg' in fname or '.jpeg' in fname or '.png' in fname or '.gif' in fname or '.webp' in fname %}
-                  <img src="{{ note.attachment.url }}"
+              {% with note.attachment.url as furl %}
+                {% if '.jpg' in furl or '.jpeg' in furl or '.png' in furl or '.gif' in furl or '.webp' in furl %}
+                  <img src="{{ furl }}"
                        alt="Attachment"
                        class="img-fluid rounded"
                        style="max-height: 200px; object-fit: contain;">
                 {% else %}
-                  <a href="{{ note.attachment.url }}" target="_blank" class="attachment-link">
-                    <i class="fa-solid fa-paperclip me-1"></i>{{ note.attachment.name|slice:"30:" }}
+                  <a href="{{ furl }}" target="_blank" class="attachment-link">
+                    <i class="fa-solid fa-paperclip me-1"></i> View Attachment
                   </a>
                 {% endif %}
               {% endwith %}
@@ -52,8 +52,7 @@
               id="reply" 
               name="reply" 
               rows="2" 
-              placeholder="Type your reply..."
-              required></textarea>
+              placeholder="Type your reply..."></textarea>
           </div>
           <div class="reply-form-footer">
             <label class="attachment-upload-label">
@@ -83,6 +82,11 @@
 
   function submitReply() {
     const form = document.getElementById('reply-form');
+    const reply = form.querySelector('textarea[name="reply"]').value.trim();
+    const attachment = form.querySelector('input[name="attachment"]').files[0];
+
+    if (!reply && !attachment) return;
+
     const formData = new FormData(form);
 
     fetch("{% url 'tickets:add_user_reply' ticket.pk %}", {
