@@ -97,6 +97,8 @@ def add_user_reply(request, ticket_id):
     if request.method == "POST":
         reply = request.POST.get("reply", "").strip()
         if reply:
+            attachment = request.FILES.get("attachment")
+            
             # Create history entry for user reply
             TicketHistory.objects.create(
                 ticket=ticket,
@@ -105,7 +107,8 @@ def add_user_reply(request, ticket_id):
                 user=request.user,
                 created_by=ticket.created_by,
                 activity_type='response',
-                new_status=ticket.status
+                new_status=ticket.status,
+                attachment=attachment
             )
             
             # Notify assigned staff member if there is one

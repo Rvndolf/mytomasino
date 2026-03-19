@@ -70,6 +70,7 @@ class TicketHistory(models.Model):
     new_status = models.CharField(max_length=50, null=True, blank=True)  # NEW FIELD
     action = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
+    attachment = models.FileField(upload_to='ticket_history_attachments/', null=True, blank=True)
 
     user = models.ForeignKey(
         'auth.User',  # or settings.AUTH_USER_MODEL

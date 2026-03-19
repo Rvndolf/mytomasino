@@ -260,6 +260,8 @@ def add_ticket_note(request, ticket_id):
     if request.method == "POST":
         note = request.POST.get("note", "").strip()
         if note:
+            attachment = request.FILES.get("attachment")
+
             TicketHistory.objects.create(
                 ticket=ticket,
                 ticket_title=ticket.title,
@@ -267,7 +269,8 @@ def add_ticket_note(request, ticket_id):
                 user=request.user,
                 created_by=ticket.created_by,
                 activity_type='updated',
-                new_status=ticket.status
+                new_status=ticket.status,
+                attachment=attachment
             )
 
             Notification.objects.create(
@@ -279,7 +282,6 @@ def add_ticket_note(request, ticket_id):
             )
 
             if request.headers.get("HX-Request"):
-                # Return updated conversation view
                 history = TicketHistory.objects.filter(ticket=ticket).order_by('-timestamp')
                 conversation_notes = history.filter(
                     action__icontains='Note added by'
@@ -296,7 +298,6 @@ def add_ticket_note(request, ticket_id):
 
         messages.success(request, "Note added successfully.")
     return redirect('admin_panel:ticket_detail', ticket_id=ticket.id)
-
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
