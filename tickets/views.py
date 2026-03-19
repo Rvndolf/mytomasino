@@ -96,14 +96,14 @@ def add_user_reply(request, ticket_id):
     
     if request.method == "POST":
         reply = request.POST.get("reply", "").strip()
-        if reply:
-            attachment = request.FILES.get("attachment")
-            
+        attachment = request.FILES.get("attachment")
+
+        if reply or attachment:
             # Create history entry for user reply
             TicketHistory.objects.create(
                 ticket=ticket,
                 ticket_title=ticket.title,
-                action=f"User reply: {reply}",
+                action=f"User reply: {reply}" if reply else "User reply: [Attachment]",
                 user=request.user,
                 created_by=ticket.created_by,
                 activity_type='response',
@@ -118,7 +118,7 @@ def add_user_reply(request, ticket_id):
                     ticket=ticket,
                     notification_type='ticket_update',
                     title='User Replied to Ticket',
-                    message=f'User {request.user.username} replied to ticket #{ticket.ticket_id()}: "{reply[:100]}..."'
+                    message=f'User {request.user.username} replied to ticket #{ticket.ticket_id()}: "{reply[:100] if reply else "Attachment"}"'
                 )
             
             # If HTMX request, return updated partial
