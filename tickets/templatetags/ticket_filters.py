@@ -22,3 +22,10 @@ def extract_note_content(action_text):
             return parts[1].strip()
     
     return action_text
+
+@register.filter
+def cloudinary_raw_url(url):
+    """Convert Cloudinary image URL to raw URL for non-image files"""
+    if url and '/image/upload/' in url:
+        return url.replace('/image/upload/', '/raw/upload/')
+    return url

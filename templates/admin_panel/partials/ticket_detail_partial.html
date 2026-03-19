@@ -1,4 +1,6 @@
 {% load ticket_filters %}
+{% load format_filters %}
+
 
 <div class="card shadow-sm border-0" style="border-radius: 15px; height: 600px; display: flex; flex-direction: column;">
   <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: #144214; border-radius: 15px 15px 0 0; padding: 0.875rem 1rem;">
@@ -55,14 +57,14 @@
                 class="img-fluid rounded attachment-img" 
                 alt="Ticket Attachment">
           {% else %}
-            <a href="{{ furl }}" target="_blank" class="attachment-link">
+            <a href="{{ furl|cloudinary_raw_url }}" target="_blank" class="attachment-link">
               <i class="fa-solid fa-paperclip me-1"></i> View Attachment
             </a>
           {% endif %}
         {% endwith %}
       </div>
     {% endif %}
-    
+
     <!-- Update Status -->
     <div class="mb-3">
       <h6 style="font-size: 0.875rem; font-weight: 600; color: #144214;">Update Status</h6>

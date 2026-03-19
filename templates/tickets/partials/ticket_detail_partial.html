@@ -1,4 +1,5 @@
 {% load format_filters %}
+
 <div class="container ticket-detail-container">
 
   <!-- Header Section with Back Arrow -->
@@ -150,7 +151,7 @@
               class="img-fluid rounded attachment-img" 
               alt="Ticket Attachment">
         {% else %}
-          <a href="{{ furl }}" target="_blank" class="attachment-link">
+          <a href="{{ furl|cloudinary_raw_url }}" target="_blank" class="attachment-link">
             <i class="fa-solid fa-paperclip me-1"></i> View Attachment
           </a>
         {% endif %}
