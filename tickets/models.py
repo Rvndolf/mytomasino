@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone  # Add this import
 from django.utils.timesince import timesince
 from cloudinary.models import CloudinaryField
+import cloudinary
+import cloudinary.models
 
 class Ticket(models.Model):
     CATEGORY_CHOICES = [
