@@ -185,6 +185,8 @@
     {% endif %}
   </div>
 
+</div>
+
 <!-- ── Delete Confirmation Modal ── -->
 <div class="modal fade" id="deleteTicketModal" tabindex="-1" aria-labelledby="deleteTicketModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -229,11 +231,6 @@
     document.body.classList.remove('modal-open');
     document.body.style.removeProperty('overflow');
     document.body.style.removeProperty('padding-right');
-  }
-
-  function updateFileName(input) {
-    const display = document.getElementById('file-name-display');
-    display.textContent = input.files.length ? input.files[0].name : 'Attach a file';
   }
 </script>
 
@@ -438,58 +435,6 @@
     box-shadow: 0 2px 4px rgba(220,53,69,0.2);
   }
 
-  /* Reply Form */
-  .reply-form-section {
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-
-  .reply-textarea {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    resize: none;
-    font-size: 0.9rem;
-    color: #495057;
-  }
-  .reply-textarea:focus {
-    border-color: #144214;
-    box-shadow: 0 0 0 0.2rem rgba(20,66,20,0.15);
-  }
-
-  .reply-form-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 0.75rem;
-  }
-
-  .attachment-upload-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
-    color: #6c757d;
-    cursor: pointer;
-    transition: color 0.2s ease;
-  }
-  .attachment-upload-label:hover { color: #144214; }
-
-  .btn-reply-submit {
-    background-color: #144214;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.45rem 1.25rem;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-  }
-  .btn-reply-submit:hover {
-    background-color: #0d2d0d;
-    transform: translateY(-1px);
-  }
-
   @media (max-width: 768px) {
     .ticket-detail-container {
       margin-top: 100px;
@@ -500,7 +445,5 @@
     .info-label { min-width: auto; }
     .action-buttons { flex-direction: row; flex-wrap: wrap; }
     .btn-action { width: auto; }
-    .reply-form-footer { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
-    .btn-reply-submit { width: 100%; text-align: center; }
   }
 </style>
