@@ -86,10 +86,10 @@
             <!-- Individual Activity Item Container -->
             <div class="activity-item-card {% if activity.ticket %}activity-item-clickable{% endif %}"
               {% if activity.ticket %}
-                hx-get="{% url 'admin_panel:ticket_list' %}?open_ticket={{ activity.ticket.id }}"
+                hx-get="{% url 'admin_panel:ticket_list' %}?open_ticket={{ activity.ticket.id }}&status={{ activity.ticket.status }}"
                 hx-target="#dashboard-content"
                 hx-swap="innerHTML"
-                hx-push-url="{% url 'admin_panel:ticket_list' %}?open_ticket={{ activity.ticket.id }}"
+                hx-push-url="{% url 'admin_panel:ticket_list' %}?open_ticket={{ activity.ticket.id }}&status={{ activity.ticket.status }}"
                 title="Go to ticket: {{ activity.ticket.title }}"
               {% endif %}>
               

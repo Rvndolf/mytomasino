@@ -278,11 +278,21 @@
   (function() {
     const params = new URLSearchParams(window.location.search);
     const ticketId = params.get('open_ticket');
+    const ticketStatus = params.get('status');
+
     if (ticketId) {
-      // Small delay to let the list render first
+      // Sync the active filter button to the ticket's actual status
+      if (ticketStatus) {
+        const filterButtons = document.querySelectorAll('.status-filter-btn');
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        const matchingBtn = document.querySelector(`.status-filter-btn[data-status-key="${ticketStatus}"]`);
+        if (matchingBtn) matchingBtn.classList.add('active');
+      }
+
+      // Load the ticket detail
       setTimeout(function() {
         htmx.ajax('GET', '{% url "admin_panel:ticket_detail" 0 %}'.replace('/0/', '/' + ticketId + '/'), {
-          target: '#ticket-detail-container',  // adjust to your actual detail target ID
+          target: '#ticket-detail-container',
           swap: 'innerHTML'
         });
       }, 100);
