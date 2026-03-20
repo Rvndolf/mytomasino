@@ -236,6 +236,7 @@
   }
 
   function downloadFile(url) {
+  console.log('Downloading:', url);
   fetch(url)
     .then(res => res.blob())
     .then(blob => {
@@ -246,7 +247,7 @@
       URL.revokeObjectURL(a.href);
     });
   }
-  
+
 </script>
 
 <style>
