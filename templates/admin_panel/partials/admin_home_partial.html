@@ -84,7 +84,15 @@
         {% if history_entries %}
           {% for activity in history_entries %}
             <!-- Individual Activity Item Container -->
-            <div class="activity-item-card">
+            <div class="activity-item-card {% if activity.ticket %}activity-item-clickable{% endif %}"
+              {% if activity.ticket %}
+                hx-get="{% url 'admin_panel:ticket_list' %}?open_ticket={{ activity.ticket.id }}"
+                hx-target="#dashboard-content"
+                hx-swap="innerHTML"
+                hx-push-url="{% url 'admin_panel:ticket_list' %}?open_ticket={{ activity.ticket.id }}"
+                title="Go to ticket: {{ activity.ticket.title }}"
+              {% endif %}>
+              
               <!-- Header row with timestamp -->
               <div class="d-flex justify-content-between align-items-start mb-1">
                 <p class="mb-0 activity-title font-main" style="font-size: 0.85rem;">
@@ -106,6 +114,9 @@
                 <p class="mb-0 activity-action font-secondary" style="font-size: 0.75rem;">
                   {{ activity.action }}
                 </p>
+                {% if activity.ticket %}
+                  <small class="activity-link-hint font-secondary">View →</small>
+                {% endif %}
               </div>
             </div>
           {% endfor %}
@@ -256,6 +267,27 @@
 
 <style>
   /* Font Classes */
+
+  .activity-item-clickable {
+    cursor: pointer;
+  }
+
+  .activity-item-clickable:hover {
+    background-color: hsl(210, 20%, 91%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .activity-link-hint {
+    font-size: 0.7rem;
+    color: #144214;
+    font-weight: 600;
+    opacity: 0.7;
+  }
+
+  .activity-item-clickable:hover .activity-link-hint {
+    opacity: 1;
+  }
   .font-main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }

@@ -235,6 +235,8 @@
   .table-responsive::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
   .table-responsive::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 8px; }
   .table-responsive::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+
 </style>
 
 <script>
@@ -272,4 +274,19 @@
       htmx.trigger(detailContainer, 'resetTicketDetail');
     }
   }
+
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const ticketId = params.get('open_ticket');
+    if (ticketId) {
+      // Small delay to let the list render first
+      setTimeout(function() {
+        htmx.ajax('GET', '{% url "admin_panel:ticket_detail" 0 %}'.replace('/0/', '/' + ticketId + '/'), {
+          target: '#ticket-detail-container',  // adjust to your actual detail target ID
+          swap: 'innerHTML'
+        });
+      }, 100);
+    }
+  })();
+
 </script>
