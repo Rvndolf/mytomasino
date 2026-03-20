@@ -156,7 +156,7 @@
                    onchange="updateAdminFileName(this)">
             <span id="admin-file-name-display">Attach a file</span>
           </label>
-          <button type="button" onclick="submitAdminNote()" class="btn btn-action btn-add-note">
+          <button type="button" id="admin-send-btn" onclick="submitAdminNote()" class="btn btn-action btn-add-note">
             <i class="fas fa-paper-plane"></i> Send Response
           </button>
         </div>
@@ -270,6 +270,12 @@
 
     if (!note && !attachment) return;
 
+    const btn = document.getElementById('admin-send-btn');
+
+    // Prevent double submit + show loading state
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
     const formData = new FormData(form);
 
     fetch("{% url 'admin_panel:add_ticket_note' ticket.pk %}", {
@@ -280,6 +286,11 @@
     .then(res => res.text())
     .then(html => {
       document.getElementById('ticket-detail-container').innerHTML = html;
+    })
+    .catch(() => {
+      // Re-enable on error so user can retry
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Response';
     });
   }
 </script>
@@ -378,6 +389,17 @@
   .btn-action.btn-update:hover { background-color: #144214; border-color: #144214; color: white; }
   .btn-action.btn-add-note:hover { background-color: #007bff; border-color: #007bff; color: white; }
   .btn-action.btn-delete:hover { background-color: #dc3545; border-color: #dc3545; color: white; }
+
+  /* Disabled / loading state for Send Response button */
+  .btn-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+    background-color: #e9ecef !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    color: #6c757d !important;
+  }
 
   .btn-modal-cancel {
     background-color: transparent;

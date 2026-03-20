@@ -187,7 +187,7 @@ def update_ticket_status(request, ticket_id):
             new_status_display = ticket.get_status_display()
 
             actor_name = request.user.get_full_name() or request.user.username
-            ticket_id_val = ticket.ticket_id  # cache to avoid repeated calls — remove () if it's a field not a method
+            ticket_id_val = ticket.ticket_id()  # cache to avoid repeated calls — remove () if it's a field not a method
 
             # Save history
             TicketHistory.objects.create(
