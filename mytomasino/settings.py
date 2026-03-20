@@ -73,8 +73,17 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dg6lxeyko',
     'API_KEY': '723881147414884',
     'API_SECRET': '9LbajDzt0XAQo806s7SGxSpcAL4',
+    'SECURE': True,
+    'MEDIA_TAG': 'media',
+    'INVALID_VIDEO_ERROR_MESSAGE': 'Please upload a valid video file.',
+    'EXCLUDE_DELETE_ORPHANED_MEDIA_UNDER_FOLDER': '',
+    'STATIC_TAG': 'static',
+    'STATICFILES_MANIFEST_ROOT': os.path.join(BASE_DIR, 'manifest'),
+    'STATIC_IMAGES_EXTENSIONS': ['jpg', 'jpe', 'jpeg', 'jpc', 'jp2', 'j2k', 'wdp', 'jxr',
+                                   'hdp', 'png', 'gif', 'webp', 'bmp', 'tif', 'tiff', 'ico'],
+    'MAGIC_FILE_PATH': 'magic',
+    'PREFIX': '',
 }
-
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
