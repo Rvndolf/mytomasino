@@ -46,21 +46,24 @@
     </div>
 
     <!-- Ticket Attachment -->
-      {% if ticket.attachment %}
-      <div class="attachment-section mt-3">
-        <h5 class="description-title">Attachment</h5>
-        {% with ticket.attachment.url as furl %}
-          {% if '.jpg' in furl or '.jpeg' in furl or '.png' in furl or '.gif' in furl or '.webp' in furl %}
-            <img src="{{ furl }}" 
-                class="img-fluid rounded attachment-img" 
-                alt="Ticket Attachment">
-          {% else %}
-            <a href="{{ furl|cloudinary_raw_url|cloudinary_download_url }}" target="_blank" class="attachment-link">
-              <i class="fa-solid fa-paperclip me-1"></i> View Attachment
-            </a>
-          {% endif %}
-        {% endwith %}
-      </div>
+    {% if ticket.attachment %}
+    <div class="mb-3">
+      <h6 style="font-size: 0.875rem; font-weight: 600; color: #144214;">Attachment:</h6>
+      {% with ticket.attachment.url as furl %}
+        {% if '.jpg' in furl or '.jpeg' in furl or '.png' in furl or '.gif' in furl or '.webp' in furl %}
+          <img src="{{ furl }}" 
+              alt="Ticket Attachment" 
+              class="img-fluid rounded" 
+              style="max-height: 250px; object-fit: contain;">
+        {% else %}
+          <a href="#"
+             onclick="downloadFile('{{ furl|cloudinary_raw_url|cloudinary_download_url }}')"
+             class="attachment-link-admin">
+            <i class="fa-solid fa-paperclip me-1"></i> View Attachment
+          </a>
+        {% endif %}
+      {% endwith %}
+    </div>
     {% endif %}
 
     <!-- Update Status -->
@@ -110,16 +113,16 @@
             </div>
             {% if note.attachment %}
               <div class="response-attachment-admin mt-1">
-                {% with note.attachment.name|lower as fname %}
-                  {% if '.jpg' in fname or '.jpeg' in fname or '.png' in fname or '.gif' in fname or '.webp' in fname %}
-                    <img src="{{ note.attachment.url }}" 
+                {% with note.attachment.url as nurl %}
+                  {% if '.jpg' in nurl or '.jpeg' in nurl or '.png' in nurl or '.gif' in nurl or '.webp' in nurl %}
+                    <img src="{{ nurl }}" 
                          alt="Attachment" 
                          class="img-fluid rounded"
                          style="max-height: 150px; object-fit: contain; margin-top: 0.25rem;">
                   {% else %}
-                    <a href="#" 
-                      onclick="downloadFile('{{ furl|cloudinary_raw_url|cloudinary_download_url }}')" 
-                      class="attachment-link">
+                    <a href="#"
+                       onclick="downloadFile('{{ nurl|cloudinary_raw_url|cloudinary_download_url }}')"
+                       class="attachment-link-admin">
                       <i class="fa-solid fa-paperclip me-1"></i> View Attachment
                     </a>
                   {% endif %}
@@ -232,19 +235,6 @@
     }
   }
 
-  function downloadFile(url) {
-  console.log('Downloading:', url);
-  fetch(url)
-    .then(res => res.blob())
-    .then(blob => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = url.split('/').pop();
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-  }
-
   function showAdminUpdateToast() {
     const label = window._pendingAdminStatusLabel;
     const message = label
@@ -267,6 +257,19 @@
   function updateAdminFileName(input) {
     const display = document.getElementById('admin-file-name-display');
     display.textContent = input.files.length ? input.files[0].name : 'Attach a file';
+  }
+
+  function downloadFile(url) {
+    console.log('Downloading:', url);
+    fetch(url)
+      .then(res => res.blob())
+      .then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = url.split('/').pop();
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
   }
 
   function submitAdminNote() {
@@ -351,6 +354,7 @@
     font-size: 0.75rem;
     text-decoration: none;
     transition: all 0.2s ease;
+    cursor: pointer;
   }
   .attachment-link-admin:hover { background-color: #e9ecef; color: #212529; }
 
