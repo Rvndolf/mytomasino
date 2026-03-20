@@ -103,17 +103,9 @@
   }
 
   function downloadFile(url) {
-  console.log('Downloading:', url);
-  fetch(url)
-    .then(res => res.blob())
-    .then(blob => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = url.split('/').pop();
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
+    window.open(url, '_blank');
   }
+  
 </script>
 
 <style>
