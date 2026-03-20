@@ -30,7 +30,7 @@
                        class="img-fluid rounded"
                        style="max-height: 200px; object-fit: contain;">
                 {% else %}
-                  <a href="{{ furl|cloudinary_raw_url }}" target="_blank" class="attachment-link">
+                  <a href="{{ furl|cloudinary_raw_url|cloudinary_download_url }}" target="_blank" class="attachment-link">
                     <i class="fa-solid fa-paperclip me-1"></i> View Attachment
                   </a>
                 {% endif %}

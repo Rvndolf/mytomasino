@@ -151,7 +151,7 @@
                 class="img-fluid rounded attachment-img" 
                 alt="Ticket Attachment">
           {% else %}
-            <a href="{{ furl|cloudinary_raw_url }}" target="_blank" class="attachment-link">
+            <a href="{{ furl|cloudinary_raw_url|cloudinary_download_url }}" target="_blank" class="attachment-link">
               <i class="fa-solid fa-paperclip me-1"></i> View Attachment
             </a>
           {% endif %}

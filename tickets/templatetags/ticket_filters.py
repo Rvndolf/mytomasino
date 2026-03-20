@@ -29,3 +29,10 @@ def cloudinary_raw_url(url):
     if url and '/image/upload/' in url:
         return url.replace('/image/upload/', '/raw/upload/')
     return url
+
+@register.filter
+def cloudinary_download_url(url):
+    """Force Cloudinary file as download attachment"""
+    if url and '/raw/upload/' in url:
+        return url.replace('/raw/upload/', '/raw/upload/fl_attachment/')
+    return url
