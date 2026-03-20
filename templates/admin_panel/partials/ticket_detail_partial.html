@@ -117,8 +117,10 @@
                          class="img-fluid rounded"
                          style="max-height: 150px; object-fit: contain; margin-top: 0.25rem;">
                   {% else %}
-                    <a href="{{ note.attachment.url }}" target="_blank" class="attachment-link-admin">
-                      <i class="fa-solid fa-paperclip me-1"></i>{{ note.attachment.name|slice:"30:" }}
+                    <a href="#" 
+                      onclick="downloadFile('{{ furl|cloudinary_raw_url|cloudinary_download_url }}')" 
+                      class="attachment-link">
+                      <i class="fa-solid fa-paperclip me-1"></i> View Attachment
                     </a>
                   {% endif %}
                 {% endwith %}
@@ -228,6 +230,18 @@
     if (select) {
       window._pendingAdminStatusLabel = select.selectedOptions[0]?.text || null;
     }
+  }
+
+  function downloadFile(url) {
+  fetch(url)
+    .then(res => res.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = url.split('/').pop();
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
   }
 
   function showAdminUpdateToast() {
