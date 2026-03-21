@@ -66,7 +66,7 @@
                      onchange="updateFileName(this)">
               <span id="file-name-display">Attach a file</span>
             </label>
-            <button type="button" onclick="submitReply()" class="btn btn-send-reply">
+            <button type="button" id="reply-send-btn" onclick="submitReply()" class="btn btn-send-reply">
               <i class="fas fa-paper-plane"></i> Send
             </button>
           </div>
@@ -89,6 +89,12 @@
 
     if (!reply && !attachment) return;
 
+    const btn = document.getElementById('reply-send-btn');
+
+    // Prevent double submit + show loading state
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
     const formData = new FormData(form);
 
     fetch("{% url 'tickets:add_user_reply' ticket.pk %}", {
@@ -99,13 +105,17 @@
     .then(res => res.text())
     .then(html => {
       document.getElementById('responses-section').innerHTML = html;
+    })
+    .catch(() => {
+      // Re-enable on error so user can retry
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send';
     });
   }
 
   function downloadFile(url) {
     window.open(url, '_blank');
   }
-  
 </script>
 
 <style>
@@ -243,6 +253,16 @@
 .btn-send-reply i {
   margin-right: 0.4rem;
   font-size: 0.8rem;
+}
+
+.btn-send-reply:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  background-color: #e9ecef !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: #6c757d !important;
 }
 
 @media (max-width: 768px) {
