@@ -40,7 +40,7 @@ class Ticket(models.Model):
     metadata = models.JSONField(null=True, blank=True)
   
     urgency = models.CharField(max_length=10, choices=URGENCY_CHOICES, null=True, blank=True)
-    attachment = CloudinaryField('image', null=True, blank=True)
+    attachment = CloudinaryField('auto', resource_type='auto', null=True, blank=True)
     
     last_viewed_by_user = models.DateTimeField(null=True, blank=True)
     last_admin_update = models.DateTimeField(null=True, blank=True)
