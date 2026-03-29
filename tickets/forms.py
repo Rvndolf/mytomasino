@@ -325,9 +325,27 @@ class FacilitiesForm(forms.ModelForm):
 
 
 class GeneralInquiryForm(forms.ModelForm):
+    OFFICE_CHOICES = [
+        ('', 'Let the system decide (Auto-route)'),
+        ('registrar', "Registrar's Office"),
+        ('etc', 'ETC'),
+        ('ppfmo', 'Physical Plant and Facilities Management Office'),
+        ('principal', 'Principal Office'),
+        ('studentservices', 'Office of Student Services'),
+        ('guidance', 'Guidance Office'),
+        ('mapa', 'Office of Media, Alumni, and Public Affairs'),
+    ]
+
     inquiry = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 6, 'placeholder': 'Type your question or inquiry here...'}),
         label="Your Inquiry"
+    )
+
+    office = forms.ChoiceField(
+        choices=OFFICE_CHOICES,
+        required=False,
+        label="Direct to a Specific Office (Optional)",
+        help_text="Leave blank to let the system automatically route your inquiry."
     )
 
     class Meta:
@@ -342,12 +360,19 @@ class GeneralInquiryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if instance and instance.description:
             self.fields['inquiry'].initial = instance.description
+        if instance and instance.metadata:
+            self.fields['office'].initial = instance.metadata.get('directed_office', '')
 
     def save(self, commit=True):
         ticket = super().save(commit=False)
         inquiry = self.cleaned_data.get('inquiry')
+        office = self.cleaned_data.get('office')
         ticket.description = inquiry
-        ticket.metadata = {'form_type': 'general_inquiry'}
+        ticket.metadata = {
+            'form_type': 'general_inquiry',
+            'directed_office': office or None,
+            'directed_office_display': dict(self.OFFICE_CHOICES).get(office) if office else None,
+        }
         if commit:
             ticket.save()
         return ticket
