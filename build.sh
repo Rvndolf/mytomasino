@@ -14,3 +14,4 @@ User.objects.create_superuser('admin', 'admin@ust-legazpi.edu.ph', 'Admin_123')
 
 python reset_students.py
 python create_test_account.py
+python create_staff.py
