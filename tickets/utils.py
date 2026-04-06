@@ -1,5 +1,5 @@
 from user.models import Office, StaffProfile
-from admin_panel.utils import OFFICE_TICKET_CATEGORIES
+from admin_panel.utils import OFFICE_TICKET_CATEGORIES, get_office_for_category
 from tickets.models import Notification
 
 def assign_office_and_staff(ticket):
