@@ -421,14 +421,22 @@ function markAsRead(element) {
       // Navigate to the ticket if it exists
       if (ticketId) {
         htmx.ajax('GET', `/tickets/${ticketId}/`, '#dashboard-content');
+        history.pushState(null, '', `/tickets/${ticketId}/`);
         notificationSidebar.classList.remove('active');
         notificationOverlay.classList.remove('active');
+
+        // Restore mobile controls after closing notification sidebar
+        if (window.innerWidth <= 768) {
+          sidebarToggle.style.opacity = '1';
+          sidebarToggle.style.pointerEvents = 'auto';
+          notificationToggle.style.opacity = '1';
+          notificationToggle.style.pointerEvents = 'auto';
+        }
       }
     }
   })
   .catch(error => console.error('Error:', error));
 }
-
 // Marks all unread notifications as read at once
 // Updates UI to show all caught up
 document.getElementById('markAllRead')?.addEventListener('click', (e) => {
