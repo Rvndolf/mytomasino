@@ -67,13 +67,18 @@ def ticket_list(request):
     if not request.user.is_superuser:
         staff_profile = StaffProfile.objects.filter(user=request.user).first()
         if staff_profile:
-            # Filter tickets by office → category mapping
             allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, [])
-            tickets = tickets.filter(category__in=allowed_categories)
+            office_staff_ids = StaffProfile.objects.filter(
+                office=staff_profile.office
+            ).values_list('user_id', flat=True)
+
+            tickets = tickets.filter(
+                Q(category__in=allowed_categories) |
+                Q(assigned_to__in=office_staff_ids)
+            )
         else:
             tickets = Ticket.objects.none()
 
-    # Apply additional filters from GET params
     if active_categories:
         tickets = tickets.filter(category__in=active_categories)
     if status_filter:
@@ -92,16 +97,11 @@ def ticket_list(request):
         'OFFICE_TICKET_CATEGORIES': OFFICE_TICKET_CATEGORIES,
     }
 
-    # Check if this is an HTMX request (from sidebar navigation or table refresh)
     if request.headers.get('HX-Request'):
-        # Check if this is a table refresh (only tbody needs to be updated)
         if request.headers.get('HX-Target') == 'ticket-table-body':
-            # Return only table rows for tbody refresh
             return render(request, 'admin_panel/partials/ticket_rows_partial.html', context)
-        # Otherwise return the full content partial (for sidebar navigation)
         return render(request, 'admin_panel/partials/ticket_list_partial.html', context)
-    
-    # Full page load (browser refresh)
+
     return render(request, 'admin_panel/ticket_list.html', context)
 
 @login_required
