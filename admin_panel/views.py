@@ -3,46 +3,61 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from tickets.models import Ticket, TicketHistory, Notification
 from user.models import StaffProfile
 from .utils import send_ticket_status_email, OFFICE_TICKET_CATEGORIES, get_categories_for_office
-from django.core.paginator import Paginator
-from django.db.models import Count, Q
 import threading
 
 
 def is_staff_or_superuser(user):
     return user.is_superuser or StaffProfile.objects.filter(user=user).exists()
 
+
+def get_office_staff_ids(staff_profile):
+    """Return a queryset of user IDs belonging to the same office as the given staff profile."""
+    return StaffProfile.objects.filter(
+        office=staff_profile.office
+    ).values_list('user_id', flat=True)
+
+
+def staff_can_access_ticket(staff_profile, ticket):
+    """
+    Return True if the staff member's office is allowed to access the ticket.
+    Allows access if:
+      - The ticket category is mapped to their office, OR
+      - The ticket is directly assigned to someone in their office.
+    """
+    allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, [])
+    if ticket.category in allowed_categories:
+        return True
+    office_staff_ids = get_office_staff_ids(staff_profile)
+    return ticket.assigned_to_id in office_staff_ids
+
+
+# ---------------------------------------------------------------------------
+# Dashboard / Home
+# ---------------------------------------------------------------------------
+
 @login_required(login_url='user:login')
 def admin_home(request):
-    # Get tickets visible to this staff member
-    # Adjust the filter based on your permission logic
-    user_tickets = Ticket.objects.filter(
-        assigned_to=request.user  # or whatever your filtering logic is
-    )
-    
-    # Calculate ticket completion percentage
+    user_tickets = Ticket.objects.filter(assigned_to=request.user)
+
     completed_tickets = user_tickets.filter(status='completed').count()
     total_tickets = user_tickets.count()
-    
-    if total_tickets > 0:
-        completion_percentage = round((completed_tickets / total_tickets) * 100)
-    else:
-        completion_percentage = 0
-    
-    # Get last 5 ticket histories for tickets visible to this user
+    completion_percentage = round((completed_tickets / total_tickets) * 100) if total_tickets > 0 else 0
+
     history_entries = TicketHistory.objects.filter(
         ticket__in=user_tickets
     ).select_related('ticket').order_by('-timestamp')[:3]
-    
-    # Get status counts for the chart
+
     status_counts = {
         'open': user_tickets.filter(status='open').count(),
         'in_progress': user_tickets.filter(status='in_progress').count(),
         'completed': user_tickets.filter(status='completed').count(),
     }
-    
+
     context = {
         'completion_percentage': completion_percentage,
         'history_entries': history_entries,
@@ -50,11 +65,14 @@ def admin_home(request):
     }
 
     if request.headers.get("HX-Request"):
-        # Render only the partial content for HTMX
         return render(request, "admin_panel/partials/admin_home_partial.html", context)
 
-    # For full page load (refresh), render the base template
     return render(request, "admin_panel/admin_home.html", context)
+
+
+# ---------------------------------------------------------------------------
+# Ticket List
+# ---------------------------------------------------------------------------
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
@@ -68,10 +86,7 @@ def ticket_list(request):
         staff_profile = StaffProfile.objects.filter(user=request.user).first()
         if staff_profile:
             allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, [])
-            office_staff_ids = StaffProfile.objects.filter(
-                office=staff_profile.office
-            ).values_list('user_id', flat=True)
-
+            office_staff_ids = get_office_staff_ids(staff_profile)
             tickets = tickets.filter(
                 Q(category__in=allowed_categories) |
                 Q(assigned_to__in=office_staff_ids)
@@ -104,23 +119,21 @@ def ticket_list(request):
 
     return render(request, 'admin_panel/ticket_list.html', context)
 
+
+# ---------------------------------------------------------------------------
+# Ticket Detail
+# ---------------------------------------------------------------------------
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def ticket_detail(request, ticket_id):
-    """View detailed ticket information with history"""
     ticket = get_object_or_404(Ticket, pk=ticket_id)
 
     if not request.user.is_superuser:
         staff_profile = StaffProfile.objects.filter(user=request.user).first()
-        if not staff_profile:
+        if not staff_profile or not staff_can_access_ticket(staff_profile, ticket):
             return HttpResponse("Access denied", status=403)
 
-        # Allow if ticket category is in the office's allowed categories
-        allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, [])
-        if ticket.category not in allowed_categories:
-            return HttpResponse("Access denied", status=403)
-
-    # Mark notifications as read for staff
     Notification.objects.filter(
         user=request.user,
         ticket=ticket,
@@ -128,15 +141,12 @@ def ticket_detail(request, ticket_id):
     ).update(is_read=True)
 
     history = TicketHistory.objects.filter(ticket=ticket).order_by('-timestamp')
-    
-    # Get all conversation notes (staff responses AND user replies)
-    from django.db.models import Q
-    
+
     conversation_notes = TicketHistory.objects.filter(
         ticket=ticket
     ).filter(
         Q(action__icontains='Note added by') | Q(action__icontains='User reply:')
-    ).order_by('timestamp')  # Chronological order for conversation
+    ).order_by('timestamp')
 
     context = {
         'ticket': ticket,
@@ -144,37 +154,34 @@ def ticket_detail(request, ticket_id):
         'conversation_notes': conversation_notes,
     }
 
-    # Return partial for HTMX requests
     if request.headers.get("HX-Request"):
         return render(request, 'admin_panel/partials/ticket_detail_partial.html', context)
 
-    # Full page render for normal requests
     return render(request, 'admin_panel/ticket_detail.html', context)
 
 
+# ---------------------------------------------------------------------------
+# Update Ticket Status
+# ---------------------------------------------------------------------------
+
 def _send_email_async(user, ticket_id, new_status):
-    """Fire-and-forget email in a daemon thread to avoid blocking the response."""
     try:
         send_ticket_status_email(user, ticket_id, new_status)
     except Exception as e:
-        # In production, replace with proper logging: logger.error(...)
         print(f"[Email Error] Failed to send ticket status email: {e}")
 
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def update_ticket_status(request, ticket_id):
-    # select_related pulls user + assigned_to + created_by in one query
     ticket = get_object_or_404(
         Ticket.objects.select_related('created_by', 'assigned_to'),
         pk=ticket_id
     )
 
-    # Permission check for staff
     if not request.user.is_superuser:
         staff_profile = StaffProfile.objects.select_related('office').filter(user=request.user).first()
-        allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, []) if staff_profile else []
-        if ticket.category not in allowed_categories:
+        if not staff_profile or not staff_can_access_ticket(staff_profile, ticket):
             return HttpResponse("Access denied", status=403)
 
     if request.method == "POST":
@@ -183,13 +190,12 @@ def update_ticket_status(request, ticket_id):
         if new_status in dict(Ticket.STATUS_CHOICES):
             old_status_display = ticket.get_status_display()
             ticket.status = new_status
-            ticket.save(update_fields=['status'])  # only update the status column, not the whole row
+            ticket.save(update_fields=['status'])
             new_status_display = ticket.get_status_display()
 
             actor_name = request.user.get_full_name() or request.user.username
-            ticket_id_val = ticket.ticket_id()  # cache to avoid repeated calls — remove () if it's a field not a method
+            ticket_id_val = ticket.ticket_id()
 
-            # Save history
             TicketHistory.objects.create(
                 ticket=ticket,
                 ticket_title=ticket.title,
@@ -200,7 +206,6 @@ def update_ticket_status(request, ticket_id):
                 activity_type='status_change'
             )
 
-            # Notification for ticket creator
             Notification.objects.create(
                 user=ticket.created_by,
                 ticket=ticket,
@@ -209,7 +214,6 @@ def update_ticket_status(request, ticket_id):
                 message=f'Your ticket #{ticket_id_val} "{ticket.title}" status has been changed to {new_status_display}.'
             )
 
-            # Send email asynchronously — no longer blocks the response
             threading.Thread(
                 target=_send_email_async,
                 args=(ticket.created_by, ticket_id_val, new_status),
@@ -217,7 +221,6 @@ def update_ticket_status(request, ticket_id):
             ).start()
 
             if request.headers.get("HX-Request"):
-                # Fetch history and conversation notes efficiently in one query each
                 history = (
                     TicketHistory.objects
                     .filter(ticket=ticket)
@@ -245,16 +248,19 @@ def update_ticket_status(request, ticket_id):
 
     return redirect('admin_panel:ticket_detail', ticket_id=ticket.id)
 
+
+# ---------------------------------------------------------------------------
+# Add Ticket Note
+# ---------------------------------------------------------------------------
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def add_ticket_note(request, ticket_id):
     ticket = get_object_or_404(Ticket, pk=ticket_id)
 
-    # Permission check for staff
     if not request.user.is_superuser:
         staff_profile = StaffProfile.objects.filter(user=request.user).first()
-        allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, []) if staff_profile else []
-        if ticket.category not in allowed_categories:
+        if not staff_profile or not staff_can_access_ticket(staff_profile, ticket):
             return HttpResponse("Access denied", status=403)
 
     if request.method == "POST":
@@ -262,7 +268,11 @@ def add_ticket_note(request, ticket_id):
         attachment = request.FILES.get("attachment")
 
         if note or attachment:
-            action_text = f"Note added by {request.user.username.upper()} (Staff): {note}" if note else f"Note added by {request.user.username.upper()} (Staff): [Attachment]"
+            action_text = (
+                f"Note added by {request.user.username.upper()} (Staff): {note}"
+                if note else
+                f"Note added by {request.user.username.upper()} (Staff): [Attachment]"
+            )
 
             TicketHistory.objects.create(
                 ticket=ticket,
@@ -285,12 +295,10 @@ def add_ticket_note(request, ticket_id):
 
             if request.headers.get("HX-Request"):
                 history = TicketHistory.objects.filter(ticket=ticket).order_by('-timestamp')
-                conversation_notes = history.filter(
-                    action__icontains='Note added by'
-                ) | history.filter(
-                    action__icontains='User reply:'
-                )
-                conversation_notes = conversation_notes.order_by('timestamp')
+                conversation_notes = (
+                    history.filter(action__icontains='Note added by') |
+                    history.filter(action__icontains='User reply:')
+                ).order_by('timestamp')
 
                 return render(request, 'admin_panel/partials/ticket_detail_partial.html', {
                     'ticket': ticket,
@@ -299,27 +307,29 @@ def add_ticket_note(request, ticket_id):
                 })
 
         messages.success(request, "Note added successfully.")
+
     return redirect('admin_panel:ticket_detail', ticket_id=ticket.id)
+
+
+# ---------------------------------------------------------------------------
+# Delete Ticket
+# ---------------------------------------------------------------------------
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def delete_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, pk=ticket_id)
 
-    # Staff permission check
     if not request.user.is_superuser:
         staff_profile = StaffProfile.objects.filter(user=request.user).first()
-        allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, []) if staff_profile else []
-        if ticket.category not in allowed_categories:
+        if not staff_profile or not staff_can_access_ticket(staff_profile, ticket):
             return HttpResponse("Access denied", status=403)
 
     if request.method == 'GET':
-        # Render confirmation partial for HTMX modal
         return render(request, 'admin_panel/partials/delete_ticket_partial.html', {'ticket': ticket})
 
-    # POST: actually delete ticket
     ticket_id_display = ticket.ticket_id()
-    
+
     TicketHistory.objects.create(
         ticket=None,
         ticket_title=ticket.title,
@@ -330,7 +340,7 @@ def delete_ticket(request, ticket_id):
         created_by=ticket.created_by,
         activity_type='deleted'
     )
-    
+
     Notification.objects.create(
         user=ticket.created_by,
         ticket=None,
@@ -343,22 +353,23 @@ def delete_ticket(request, ticket_id):
 
     if request.headers.get("HX-Request"):
         response = HttpResponse(status=200)
-        # Trigger both: refresh ticket list AND reset ticket detail container
-        response['HX-Trigger'] = 'refreshTicketList, resetTicketDetail , ticketDeleted'
+        response['HX-Trigger'] = 'refreshTicketList, resetTicketDetail, ticketDeleted'
         return response
 
     messages.success(request, f"Ticket #{ticket_id_display} has been deleted.")
     return redirect('admin_panel:ticket_list')
 
+
+# ---------------------------------------------------------------------------
+# Users List
+# ---------------------------------------------------------------------------
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def users_list(request):
-    """View to list all regular users (excluding staff)"""
-    # Filter out staff users - only show regular users
     users = User.objects.filter(is_staff=False).order_by('-date_joined')
-    
-    # Add pagination (optional)
-    paginator = Paginator(users, 20)  # 20 users per page
+
+    paginator = Paginator(users, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -374,47 +385,43 @@ def users_list(request):
     return render(request, 'admin_panel/users_list.html', context)
 
 
-# Notification API endpoints
+# ---------------------------------------------------------------------------
+# Notification endpoints
+# ---------------------------------------------------------------------------
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def notification_count(request):
-    """Return unread notification count for admin's office"""
     try:
         staff_profile = StaffProfile.objects.select_related('office').get(user=request.user)
         office_name = staff_profile.office.name
     except StaffProfile.DoesNotExist:
         return JsonResponse({'unread_count': 0})
-    
-    # Get categories for this office
+
     categories = get_categories_for_office(office_name)
-    
-    # Count unread notifications for tickets in these categories
+    office_staff_ids = get_office_staff_ids(staff_profile)
+
     unread_count = Notification.objects.filter(
         user=request.user,
         is_read=False,
-        ticket__category__in=categories
+    ).filter(
+        Q(ticket__category__in=categories) |
+        Q(ticket__assigned_to__in=office_staff_ids)
     ).count()
-    
+
     return JsonResponse({'unread_count': unread_count})
 
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def mark_notification_read(request, notification_id):
-    """Mark a single notification as read"""
     if request.method == 'POST':
         try:
-            notification = Notification.objects.get(
-                id=notification_id,
-                user=request.user
-            )
+            notification = Notification.objects.get(id=notification_id, user=request.user)
             notification.is_read = True
             notification.save()
-
-            # Return ticket_id only if ticket still exists
             ticket_id = notification.ticket.id if notification.ticket else None
             return JsonResponse({'success': True, 'ticket_id': ticket_id})
-
         except Notification.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Notification not found'}, status=404)
 
@@ -424,79 +431,74 @@ def mark_notification_read(request, notification_id):
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def mark_all_notifications_read(request):
-    """Mark all notifications as read for admin's office"""
     if request.method == 'POST':
         try:
             staff_profile = StaffProfile.objects.select_related('office').get(user=request.user)
             office_name = staff_profile.office.name
         except StaffProfile.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'No office assigned'})
-        
+
         categories = get_categories_for_office(office_name)
-        
+        office_staff_ids = get_office_staff_ids(staff_profile)
+
         Notification.objects.filter(
             user=request.user,
             is_read=False,
-            ticket__category__in=categories
+        ).filter(
+            Q(ticket__category__in=categories) |
+            Q(ticket__assigned_to__in=office_staff_ids)
         ).update(is_read=True)
-        
+
         return JsonResponse({'success': True})
-    
+
     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+# ---------------------------------------------------------------------------
+# User Profile
+# ---------------------------------------------------------------------------
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def user_profile_view(request, user_id):
-    """View to display a user's profile details"""
     profile_user = get_object_or_404(User, id=user_id)
-    
-    context = {
-        'profile_user': profile_user,
-    }
-    
+
+    context = {'profile_user': profile_user}
+
     if request.headers.get('HX-Request'):
         return render(request, 'admin_panel/partials/user_profile_view_partial.html', context)
-    
+
     return render(request, 'admin_panel/user_profile_view.html', context)
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.paginator import Paginator
-from django.db.models import Q
-from tickets.models import TicketHistory, Ticket
 
-def is_staff_or_superuser(user):
-    return user.is_staff or user.is_superuser
+# ---------------------------------------------------------------------------
+# Admin History
+# ---------------------------------------------------------------------------
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def admin_history(request):
-    """View to display all ticket activity history for staff"""
-
-    # Get all history entries, ordered by most recent first
     history_qs = TicketHistory.objects.select_related(
         'ticket', 'ticket__created_by', 'ticket__assigned_to', 'user'
     ).order_by('-timestamp')
 
-    # FILTER BY OFFICE - Only show tickets for categories this office handles
     if not request.user.is_superuser:
         staff_profile = StaffProfile.objects.filter(user=request.user).first()
         if staff_profile:
             allowed_categories = OFFICE_TICKET_CATEGORIES.get(staff_profile.office.name, [])
-            # Include live ticket entries matching category OR deleted ticket entries (ticket=NULL)
+            office_staff_ids = get_office_staff_ids(staff_profile)
             history_qs = history_qs.filter(
                 Q(ticket__category__in=allowed_categories) |
+                Q(ticket__assigned_to__in=office_staff_ids) |
                 Q(ticket__isnull=True)
             )
         else:
             history_qs = TicketHistory.objects.none()
 
-    # Apply filters from GET parameters
     activity_type_filter = request.GET.get('activity_type', '')
     status = request.GET.get('status', '')
     user_search = request.GET.get('user', '')
 
-    # Filter by activity type
     if activity_type_filter:
         if activity_type_filter == 'created':
             history_qs = history_qs.filter(
@@ -523,11 +525,9 @@ def admin_history(request):
                 Q(action__icontains='deleted')
             )
 
-    # Filter by status
     if status:
         history_qs = history_qs.filter(new_status=status)
 
-    # Filter by user
     if user_search:
         history_qs = history_qs.filter(
             Q(user__username__icontains=user_search) |
@@ -536,12 +536,10 @@ def admin_history(request):
             Q(user__last_name__icontains=user_search)
         )
 
-    # Enrich each history entry with computed fields for the template
     enriched_entries = []
     for entry in history_qs:
         action_lower = entry.action.lower()
 
-        # Determine activity type - prefer DB value, fall back to action text
         if entry.activity_type:
             final_activity_type = entry.activity_type
         elif entry.ticket is None:
@@ -557,12 +555,10 @@ def admin_history(request):
         else:
             final_activity_type = 'updated'
 
-        # Get user - use entry user, fallback to ticket creator
         user = entry.user
         if not user and entry.ticket:
             user = entry.ticket.created_by
 
-        # Extract old/new status for status_change entries
         old_status = None
         new_status = entry.new_status
         if final_activity_type == 'status_change' and 'from' in action_lower and 'to' in action_lower:
@@ -576,7 +572,6 @@ def admin_history(request):
             except Exception:
                 pass
 
-        # Extract response preview
         response_preview = None
         if final_activity_type == 'response' and ':' in entry.action:
             try:
@@ -585,7 +580,6 @@ def admin_history(request):
             except Exception:
                 pass
 
-        # Resolve ticket_id safely
         ticket_id = entry.ticket.id if entry.ticket else None
 
         enriched_entries.append(type('EnrichedEntry', (object,), {
@@ -602,7 +596,6 @@ def admin_history(request):
             'response_preview': response_preview,
         })())
 
-    # Pagination
     paginator = Paginator(enriched_entries, 20)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
