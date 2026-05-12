@@ -101,63 +101,82 @@
 
 <!-- Scripts -->
 <script>
-  /* Pre-fill email from remembered cookie */
+  /* ── Remembered email ── */
   document.addEventListener('DOMContentLoaded', function () {
     function getCookie(name) {
       const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
       return match ? decodeURIComponent(match[2]).replace(/^"|"$/g, '') : null;
     }
-
     const rememberedEmail = getCookie('remembered_email');
-    const emailInput = document.getElementById('email');
-    const rememberCheckbox = document.getElementById('remember_me');
-
     if (rememberedEmail) {
-      emailInput.value = rememberedEmail;
-      rememberCheckbox.checked = true;
+      document.getElementById('email').value = rememberedEmail;
+      document.getElementById('remember_me').checked = true;
     }
   });
 
-  /* Barcode focus logic */
-  let typingTimer;
-  const barcodeInput = document.getElementById('barcodeInput');
-  const barcodeForm = document.getElementById('barcodeForm');
-  const barcodeRememberMe = document.getElementById('barcodeRememberMe');
-  const rememberCheckbox = document.getElementById('remember_me');
+  /* ── Barcode scanner detection ──
+     Scanners type very fast (chars arrive <50ms apart) then send Enter.
+     We buffer all keypresses at the document level. If Enter arrives
+     and the buffer filled up quickly, treat it as a barcode scan.
+  ── */
+  (function () {
+    const SCAN_MAX_INTERVAL_MS = 50;  // max ms between chars for scanner input
+    const MIN_BARCODE_LENGTH   = 4;   // minimum ID length to attempt login
 
-  barcodeInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      barcodeRememberMe.value = rememberCheckbox.checked ? '1' : '';
-      barcodeForm.submit();
-    }
-  });
+    let buffer       = '';
+    let lastKeyTime  = 0;
 
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('form:not(#barcodeForm)')) {
-      barcodeInput.focus();
-    }
-  });
+    const barcodeForm      = document.getElementById('barcodeForm');
+    const barcodeInput     = document.getElementById('barcodeInput');
+    const barcodeRememberMe = document.getElementById('barcodeRememberMe');
+    const rememberCheckbox  = document.getElementById('remember_me');
 
-  document.addEventListener('keyup', function() {
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(() => {
-      barcodeInput.focus();
-    }, 2000);
-  });
+    document.addEventListener('keydown', function (e) {
+      const now = Date.now();
+      const activeTag = document.activeElement.tagName;
+      const isTypingField = (
+        activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT'
+      ) && document.activeElement !== barcodeInput;
 
-  /* Password toggle with reversed icons */
-  const toggleBtn = document.querySelector('.password-toggle');
+      if (e.key === 'Enter') {
+        // If buffer looks like a barcode scan, submit it
+        if (buffer.length >= MIN_BARCODE_LENGTH) {
+          e.preventDefault();
+          barcodeInput.value = buffer;
+          barcodeRememberMe.value = rememberCheckbox.checked ? '1' : '';
+          barcodeForm.submit();
+        }
+        buffer = '';
+        return;
+      }
+
+      // Only buffer if chars are arriving fast (scanner speed)
+      // or if no other input field is focused
+      const timeSinceLast = now - lastKeyTime;
+      lastKeyTime = now;
+
+      if (timeSinceLast < SCAN_MAX_INTERVAL_MS || !isTypingField) {
+        // Single printable character — add to buffer
+        if (e.key.length === 1) {
+          buffer += e.key;
+        }
+      } else {
+        // User is typing manually in another field — reset buffer
+        buffer = '';
+        if (e.key.length === 1) buffer += e.key;
+      }
+    });
+  })();
+
+  /* ── Password toggle ── */
+  const toggleBtn    = document.querySelector('.password-toggle');
   const passwordInput = document.getElementById('password');
-  const icon = toggleBtn.querySelector('i');
+  const icon          = toggleBtn.querySelector('i');
 
   toggleBtn.addEventListener('click', () => {
     const isHidden = passwordInput.type === 'password';
-
     passwordInput.type = isHidden ? 'text' : 'password';
-
     icon.classList.add('icon-animate');
-
     setTimeout(() => {
       icon.classList.toggle('bi-eye-slash', !isHidden);
       icon.classList.toggle('bi-eye', isHidden);
@@ -165,20 +184,19 @@
     }, 150);
   });
 
-  /* Loading indicator on login */
+  /* ── Loading state on manual login ── */
   const loginForm = document.querySelector('form:not(#barcodeForm)');
-  const loginBtn = document.querySelector('.login-btn');
+  const loginBtn  = document.querySelector('.login-btn');
 
-  loginForm.addEventListener('submit', function() {
+  loginForm.addEventListener('submit', function () {
     loginBtn.disabled = true;
     loginBtn.innerHTML = `
-      <span style="font-family: inherit; font-weight: inherit;">Logging in...</span>
+      <span style="font-family:inherit;font-weight:inherit;">Logging in...</span>
       <span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
     `;
   });
 
-  // Re-enable button if there are error messages (login failed)
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const hasErrors = document.querySelectorAll('.toast .bg-danger, .toast.bg-danger').length > 0;
     if (hasErrors) {
       loginBtn.disabled = false;
