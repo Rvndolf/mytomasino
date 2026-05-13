@@ -6,20 +6,25 @@ django.setup()
 from django.contrib.auth.models import User
 from user.models import UserProfile
 
-if not User.objects.filter(username='Randolf Amaranto').exists():
-    user = User.objects.create_user(
-        username='Randolf Amaranto',
-        password=None,
-        first_name='Randolf',
-        last_name='Amaranto',
-    )
+user, user_created = User.objects.get_or_create(
+    username='Randolf Amaranto',
+    defaults={
+        'first_name': 'Randolf',
+        'last_name': 'Amaranto',
+    }
+)
+
+if user_created:
     user.set_unusable_password()
     user.save()
 
-    UserProfile.objects.create(
-        user=user,
-        id_number='3200010',
-    )
-    print("Created: Randolf Amaranto — ID: 3200010")
-else:
-    print("User 'Randolf Amaranto' already exists, skipping.")
+profile, profile_created = UserProfile.objects.get_or_create(
+    user=user,
+    defaults={'id_number': '3200010'}
+)
+
+if not profile_created and profile.id_number != '3200010':
+    profile.id_number = '3200010'
+    profile.save()
+
+print(f"{'Created' if user_created else 'Already exists'}: Randolf Amaranto — ID: {profile.id_number}")
