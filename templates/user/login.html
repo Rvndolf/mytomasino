@@ -27,7 +27,7 @@
       <!-- Hidden Barcode Login -->
       <form method="post" id="barcodeForm" style="position: absolute; left: -9999px;">
         {% csrf_token %}
-        <input type="text" name="student_id" id="barcodeInput" autofocus>
+        <input type="text" name="student_id" id="barcodeInput">
         <input type="hidden" name="barcode_login" value="1">
         <input type="hidden" name="remember_me" id="barcodeRememberMe" value="">
       </form>
@@ -116,60 +116,75 @@
 
   /* ── Barcode scanner detection ──
      Scanners type very fast (chars arrive <50ms apart) then send Enter.
-     We buffer all keypresses at the document level. If Enter arrives
-     and the buffer filled up quickly, treat it as a barcode scan.
+     We capture all keydown events at the document level, buffer them,
+     and submit the hidden barcode form when Enter is detected.
   ── */
   (function () {
-    const SCAN_MAX_INTERVAL_MS = 50;  // max ms between chars for scanner input
-    const MIN_BARCODE_LENGTH   = 4;   // minimum ID length to attempt login
+    const SCAN_MAX_INTERVAL_MS = 100; // relaxed to handle slower scanners
+    const MIN_BARCODE_LENGTH   = 4;
 
-    let buffer       = '';
-    let lastKeyTime  = 0;
+    let buffer      = '';
+    let lastKeyTime = 0;
+    let scanTimer   = null;
 
-    const barcodeForm      = document.getElementById('barcodeForm');
-    const barcodeInput     = document.getElementById('barcodeInput');
+    const barcodeForm       = document.getElementById('barcodeForm');
+    const barcodeInput      = document.getElementById('barcodeInput');
     const barcodeRememberMe = document.getElementById('barcodeRememberMe');
     const rememberCheckbox  = document.getElementById('remember_me');
 
+    function submitBarcode(value) {
+      console.log('Submitting barcode:', value);
+      barcodeInput.value = value;
+      barcodeRememberMe.value = rememberCheckbox.checked ? '1' : '';
+      barcodeForm.submit();
+    }
+
     document.addEventListener('keydown', function (e) {
       const now = Date.now();
-      const activeTag = document.activeElement.tagName;
-      const isTypingField = (
-        activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT'
-      ) && document.activeElement !== barcodeInput;
+      const timeSinceLast = now - lastKeyTime;
+      lastKeyTime = now;
 
+      // On Enter — check if buffer has a valid barcode
       if (e.key === 'Enter') {
-        // If buffer looks like a barcode scan, submit it
+        console.log('Enter detected, buffer:', buffer);
         if (buffer.length >= MIN_BARCODE_LENGTH) {
           e.preventDefault();
-          barcodeInput.value = buffer;
-          barcodeRememberMe.value = rememberCheckbox.checked ? '1' : '';
-          barcodeForm.submit();
+          clearTimeout(scanTimer);
+          submitBarcode(buffer);
         }
         buffer = '';
         return;
       }
 
-      // Only buffer if chars are arriving fast (scanner speed)
-      // or if no other input field is focused
-      const timeSinceLast = now - lastKeyTime;
-      lastKeyTime = now;
+      // Ignore non-printable keys
+      if (e.key.length !== 1) return;
 
-      if (timeSinceLast < SCAN_MAX_INTERVAL_MS || !isTypingField) {
-        // Single printable character — add to buffer
-        if (e.key.length === 1) {
-          buffer += e.key;
+      // If chars arrive fast enough, it's a scanner — keep buffering
+      // If it's been a while, reset (user started typing manually)
+      if (timeSinceLast > SCAN_MAX_INTERVAL_MS && buffer.length > 0) {
+        // Only reset if the active element is a manual input field
+        const tag = document.activeElement.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') {
+          buffer = '';
         }
-      } else {
-        // User is typing manually in another field — reset buffer
-        buffer = '';
-        if (e.key.length === 1) buffer += e.key;
       }
+
+      buffer += e.key;
+      console.log('Buffer:', buffer);
+
+      // Safety net: if scanner doesn't send Enter, auto-submit after pause
+      clearTimeout(scanTimer);
+      scanTimer = setTimeout(function () {
+        if (buffer.length >= MIN_BARCODE_LENGTH) {
+          submitBarcode(buffer);
+        }
+        buffer = '';
+      }, 300);
     });
   })();
 
   /* ── Password toggle ── */
-  const toggleBtn    = document.querySelector('.password-toggle');
+  const toggleBtn     = document.querySelector('.password-toggle');
   const passwordInput = document.getElementById('password');
   const icon          = toggleBtn.querySelector('i');
 
