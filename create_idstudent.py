@@ -14,6 +14,12 @@ user, user_created = User.objects.get_or_create(
     }
 )
 
+# Always ensure first/last name are set even if user already existed
+if user.first_name != 'Randolf' or user.last_name != 'Amaranto':
+    user.first_name = 'Randolf'
+    user.last_name = 'Amaranto'
+    user.save()
+
 if user_created:
     user.set_unusable_password()
     user.save()
